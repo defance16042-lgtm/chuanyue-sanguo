@@ -28,29 +28,28 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   await tap('Enter');
   let s = await st();
-  check('new game enters map at start', s.scene === 'MapScene' && s.map === 'zhuoxian' && s.pos.x === 11 && s.pos.y === 8, s.pos);
+  check('new game enters map at start', s.scene === 'MapScene' && s.map === 'zhuoxian' && s.pos.x === 15 && s.pos.y === 9, s.pos);
   await sleep(300);
   await shot('2_map');
 
   // collision with the map edge: hold left for a long time, must stop at x=1 (tree at x=0)
   await page.keyboard.down('ArrowLeft'); await sleep(2200); await page.keyboard.up('ArrowLeft'); await sleep(200);
   s = await st();
-  check('walking left stops at the edge tree (x=1)', s.pos.x === 1 && s.pos.y === 8, s.pos);
+  check('walking left stops at the edge tree (x=1)', s.pos.x === 1 && s.pos.y === 9, s.pos);
 
   // logic-level collision checks
-  const col = await page.evaluate(() => { const m = Engine.top(); return { tree: m.blocked(3, 9), water: m.blocked(2, 12), free: m.blocked(2, 8), npc: m.blocked(9, 6), crystal: m.blocked(14, 5), oob: m.blocked(-1, 3) }; });
+  const col = await page.evaluate(() => { const m = Engine.top(); return { tree: m.blocked(1, 5), water: m.blocked(22, 17), free: m.blocked(2, 9), npc: m.blocked(13, 8), crystal: m.blocked(17, 6), oob: m.blocked(-1, 3) }; });
   check('tree/water/npc/crystal/out-of-bounds are blocked, grass is free', col.tree && col.water && col.npc && col.crystal && col.oob && !col.free, col);
 
-  // walk back: right 10 -> (11,8); up 1 -> (11,7); left 2 -> (9,7)
-  for (let i = 0; i < 10; i++) await tap('ArrowRight');
-  await tap('ArrowUp'); await tap('ArrowLeft'); await tap('ArrowLeft');
+  // walk back: right 12 -> (13,9), directly below the villager at (13,8)
+  for (let i = 0; i < 12; i++) await tap('ArrowRight');
   s = await st();
-  check('tap = exactly one tile', s.pos.x === 9 && s.pos.y === 7, s.pos);
+  check('tap = exactly one tile', s.pos.x === 13 && s.pos.y === 9, s.pos);
 
   // talk to villager at (9,6): face up (blocked -> just turns), press Z
   await tap('ArrowUp');
   s = await st();
-  check('pushing into an NPC does not move', s.pos.x === 9 && s.pos.y === 7 && s.pos.dir === 'up', s.pos);
+  check('pushing into an NPC does not move', s.pos.x === 13 && s.pos.y === 9 && s.pos.dir === 'up', s.pos);
   await tap('z');
   check('Z opens dialogue', (await st()).scene === 'DialogScene');
   await sleep(1500);
@@ -78,22 +77,23 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await tap('x'); await tap('x');
   check('status/menu close back to map', (await st()).scene === 'MapScene');
 
-  // go to the save crystal at (14,5): from (9,7) right 4 -> (13,7), up 2 -> (13,5), face right
-  for (let i = 0; i < 4; i++) await tap('ArrowRight');
-  await tap('ArrowUp'); await tap('ArrowUp');
+  // go to the save crystal at (17,6): from (13,9) right 3 -> (16,9), up 3 -> (16,6), face right
+  for (let i = 0; i < 3; i++) await tap('ArrowRight');
+  await tap('ArrowUp'); await tap('ArrowUp'); await tap('ArrowUp');
   await tap('ArrowRight');
   s = await st();
-  check('standing at (13,5) facing the crystal', s.pos.x === 13 && s.pos.y === 5 && s.pos.dir === 'right', s.pos);
+  check('standing at (16,6) facing the crystal', s.pos.x === 16 && s.pos.y === 6 && s.pos.dir === 'right', s.pos);
   await tap('z');
   check('Z at the crystal opens save screen', (await st()).scene === 'SaveScene');
   await tap('z');
   await shot('7_save');
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('chuanyue-sanguo-v1-slot0') || 'null'));
-  check('slot 1 written with position/stats/flags', !!stored && stored.pos.x === 13 && stored.pos.y === 5 && stored.party[0].atk === 13 && stored.flags.route === 'wit', stored && { pos: stored.pos, atk: stored.party[0].atk });
+  check('slot 1 written with position/stats/flags', !!stored && stored.pos.x === 16 && stored.pos.y === 6 && stored.party[0].atk === 13 && stored.flags.route === 'wit', stored && { pos: stored.pos, atk: stored.party[0].atk });
   await tap('x');
 
-  // door warp: go left along row 5 to x=5, then up into the door at (5,4)
-  for (let i = 0; i < 8; i++) await tap('ArrowLeft');
+  // door warp: up to row 5, left along it to x=5, then up into the door at (5,4)
+  await tap('ArrowUp');
+  for (let i = 0; i < 11; i++) await tap('ArrowLeft');
   await tap('ArrowUp'); await sleep(700);
   s = await st();
   check('door warps into the inn at (5,6)', s.map === 'inn' && s.pos.x === 5 && s.pos.y === 6, { map: s.map, pos: s.pos });
@@ -115,7 +115,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await tap('ArrowDown'); await tap('Enter');       // back to slot 1 (wraps): valid
   await sleep(400);
   s = await st();
-  check('valid save restores map, position, stats and flags', s.scene === 'MapScene' && s.map === 'zhuoxian' && s.pos.x === 13 && s.pos.y === 5 && s.nyao.atk === 13 && s.nyao.int === 14 && s.nyao.points === 3 && s.flags.route === 'wit', s);
+  check('valid save restores map, position, stats and flags', s.scene === 'MapScene' && s.map === 'zhuoxian' && s.pos.x === 16 && s.pos.y === 6 && s.nyao.atk === 13 && s.nyao.int === 14 && s.nyao.points === 3 && s.flags.route === 'wit', s);
   await shot('10_loaded');
 
   // window resize keeps integer scaling

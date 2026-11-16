@@ -45,18 +45,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('new game: gold 50, 3 herbs, 1 member', s.gold === 50 && s.items.herb === 3 && s.party.length === 1, { g: s.gold, i: s.items });
 
   // 真按鍵：招募劉備 (14,8)
-  await tap('ArrowRight'); await tap('ArrowRight'); await tap('ArrowRight'); await tap('ArrowRight');   // (11,8)->(15,8)? blocked by liubei at 14 => stops at 13
+  await tap('ArrowRight'); await tap('ArrowRight'); await tap('ArrowRight'); await tap('ArrowRight');   // (15,9)->(18,9)? blocked by liubei at 18 => stops at 17
   await tap('ArrowRight');
   s = await S();
-  check('walked to (13,8) next to Liu Bei', s.pos.x === 13 && s.pos.y === 8, s.pos);
+  check('walked to (17,9) next to Liu Bei', s.pos.x === 17 && s.pos.y === 9, s.pos);
   await tap('z'); await sleep(900); await tap('z'); await sleep(500);
   s = await S();
   check('talking to Liu Bei recruits him (party 2, flag set, NPC hidden)', s.party.length === 2 && s.flags.recruited_liubei && s.scene === 'DialogScene', { n: s.party.length, sc: s.scene });
   await sleep(900); await tap('z'); await sleep(300);
   s = await S();
   check('back on map after the recruit message', s.scene === 'MapScene');
-  const hid = await page.evaluate(() => !Engine.top().npcAt(14, 8));
-  check('Liu Bei NPC no longer blocks (14,8)', hid);
+  const hid = await page.evaluate(() => !Engine.top().npcAt(18, 9));
+  check('Liu Bei NPC no longer blocks (18,9)', hid);
 
   // 招募關羽、張飛（用程式捷徑，上面已驗證真按鍵路徑）
   await page.evaluate(() => { const m = Engine.top(); m.runAct({ recruit: 'guanyu' }); m.runAct({ recruit: 'zhangfei' }); while (Engine.top().constructor.name === 'DialogScene') Engine.pop(); });
@@ -65,9 +65,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('party of 4', s.party.length === 4 && s.scene === 'MapScene', s.party.map(p => p.n));
 
   // 路線選擇：村民 (9,6)。目前在 (13,8)
-  await tap('ArrowLeft'); await tap('ArrowLeft'); await tap('ArrowLeft'); await tap('ArrowLeft'); // (9,8)
-  await tap('ArrowUp');                                                                         // (9,7)
-  await tap('ArrowUp');                                                                         // faces NPC
+  await tap('ArrowLeft'); await tap('ArrowLeft'); await tap('ArrowLeft'); await tap('ArrowLeft'); // (13,9)
+  await tap('ArrowUp');                                                                         // faces NPC at (13,8)
   await tap('z'); await sleep(300);
   await page.waitForFunction(() => Engine.top().constructor.name === 'DialogScene');
   // 第一句→選項句：手動推進到選項出現
@@ -178,6 +177,33 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   s = await fightByKeys({ script: [['ArrowRight', 'z']] });
   check('all-attack battle finishes', s && s.scene === 'MapScene', s && s.scene);
   for (let i = 0; i < 6 && (await S()).scene !== 'MapScene'; i++) await tap('z');
+
+  // ---- 全體攻擊：按一次就自動打到底（不再每回合問指令），再按一下取消
+  await page.evaluate(() => { Game.party.forEach(m => { m.atk = 22; m.hp = m.hpMax = 999; }); Engine.top().startBattle(['captain', 'bandit'], false); });
+  for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
+  await tap('ArrowRight'); await tap('z');
+  let cmdAgain = false, maxRound = 0;
+  for (let i = 0; i < 400; i++) {
+    const t = await page.evaluate(() => { const b = Engine.top(); return { sc: b.constructor.name, st: b.state, r: b.b && b.b.round, auto: b.auto }; });
+    if (t.sc !== 'BattleScene') break;
+    if (t.st === 'cmd') { cmdAgain = true; break; }
+    maxRound = Math.max(maxRound, t.r || 0);
+    await sleep(100);
+  }
+  check('全體攻擊 runs several rounds by itself without asking for commands', !cmdAgain && maxRound >= 2, { cmdAgain, maxRound });
+  for (let i = 0; i < 12 && (await S()).scene !== 'MapScene'; i++) await tap('z', 40, 300);
+  await page.evaluate(() => { Game.party.forEach(m => { m.atk = 1; m.hp = m.hpMax = 999; }); Engine.top().startBattle(['bandit', 'bandit', 'captain'], false); });
+  for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
+  await tap('ArrowRight'); await tap('z'); await sleep(300);
+  const wasAuto = await page.evaluate(() => Engine.top().auto);
+  await tap('z', 40, 100);
+  const nowAuto = await page.evaluate(() => Engine.top().auto);
+  check('pressing again cancels auto battle', wasAuto === true && nowAuto === false, { wasAuto, nowAuto });
+  await page.evaluate(() => { Engine.top().b.party.forEach(u => { u.hp = 999; }); });
+  for (let i = 0; i < 200 && (await S()).state !== 'cmd'; i++) await sleep(100);
+  check('after cancelling, command menu returns', (await S()).state === 'cmd');
+  await page.evaluate(() => { Engine.replaceAll(new Scenes.Map('zhuoxian', { x: 15, y: 9, dir: 'down' })); });
+  await sleep(300);
 
   // ---- 戰敗：把隊伍弄成 1 血、攻擊 1，打黃巾兵
   await page.evaluate(() => { Game.gold = 101; Game.party.forEach(m => { m.atk = 1; m.int = 1; m.def = 0; m.hp = 1; }); Engine.top().startBattle(['bandit', 'bandit', 'captain'], false); });

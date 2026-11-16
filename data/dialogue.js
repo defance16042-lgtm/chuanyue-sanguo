@@ -42,6 +42,16 @@ window.DATA.dialogue = {
         { label: '不用了' }
       ] }
   ],
+  vendor: [ { speaker: '攤販', text: '（測試）新鮮的果子，不買也看看！' } ],
+  guard: [ { speaker: '衛兵', text: '（測試）城外有黃巾賊出沒，沒事別走遠。' } ],
+  elder: [ { speaker: '老人', text: '（測試）近年天下不太平，連涿縣也常有流民經過。' } ],
+  woman: [ { speaker: '婦人', text: '（測試）井水很甜，你也來打一桶吧。' } ],
+  child: [ { speaker: '孩童', text: '（測試）我長大要當大將軍！' } ],
+  scholar: [ { speaker: '書生', text: '（測試）讀書之餘，我也在留意天下的局勢。' } ],
+  farmer: [ { speaker: '農夫', text: '（測試）今年收成不好，稅又重……' } ],
+  granny: [ { speaker: '老婦', text: '（測試）外頭冷，進來坐坐吧。' } ],
+  child_home: [ { speaker: '孩童', text: '（測試）嘿嘿，你是從哪裡來的？' } ],
+  teacher: [ { speaker: '教書先生', text: '（測試）讀書明理，是亂世裡最不會被奪走的東西。' } ],
   boss_test: [
     { speaker: '程遠志', text: '（測試）哪來的小娃兒，敢擋我黃巾大軍的路！' },
     { speaker: '程遠志', text: '（測試）受死吧！', act: { battle: 'boss' } }

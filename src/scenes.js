@@ -41,7 +41,7 @@
       E.text(c, '諸葛貓妖傳', W / 2, 62, { size: 16, align: 'center' });
       E.panel(c, 88, 136, 80, 44);
       E.menuList(c, ['開始遊戲', '讀取存檔'], this.sel, 98, 146, 16);
-      E.text(c, '戰鬥測試版 0.9　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
+      E.text(c, '戰鬥測試版 0.9.1　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
     }
   }
 

@@ -64,6 +64,10 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑'];
     startRound() {
       BL.beginRound(this.b);
       this.plans = []; this.cur = -1;
+      if (this.auto) {   // 全體攻擊：自動戰鬥到底，直到按鍵取消
+        this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = { type: 'attack', auto: true }; }, this);
+        this.beginExec(); return;
+      }
       this.nextCommand();
     }
     nextCommand(back) {
@@ -148,7 +152,9 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑'];
         if (this.wait <= 0) { const a = this.after; this.after = null; if (a) a.call(this); }
       } else if (s === 'exec') {
         this.wait -= dt;
-        if (E.hit.ok) this.wait = 0;
+        if (this.auto) {
+          if (E.hit.ok || E.hit.cancel) { this.auto = false; this.autoOff = 1200; }   // 再按一下取消，本回合打完後回到指令選單
+        } else if (E.hit.ok) this.wait = 0;
         if (this.wait <= 0) this.stepExec();
       } else if (s === 'cmd') this.updateCmd();
       else if (s === 'skill' || s === 'item') this.updateSub();
@@ -168,7 +174,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑'];
       if (c === '攻擊') this.pickTarget('enemy', { type: 'attack' });
       else if (c === '全體攻擊') {
         // 所有還能動的隊員一起普通攻擊，目標自動選兵力最少的敵人
-        this.b.party.forEach(function (m, i) { if (m.hp > 0 && m.confused <= 0) this.plans[i] = { type: 'attack', auto: true }; }, this);
+        this.auto = true;
+        this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = { type: 'attack', auto: true }; }, this);
         this.beginExec();
       }
       else if (c === '防禦') this.commit({ type: 'defend' });
@@ -302,6 +309,9 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑'];
 
     drawUI(c) {
       const b = this.b, self = this;
+      if (this.autoOff > 0) this.autoOff -= 16;
+      if (this.state === 'exec' && (this.auto || this.autoOff > 0))
+        E.text(c, this.auto ? '自動戰鬥中　按確定取消' : '已取消，本回合結束後回到指令', 128, 1, { size: 8, color: GOLD, align: 'center' });
       // 兩側名單：名字、兵力數字、兵力條
       b.party.forEach(function (u, i) {
         const y = self.rowY(i), dead = u.hp <= 0;

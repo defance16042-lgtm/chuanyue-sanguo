@@ -123,6 +123,137 @@ def tile_door():
     return im
 
 
+
+# ---- 村莊裝飾圖塊（接在原本 9 個後面：9 圍欄 10 水井 11 木箱 12 酒桶 13 花叢 14 攤位 15 告示牌 16 茅草屋頂 17 草堆 18 灌木）
+WOOD_D = (110, 72, 44, 255); WOOD_L = (170, 120, 70, 255)
+
+
+def tile_fence():
+    im = tile_grass()
+    for x0 in (1, 7, 13):
+        for y in range(6, 14):
+            im.putpixel((x0, y), WOOD_D); im.putpixel((x0 + 1, y), WOOD_L)
+    for y in (8, 11):
+        for x in range(0, 16):
+            im.putpixel((x, y), WOOD_L)
+        for x in range(0, 16):
+            im.putpixel((x, y + 1), WOOD_D)
+    return im
+
+
+def tile_well():
+    im = tile_grass()
+    for y in range(7, 15):
+        for x in range(2, 14):
+            im.putpixel((x, y), (140, 140, 152, 255) if (x + y) % 4 else (104, 104, 118, 255))
+    for y in range(8, 12):
+        for x in range(4, 12):
+            im.putpixel((x, y), (40, 80, 150, 255))
+    for x in range(2, 14):
+        im.putpixel((x, 7), OUTLINE); im.putpixel((x, 14), OUTLINE)
+    for y in (1, 2, 3, 4, 5, 6):
+        im.putpixel((3, y), WOOD_D); im.putpixel((12, y), WOOD_D)
+    for x in range(2, 14):
+        im.putpixel((x, 1), WOOD_L)
+    return im
+
+
+def tile_crate():
+    im = tile_grass()
+    for y in range(4, 15):
+        for x in range(2, 14):
+            im.putpixel((x, y), WOOD_L)
+    for i in range(2, 14):
+        im.putpixel((i, 4), WOOD_D); im.putpixel((i, 14), WOOD_D)
+    for i in range(4, 15):
+        im.putpixel((2, i), WOOD_D); im.putpixel((13, i), WOOD_D)
+    for i in range(5, 14):
+        im.putpixel((2 + (i - 3), i), WOOD_D) if 2 <= 2 + (i - 3) < 14 else None
+    return im
+
+
+def tile_barrel():
+    im = tile_grass()
+    for y in range(3, 15):
+        w = 5 if y in (3, 14) else 6
+        for x in range(8 - w, 8 + w):
+            im.putpixel((x, y), (150, 96, 56, 255))
+    for y in (5, 11):
+        for x in range(2, 14):
+            im.putpixel((x, y), (80, 80, 90, 255))
+    return im
+
+
+def tile_flowers():
+    im = tile_grass()
+    for x, y, c in ((3, 3, (240, 90, 120)), (10, 5, (250, 240, 120)), (6, 10, (200, 120, 240)), (12, 12, (240, 90, 120)), (2, 13, (250, 240, 120))):
+        im.putpixel((x, y), c + (255,)); im.putpixel((x, y + 1), (50, 120, 50, 255))
+        im.putpixel((x - 1, y), c + (255,)); im.putpixel((x + 1, y), c + (255,))
+    return im
+
+
+def tile_stall():
+    im = Image.new("RGBA", (16, 16), (84, 150, 70, 255))
+    im.alpha_composite(tile_grass())
+    for y in range(0, 6):
+        for x in range(16):
+            im.putpixel((x, y), (200, 60, 56, 255) if (x // 4) % 2 == 0 else (244, 232, 214, 255))
+    for x in range(16):
+        im.putpixel((x, 6), (140, 40, 40, 255))
+    for y in range(7, 15):
+        im.putpixel((1, y), WOOD_D); im.putpixel((14, y), WOOD_D)
+    for y in range(9, 13):
+        for x in range(2, 14):
+            im.putpixel((x, y), WOOD_L)
+    for x, c in ((4, (230, 80, 60)), (7, (250, 210, 80)), (10, (110, 190, 90))):
+        im.putpixel((x, 8), c + (255,)); im.putpixel((x + 1, 8), c + (255,))
+    return im
+
+
+def tile_sign():
+    im = tile_grass()
+    for y in range(8, 15):
+        im.putpixel((7, y), WOOD_D); im.putpixel((8, y), WOOD_D)
+    for y in range(2, 9):
+        for x in range(3, 13):
+            im.putpixel((x, y), WOOD_L)
+    for x in range(3, 13):
+        im.putpixel((x, 2), WOOD_D); im.putpixel((x, 8), WOOD_D)
+    for x in (5, 7, 9):
+        for y in (4, 5, 6):
+            im.putpixel((x, y), (60, 40, 30, 255))
+    return im
+
+
+def tile_thatch():
+    im = Image.new("RGBA", (16, 16), (196, 164, 90, 255))
+    for y in range(16):
+        for x in range(16):
+            if y % 3 == 2:
+                im.putpixel((x, y), (150, 120, 60, 255))
+            elif (x * 5 + y * 3) % 7 == 0:
+                im.putpixel((x, y), (222, 192, 120, 255))
+    return im
+
+
+def tile_haystack():
+    im = tile_grass()
+    for y in range(4, 15):
+        w = min(7, 3 + (y - 4) * 5 // 10 + 2)
+        for x in range(8 - w, 8 + w):
+            im.putpixel((x, y), (226, 196, 100, 255) if (x + y) % 3 else (196, 160, 70, 255))
+    return im
+
+
+def tile_bush():
+    im = tile_grass()
+    for y in range(4, 15):
+        for x in range(1, 15):
+            d = (x - 7.5) ** 2 / 36 + (y - 9.5) ** 2 / 28
+            if d <= 1:
+                im.putpixel((x, y), (34, 110, 52, 255) if (x + y) % 4 else (52, 140, 66, 255))
+    return im
+
 # ---------------------------------------------------------------- characters
 def draw_person(pal, direction, frame, cat=False, beard=None, wild=False, hat=None, plume=None):
     im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
@@ -267,6 +398,13 @@ CHARACTERS = [
     ("villager", dict(pal=((255, 224, 189), (110, 80, 50), (170, 140, 90), (210, 190, 140), (80, 60, 40)))),
     # 5: 程遠志（黃巾頭目，地圖上的頭目 NPC 用）
     ("chengyuanzhi", dict(pal=((226, 176, 136), (30, 22, 24), (230, 186, 50), (200, 60, 50), (60, 40, 30)), beard="long", hat=(236, 200, 60), plume=(200, 60, 50))),
+    # 6: 老人 7: 婦人 8: 孩童 9: 衛兵 10: 書生 11: 農夫
+    ("elder", dict(pal=((240, 208, 176), (236, 236, 236), (130, 120, 110), (180, 170, 150), (70, 56, 44)), beard="long")),
+    ("woman", dict(pal=((255, 226, 196), (50, 34, 30), (214, 110, 140), (250, 220, 120), (90, 50, 50)))),
+    ("child", dict(pal=((255, 224, 189), (60, 40, 30), (90, 150, 210), (240, 240, 240), (80, 60, 40)))),
+    ("guard", dict(pal=((235, 190, 150), (40, 40, 48), (110, 118, 140), (200, 200, 90), (50, 50, 60)), hat=(150, 156, 176), plume=(200, 60, 50))),
+    ("scholar", dict(pal=((250, 220, 190), (30, 26, 34), (70, 90, 170), (230, 230, 240), (50, 50, 70)), hat=(40, 50, 100))),
+    ("farmer", dict(pal=((226, 176, 136), (90, 60, 40), (150, 120, 80), (110, 160, 90), (80, 56, 40)), hat=(222, 190, 100))),
 ]
 DIRS = ("down", "up", "left", "right")
 
@@ -283,7 +421,8 @@ def build_sprites():
 
 
 def build_tiles():
-    makers = [tile_grass, tile_road, tile_water, tile_tree, tile_stone, tile_floor, tile_roof, tile_house_wall, tile_door]
+    makers = [tile_grass, tile_road, tile_water, tile_tree, tile_stone, tile_floor, tile_roof, tile_house_wall, tile_door,
+              tile_fence, tile_well, tile_crate, tile_barrel, tile_flowers, tile_stall, tile_sign, tile_thatch, tile_haystack, tile_bush]
     sheet = Image.new("RGBA", (16 * len(makers), 16))
     for i, m in enumerate(makers):
         sheet.paste(m(), (i * 16, 0))
