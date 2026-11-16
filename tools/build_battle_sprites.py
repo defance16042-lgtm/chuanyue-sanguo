@@ -178,6 +178,18 @@ def person(frame, sp):
         sleeve(a)
         seg(d, (a[0] + ox, a[1] + y0), (b[0] + ox, b[1] + y0), STEEL, 2)
         d.point([round(a[0]) + ox, round(a[1]) + y0], fill=GOLD)
+    elif sp['weapon'] == 'sabre':   # 單手大刀
+        a, b = SWORD1[frame]
+        sleeve(a)
+        seg(d, (a[0] + ox, a[1] + y0), (b[0] + ox, b[1] + y0), sp.get('blade', STEEL), 3)
+        d.point([round(a[0]) + ox, round(a[1]) + y0], fill=WOOD)
+    elif sp['weapon'] == 'bow':   # 弓：弧形的弓身加一條弦
+        a, b = SWORD1[frame]
+        pa, pb = (a[0] + ox - 1, a[1] + y0 + 2), (b[0] + ox + 1, b[1] + y0 - 2)
+        mid = ((pa[0] + pb[0]) / 2 + 2, (pa[1] + pb[1]) / 2)
+        seg(d, pa, mid, WOOD, 2); seg(d, mid, pb, WOOD, 2)
+        seg(d, pa, pb, WHITE)
+        sleeve(lerp(a, b, 0.5))
     else:
         a, b = LONG[frame]
         pa, pb = (a[0] + ox, a[1] + y0), (b[0] + ox, b[1] + y0)
@@ -197,6 +209,45 @@ ZHANGFEI = dict(skin=(226, 176, 136, 255), hair=(30, 22, 24, 255), hairstyle='wi
                 arm=(226, 176, 136, 255), beard='stubble', weapon='spear', blade=(200, 210, 230, 255), bw=1, brow=True)
 
 ROWS = {0: hero, 1: lambda f: person(f, LIUBEI), 2: lambda f: person(f, GUANYU), 3: lambda f: person(f, ZHANGFEI)}
+
+# ---------------------------------------------------------------- 敵人（先畫成面向右，再左右翻轉成面向左）
+YELLOW = (236, 200, 60, 255)
+ENEMIES = [
+    # 0 黃巾兵：黃頭巾、褐衣、長矛
+    dict(skin=SKIN, hair=(60, 40, 30, 255), hairstyle='wild', robe=(150, 110, 70, 255), robe2=(100, 70, 45, 255), trim=YELLOW, arm=(150, 110, 70, 255),
+         beard='none', weapon='spear', blade=STEEL, head=YELLOW),
+    # 1 黃巾弓手：黃頭巾、綠衣、弓
+    dict(skin=SKIN, hair=(60, 40, 30, 255), hairstyle='wild', robe=(90, 130, 80, 255), robe2=(60, 90, 55, 255), trim=YELLOW, arm=(90, 130, 80, 255),
+         beard='none', weapon='bow', head=YELLOW),
+    # 2 山賊：紅頭巾、深色皮甲、大刀、鬍子
+    dict(skin=(220, 170, 130, 255), hair=(40, 28, 24, 255), hairstyle='wild', robe=(70, 70, 90, 255), robe2=(45, 45, 60, 255), trim=(160, 60, 50, 255), arm=(70, 70, 90, 255),
+         beard='stubble', weapon='sabre', blade=STEEL, head=(190, 50, 50, 255), bw=1),
+    # 3 黃巾小帥：黃盔、橘甲、刀
+    dict(skin=SKIN, hair=(60, 40, 30, 255), hairstyle='hat', hat=YELLOW, robe=(210, 120, 40, 255), robe2=(150, 80, 30, 255), trim=GOLD, arm=(210, 120, 40, 255),
+         beard='short', weapon='sabre', blade=STEEL, bw=1, armor=True),
+    # 4 程遠志：金甲、大鬍、闊刀（身材寬但不比我方大多少）
+    dict(skin=(226, 176, 136, 255), hair=(30, 22, 24, 255), hairstyle='hat', hat=(230, 186, 50, 255), robe=(230, 186, 50, 255), robe2=(168, 120, 30, 255), trim=(200, 60, 50, 255),
+         arm=(230, 186, 50, 255), beard='long', weapon='sabre', blade=(210, 214, 232, 255), bw=2, armor=True, brow=True),
+]
+from PIL import ImageOps
+def enemy_frame(f, sp):
+    # 頭巾色覆蓋：wild 髮型的敵人用 head 色畫頭巾
+    im = person(f, sp)
+    if 'head' in sp:
+        d = ImageDraw.Draw(im)
+        d.rectangle([8, 3, 17, 4], fill=sp['head']); d.rectangle([8, 5, 17, 5], fill=sp['head'])
+        d.point([7, 6], fill=sp['head']); d.point([7, 7], fill=sp['head'])
+        im = outline(im.convert('RGBA'))
+    return ImageOps.mirror(im)
+esheet = Image.new('RGBA', (S * 8, S * len(ENEMIES)), (0, 0, 0, 0))
+for r, sp in enumerate(ENEMIES):
+    for f in range(8):
+        esheet.alpha_composite(enemy_frame(f, sp), (f * S, r * S))
+esheet.save(os.path.join(OUT, 'battle_enemy.png'))
+if PREVIEW:
+    pv = Image.new('RGBA', esheet.size, (88, 168, 56, 255)); pv.alpha_composite(esheet)
+    pv.resize((esheet.width * 4, esheet.height * 4), Image.NEAREST).save(PREVIEW.replace('.png', '_enemy.png'))
+
 rows = max(ROWS) + 1
 sheet = Image.new('RGBA', (S * 8, S * rows), (0, 0, 0, 0))
 for r, fn in ROWS.items():

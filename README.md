@@ -1,4 +1,4 @@
-# 穿越三國 諸葛貓妖傳（戰鬥測試版 0.7）
+# 穿越三國 諸葛貓妖傳（戰鬥測試版 0.8）
 
 步驟 3：加入戰鬥系統。地圖與對話仍是臨時測試用，沒有正式劇情。
 
@@ -51,9 +51,10 @@ index.html            雙擊開啟
 desktop/              Windows 桌面殼層與更新狀態介面
 src/                  程式（engine 引擎、game 進度、scenes 場景、save 存檔、battle_logic 戰鬥規則、battle_scene 戰鬥畫面、main 進入點）
 data/                 資料（characters 角色、maps 地圖、dialogue 對話、battle 敵人／技能／道具／經驗表）
-assets/               圖片（tiles 圖塊、sprites 角色、objects 水晶、enemies 敵人）
+assets/               圖片（tiles 圖塊、sprites 村民、objects 水晶、map_party 主角地圖小人、battle_party2 主角戰鬥小人、portraits 頭像、battle_enemy 敵人）
 package.json          Electron Windows 打包與自動更新設定
-tools/build_assets.py, build_battle_assets.py   生成圖片的腳本
+tools/build_from_sheet.py   從 tools/source/character_sheet.png 轉出主角小人與頭像
+tools/build_assets.py, build_battle_sprites.py, build_portraits.py   其餘素材生成腳本
 tools/sim_battle.js   戰鬥平衡模擬：node tools/sim_battle.js force 5（路線、野外戰鬥場數）
 tests/                用無頭瀏覽器按鍵測試（需要 Node 與 Playwright）
 ```
