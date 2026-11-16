@@ -5,6 +5,13 @@
 ## 怎麼玩
 雙擊 `index.html`，用 Chrome 或 Edge 開啟即可，不需要安裝任何東西，也不需要網路。
 
+## Windows 桌面版與自動更新
+- Windows 桌面版以 Electron 打包成 NSIS 安裝程式；安裝後可從桌面捷徑或開始功能表啟動。
+- 遊戲目前沒有帳號登入頁。桌面版會在程式啟動時連線檢查 GitHub Releases；如有新版，會在背景下載，完成後可按「重新啟動並安裝」，也可先繼續遊戲並在退出時安裝。
+- 自動更新需要網路連線，以及公開 GitHub Releases。直接用瀏覽器開啟 `index.html` 仍是離線版，不會檢查更新。
+- Windows 建置：`npm ci` 後執行 `npm run dist:win`。GitHub Actions 會在推送程式碼後建置安裝包並保留 30 天；推送符合版本的 `v*` 標籤時，會建置並發佈 GitHub Release，附上安裝包和更新資訊檔。
+- 安裝包目前未簽署程式碼；Windows SmartScreen 可能顯示未知發行者提示。
+
 | 操作 | 按鍵 |
 | --- | --- |
 | 移動 | 方向鍵 或 W A S D |
@@ -41,9 +48,11 @@
 ## 資料夾
 ```
 index.html            雙擊開啟
+desktop/              Windows 桌面殼層與更新狀態介面
 src/                  程式（engine 引擎、game 進度、scenes 場景、save 存檔、battle_logic 戰鬥規則、battle_scene 戰鬥畫面、main 進入點）
 data/                 資料（characters 角色、maps 地圖、dialogue 對話、battle 敵人／技能／道具／經驗表）
 assets/               圖片（tiles 圖塊、sprites 地圖人物（含村民、程遠志）、objects 水晶、battle_party16／battle_enemy16 戰鬥小人、portraits 大頭像）
+package.json          Electron Windows 打包與自動更新設定
 tools/build_assets.py            地圖圖塊與所有地圖人物（16×16）
 tools/build_battle16.py          戰鬥小人（身體 16×16，與地圖 NPC 同大小，含武器動作）
 tools/build_from_sheet.py        從 tools/source/character_sheet.png 裁出四位主角的大頭像

@@ -1,0 +1,63 @@
+{
+  "name": "chuanyue-sanguo",
+  "version": "0.8.0",
+  "private": true,
+  "description": "穿越三國 諸葛貓妖傳",
+  "author": "defance16042-lgtm",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/defance16042-lgtm/chuanyue-sanguo.git"
+  },
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis --publish never"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.11"
+  },
+  "devDependencies": {
+    "electron": "45.3.3",
+    "electron-builder": "26.18.0"
+  },
+  "overrides": {
+    "minimatch": "11.0.8"
+  },
+  "build": {
+    "appId": "com.defance16042.chuanyuesanguo",
+    "productName": "穿越三國 諸葛貓妖傳",
+    "directories": {
+      "output": "dist/win"
+    },
+    "files": [
+      "index.html",
+      "data/**/*",
+      "src/**/*",
+      "desktop/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "defance16042-lgtm",
+        "repo": "chuanyue-sanguo",
+        "releaseType": "release"
+      }
+    ],
+    "win": {
+      "target": ["nsis"],
+      "artifactName": "ChuanyueSanguo-${version}-Setup.${ext}",
+      "executableName": "ChuanyueSanguo"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}
