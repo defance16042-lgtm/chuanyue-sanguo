@@ -9,7 +9,13 @@
   const GOLD = '#ffd668', GREY = '#8a8aa0';
 
   function drawSprite(c, row, dir, step, x, y) {
-    c.drawImage(E.images.sprites, (FRAME0[dir] + (step ? 1 : 0)) * 16, row * 16, 16, 16, Math.round(x), Math.round(y), 16, 16);
+    const frameX = (FRAME0[dir] + (step ? 1 : 0)) * 16;
+    if (row === 0) {
+      // 諸葛貓妖縮至與一般 NPC 接近的 12×15 像素；仍留在原本 16×16 移動格內。
+      c.drawImage(E.images.sprites, frameX, row * 16, 16, 16, Math.round(x) + 2, Math.round(y) + 1, 12, 15);
+      return;
+    }
+    c.drawImage(E.images.sprites, frameX, row * 16, 16, 16, Math.round(x), Math.round(y), 16, 16);
   }
   function fmtTime(ms) {
     const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
