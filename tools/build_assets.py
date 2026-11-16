@@ -2,9 +2,9 @@
 
 Outputs (relative to the project root):
   assets/tiles.png    9 tiles of 16x16 in one row   (indices match data/maps.js)
-  assets/sprites.png  5 characters x 8 frames of 16x16
+  assets/sprites.png  6 characters x 8 frames of 16x16
                       frame order: down0 down1 up0 up1 left0 left1 right0 right1
-                      row order:   nyao liubei guanyu zhangfei villager
+                      row order:   nyao liubei guanyu zhangfei villager chengyuanzhi
   assets/objects.png  save crystal, 2 frames of 16x16
 
 Replace any of these PNGs with your own art of the same layout and the game uses it unchanged.
@@ -124,7 +124,7 @@ def tile_door():
 
 
 # ---------------------------------------------------------------- characters
-def draw_person(pal, direction, frame, cat=False, beard=None, wild=False):
+def draw_person(pal, direction, frame, cat=False, beard=None, wild=False, hat=None, plume=None):
     im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
 
     def px(x, y, c):
@@ -187,6 +187,18 @@ def draw_person(pal, direction, frame, cat=False, beard=None, wild=False):
         rect(4, 2, 11, 2, hair)
         px(4, 3, hair); px(11, 3, hair)
 
+    # hat (e.g. Guan Yu's green cap, a general's helmet)
+    if hat:
+        if direction == "up":
+            rect(5, 2, 10, 6, hat)
+        else:
+            rect(5, 2, 10, 3, hat)
+            px(5, 4, hat) if direction != "right" else None
+            px(10, 4, hat) if direction != "left" else None
+        rect(6, 1, 9, 1, hat)
+    if plume:
+        px(7, 0, plume); px(8, 0, plume)
+
     # beard
     if beard:
         if direction == "down":
@@ -247,11 +259,14 @@ def draw_person(pal, direction, frame, cat=False, beard=None, wild=False):
 
 
 CHARACTERS = [
-    ("nyao", dict(pal=((255, 224, 189), (190, 100, 40), (130, 70, 160), (255, 214, 104), (60, 30, 60)), cat=True)),
-    ("liubei", dict(pal=((255, 224, 189), (40, 30, 30), (60, 150, 90), (240, 220, 120), (80, 50, 30)))),
-    ("guanyu", dict(pal=((224, 130, 120), (30, 28, 30), (40, 120, 70), (240, 200, 80), (60, 40, 30)), beard="long")),
-    ("zhangfei", dict(pal=((210, 170, 140), (28, 24, 28), (50, 50, 74), (200, 60, 60), (40, 30, 30)), beard="short", wild=True)),
+    # 設計參考：tools/source/character_sheet.png（諸葛貓妖綠袍貓耳、劉備紅綠披風、關羽綠帽長鬚、張飛深藍衣亂髮）
+    ("nyao", dict(pal=((250, 214, 176), (92, 58, 34), (44, 140, 84), (240, 200, 64), (110, 70, 40)), cat=True, hat=(30, 100, 60))),
+    ("liubei", dict(pal=((250, 214, 176), (40, 28, 24), (60, 150, 90), (200, 64, 64), (80, 50, 30)), beard="short")),
+    ("guanyu", dict(pal=((224, 150, 120), (30, 28, 30), (48, 160, 96), (240, 200, 80), (60, 40, 30)), beard="long", hat=(40, 130, 76))),
+    ("zhangfei", dict(pal=((220, 170, 130), (28, 24, 28), (44, 60, 130), (120, 90, 50), (40, 30, 30)), beard="short", wild=True)),
     ("villager", dict(pal=((255, 224, 189), (110, 80, 50), (170, 140, 90), (210, 190, 140), (80, 60, 40)))),
+    # 5: 程遠志（黃巾頭目，地圖上的頭目 NPC 用）
+    ("chengyuanzhi", dict(pal=((226, 176, 136), (30, 22, 24), (230, 186, 50), (200, 60, 50), (60, 40, 30)), beard="long", hat=(236, 200, 60), plume=(200, 60, 50))),
 ]
 DIRS = ("down", "up", "left", "right")
 

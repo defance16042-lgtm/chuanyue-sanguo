@@ -1,4 +1,4 @@
-# 穿越三國 諸葛貓妖傳（戰鬥測試版 0.8）
+# 穿越三國 諸葛貓妖傳（戰鬥測試版 0.9）
 
 步驟 3：加入戰鬥系統。地圖與對話仍是臨時測試用，沒有正式劇情。
 
@@ -27,7 +27,7 @@
 - 增益／減益／混亂狀態、逃跑（頭目戰不能逃）、道具（傷藥、提神茶、煙霧彈）
 - 五項能力：武力、智力、速度、兵力、魅力（防禦由兵力換算）。魅力影響離間成功率、鼓舞／怒喝強度與逃跑成功率
 - 升級：劉關張依固定成長；諸葛貓妖每級得 3 點能力點，自己到「狀態」畫面配點（兵力每點 +8，其餘每點 +1）
-- 戰鬥畫面仿紅白機排列，左我方右敵方；全體攻擊指令；四位主角各有武器與揮砍／施法動作
+- 戰鬥畫面仿紅白機排列，左我方右敵方；全體攻擊指令；人物不分地圖或戰鬥都是 16×16，四位主角各有武器與揮砍／施法動作
 - 金錢、旅館住宿（30 金）、商人買道具、野外隨機遇敵、頭目戰、戰敗後回涿縣（損失一半金錢）
 - 存檔包含金錢與道具；舊存檔仍可讀取
 
@@ -43,9 +43,10 @@
 index.html            雙擊開啟
 src/                  程式（engine 引擎、game 進度、scenes 場景、save 存檔、battle_logic 戰鬥規則、battle_scene 戰鬥畫面、main 進入點）
 data/                 資料（characters 角色、maps 地圖、dialogue 對話、battle 敵人／技能／道具／經驗表）
-assets/               圖片（tiles 圖塊、sprites 村民、objects 水晶、map_party 主角地圖小人、battle_party2 主角戰鬥小人、portraits 頭像、battle_enemy 敵人）
-tools/build_from_sheet.py   從 tools/source/character_sheet.png（自創 8-bit 人物模組圖）轉出主角的小人與頭像；劉備的雙股劍在這支腳本裡補畫
-tools/build_assets.py, build_battle_sprites.py   其餘圖片（地圖圖塊、村民、敵人）的程式繪製腳本
+assets/               圖片（tiles 圖塊、sprites 地圖人物（含村民、程遠志）、objects 水晶、battle_party16／battle_enemy16 戰鬥小人、portraits 大頭像）
+tools/build_assets.py            地圖圖塊與所有地圖人物（16×16）
+tools/build_battle16.py          戰鬥小人（身體 16×16，與地圖 NPC 同大小，含武器動作）
+tools/build_from_sheet.py        從 tools/source/character_sheet.png 裁出四位主角的大頭像
 tools/sim_battle.js   戰鬥平衡模擬：node tools/sim_battle.js force 5（路線、野外戰鬥場數）
 tests/                用無頭瀏覽器按鍵測試（需要 Node 與 Playwright）
 ```

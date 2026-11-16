@@ -25,17 +25,17 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑'];
     }
 
     // 版面：左邊我方、右邊敵方，各自一列一人（仿紅白機戰鬥畫面），下方是頭像與訊息框
-    rowY(i) { return 3 + i * 39; }
+    rowY(i) { return 12 + i * 30; }
     layout() {
       const self = this;
       // 小人站在兵力條正上方、對齊條的中間。我方條中心 x=70，敵方條中心 x=186
       this.b.enemies.forEach(function (e, i) {
-        e.big = !!e.boss; e.size = 24; e.cw = 24; e.top = 0;
-        e.x = 186 - 12; e.y = self.rowY(i) + 35 - 24; e.shake = 0; e.fade = 1; e.row = i;
+        e.big = !!e.boss; e.size = 16; e.cw = 24; e.top = 0;
+        e.x = 186 - 12; e.y = self.rowY(i) + 2; e.shake = 0; e.fade = 1; e.row = i;
       });
       this.b.party.forEach(function (u, i) {
-        u.cw = 40; u.top = 8;   // 戰鬥小人的格是 40×44，上面有約 8 像素空白
-        u.x = 70 - 20; u.y = self.rowY(i) + 35 - 44; u.shake = 0; u.row = i;
+        u.cw = 24; u.top = 0;   // 戰鬥小人的格是 24×16：身體 16×16，右邊留給武器
+        u.x = 70 - 12; u.y = self.rowY(i) + 2; u.shake = 0; u.row = i;
       });
     }
 
@@ -259,7 +259,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑'];
         }
         if (hurt && !dead) frame = 6;
         if (dead) frame = 7;
-        wc.drawImage(E.images.benemy, frame * 24, e.sprite * 24, 24, 24, e.x + dx, e.y, 24, 24);
+        wc.drawImage(E.images.benemy16, frame * 24, e.sprite * 16, 24, 16, e.x + dx, e.y, 24, 16);
         wc.globalAlpha = 1;
       });
       this.b.party.forEach(function (u) { self.drawPartyUnit(wc, u); });
@@ -281,16 +281,16 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑'];
       if (dead) frame = 7;
       const row = BATTLE_ROW[u.id];
       if (row !== undefined) {
-        wc.drawImage(E.images.bparty2, frame * 40, row * 44, 40, 44, u.x + sx + off, u.y, 40, 44);
+        wc.drawImage(E.images.bparty16, frame * 24, row * 16, 24, 16, u.x + sx + off, u.y, 24, 16);
       } else {
         wc.globalAlpha = dead ? 0.35 : 1;
         wc.drawImage(E.images.sprites, ((cmd || an) ? 7 : 6) * 16, u.ref.sprite * 16, 16, 16, u.x + sx + off, u.y, 16, 16);
         wc.globalAlpha = 1;
       }
       if (an && an.kind === 'cast' && !dead) {   // 施法光圈
-        const r = 6 + an.t / 40;
+        const r = 4 + an.t / 60;
         wc.strokeStyle = 'rgba(255,255,160,' + Math.max(0, 1 - an.t / 560) + ')'; wc.lineWidth = 1.5;
-        wc.beginPath(); wc.arc(u.x + 20 + off, u.y + 22, r, 0, Math.PI * 2); wc.stroke();
+        wc.beginPath(); wc.arc(u.x + 12 + off, u.y + 8, r, 0, Math.PI * 2); wc.stroke();
       }
     }
 
@@ -306,28 +306,28 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑'];
       b.party.forEach(function (u, i) {
         const y = self.rowY(i), dead = u.hp <= 0;
         const sel = self.state === 'cmd' && self.cur === i || (self.state === 'target' && self.targetSide === 'ally' && self.targets[self.targetSel] === u);
-        E.text(c, u.name, 6, y + 8, { size: 10, color: dead ? GREY : (sel ? GOLD : '#fff') });
+        E.text(c, u.name, 6, y + 2, { size: 10, color: dead ? GREY : (sel ? GOLD : '#fff') });
         const low = !dead && u.hp / u.hpMax < 0.3;
-        E.text(c, String(u.hp), 8, y + 22, { size: 10, color: dead ? GREY : (low ? RED : '#fff') });
-        self.bar(c, 40, y + 36, 60, u.hp / u.hpMax, '#f0a030');
+        E.text(c, String(u.hp), 8, y + 16, { size: 10, color: dead ? GREY : (low ? RED : '#fff') });
+        self.bar(c, 40, y + 19, 60, u.hp / u.hpMax, '#f0a030');
         const bf = [];
         if (u.buffs.atk) bf.push(u.buffs.atk.mult > 1 ? '攻↑' : '攻↓');
         if (u.buffs.def) bf.push('守↑');
         if (u.confused > 0) bf.push('亂');
         if (u.defending) bf.push('守');
-        if (bf.length) E.text(c, bf.join(''), 103, y + 34, { size: 8, color: GOLD });
+        if (bf.length) E.text(c, bf.join(''), 103, y + 17, { size: 8, color: GOLD });
       });
       b.enemies.forEach(function (e, i) {
         if (e.fade <= 0) return;
         const y = self.rowY(i), dead = e.hp <= 0;
         const sel = self.state === 'target' && self.targetSide === 'enemy' && self.targets[self.targetSel] === e;
-        E.text(c, e.name, 250, y + 8, { size: 10, align: 'right', color: dead ? GREY : (sel ? GOLD : '#fff') });
-        E.text(c, String(e.hp), 250, y + 22, { size: 10, align: 'right', color: dead ? GREY : '#fff' });
-        self.bar(c, 156, y + 36, 60, e.hp / e.hpMax, '#a050d0');
+        E.text(c, e.name, 250, y + 2, { size: 10, align: 'right', color: dead ? GREY : (sel ? GOLD : '#fff') });
+        E.text(c, String(e.hp), 250, y + 16, { size: 10, align: 'right', color: dead ? GREY : '#fff' });
+        self.bar(c, 156, y + 19, 60, e.hp / e.hpMax, '#a050d0');
         const bf = [];
         if (e.confused > 0) bf.push('亂');
         if (e.buffs.atk) bf.push('攻↓');
-        if (bf.length) E.text(c, bf.join(''), 153, y + 34, { size: 8, color: GOLD, align: 'right' });
+        if (bf.length) E.text(c, bf.join(''), 153, y + 17, { size: 8, color: GOLD, align: 'right' });
       });
       // 目標游標
       if (this.state === 'target') {

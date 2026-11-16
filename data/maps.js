@@ -77,7 +77,7 @@ window.DATA.maps = {
       { x: 12, y: 0, to: 'zhuoxian', tx: 12, ty: 16, dir: 'up' }
     ],
     npcs: [
-      { id: 'boss1', name: '程遠志', sprite: 2, x: 11, y: 18, dir: 'up', dialogue: 'boss_test', hideIf: 'boss_down' }
+      { id: 'boss1', name: '程遠志', sprite: 5, x: 11, y: 18, dir: 'up', dialogue: 'boss_test', hideIf: 'boss_down' }
     ],
     objects: []
   },
