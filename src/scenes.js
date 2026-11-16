@@ -9,6 +9,10 @@
   const GOLD = '#ffd668', GREY = '#8a8aa0';
 
   function drawSprite(c, row, dir, step, x, y) {
+    if (row < 4 && E.images.mparty) {   // 四位主角：32×32 的格，腳底對齊格子底部
+      c.drawImage(E.images.mparty, (FRAME0[dir] + (step ? 1 : 0)) * 32, row * 32, 32, 32, Math.round(x) - 8, Math.round(y) - 16, 32, 32);
+      return;
+    }
     c.drawImage(E.images.sprites, (FRAME0[dir] + (step ? 1 : 0)) * 16, row * 16, 16, 16, Math.round(x), Math.round(y), 16, 16);
   }
   function fmtTime(ms) {
@@ -41,7 +45,7 @@
       E.text(c, '諸葛貓妖傳', W / 2, 62, { size: 16, align: 'center' });
       E.panel(c, 88, 136, 80, 44);
       E.menuList(c, ['開始遊戲', '讀取存檔'], this.sel, 98, 146, 16);
-      E.text(c, '戰鬥測試版 0.7　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
+      E.text(c, '戰鬥測試版 0.8　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
     }
   }
 
@@ -245,8 +249,9 @@
       const m = this.member();
       c.fillStyle = '#0c1030'; c.fillRect(16, 16, 224, 192);
       E.panel(c, 16, 16, 224, 192);
-      c.drawImage(E.images.sprites, 0, m.sprite * 16, 16, 16, 28, 24, 16, 16);
-      E.text(c, m.name, 50, 26, { size: 12, color: GOLD });
+      if (m.sprite < 4 && E.images.portraits) c.drawImage(E.images.portraits, m.sprite * 48, 0, 48, 48, 184, 24, 48, 48);
+      else c.drawImage(E.images.sprites, 0, m.sprite * 16, 16, 16, 28, 24, 16, 16);
+      E.text(c, m.name, 32, 26, { size: 12, color: GOLD });
       const rows = [
         ['等級', String(m.level)], ['戰術點', m.tp + ' / ' + m.tpMax],
         ['武力', String(m.atk)], ['智力', String(m.int)], ['速度', String(m.spd)], ['兵力', m.hp + ' / ' + m.hpMax], ['魅力', String(m.cha)]
