@@ -7,6 +7,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing version tag to upload this build to, for example v0.8.0
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -27,25 +32,46 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build or publish Windows installer
+      - name: Build Windows installer
+        run: npm run dist:win
+
+      - name: Generate updater manifest
+        run: node scripts/write-update-manifest.cjs
+
+      - name: Publish installer and updater files to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
+          $tag = $env:RELEASE_TAG
           if ($env:GITHUB_REF -like 'refs/tags/v*') {
-            $version = node -p "require('./package.json').version"
-            if ($env:GITHUB_REF_NAME -ne "v$version") {
-              throw "Release tag $env:GITHUB_REF_NAME must match package.json version v$version"
-            }
-            npm run release:win
-          } else {
-            npm run dist:win
+            $tag = $env:GITHUB_REF_NAME
           }
 
-      - name: Upload installer artifact
+          $version = node -p "require('./package.json').version"
+          if ($tag -ne "v$version") {
+            throw "Release tag $tag must match package.json version v$version"
+          }
+
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --verify-tag --title "穿越三國 諸葛貓妖傳 $tag" --notes "Windows 桌面版；啟動時檢查更新，下載完成後可重新啟動安裝。"
+            if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub Release $tag" }
+          }
+
+          $installer = "dist/win/ChuanyueSanguo-$version-Setup.exe"
+          gh release upload $tag $installer "$installer.blockmap" "dist/win/latest.yml" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Could not upload installer and updater files to $tag" }
+
+      - name: Upload Windows build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ChuanyueSanguo-Windows-${{ github.sha }}
-          path: dist/win/*.exe
+          path: |
+            dist/win/*.exe
+            dist/win/*.exe.blockmap
+            dist/win/latest.yml
           if-no-files-found: error
           retention-days: 30
