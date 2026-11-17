@@ -50,9 +50,9 @@ window.DATA.battle = {
   },
   groups: {
     field1: [ ['turban', 'turban'], ['turban', 'archer'], ['archer', 'turban', 'turban'], ['bandit', 'turban'] ],
-    field2: [ ['bandit', 'archer'], ['captain', 'turban'], ['bandit', 'turban', 'archer'], ['captain', 'archer', 'turban'] ],
+    field2: [ ['bandit', 'archer'], ['captain', 'turban'], ['bandit', 'turban', 'archer'], ['captain', 'archer', 'turban'], ['bandit', 'captain', 'turban', 'archer', 'archer'] ],
     boss:   [ ['chengyuanzhi', 'captain', 'archer', 'archer'] ],
-    boss2:  [ ['qushuai', 'captain', 'captain', 'archer'] ]
+    boss2:  [ ['qushuai', 'captain', 'captain', 'archer', 'archer'] ]
   },
   encounterRate: 0.07   // 每走一步遇敵機率（野外）
 };
