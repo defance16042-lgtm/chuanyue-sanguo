@@ -19,13 +19,49 @@
     E.replaceAll(new MapScene(G.mapId, spawn || G.pos));
   }
 
+  // ------------------------------------------------------------ 更新檢查
+  // 從 GitHub 讀取最新的 package.json 版本，與 src/version.js 的版本比較。
+  // 瀏覽器版（雙擊 index.html）：有新版時開啟下載頁。Windows 安裝版另有自己的自動更新。
+  const Update = {
+    state: 'idle',        // idle / checking / latest / newer / error
+    latest: '',
+    newer: function (a, b) {   // a 是否比 b 新
+      const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+      for (let i = 0; i < 3; i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d > 0; }
+      return false;
+    },
+    check: function () {
+      if (this.state === 'checking') return;
+      const self = this; this.state = 'checking';
+      const repo = window.GAME_REPO || '';
+      const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+      const timer = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
+      fetch('https://raw.githubusercontent.com/' + repo + '/main/package.json?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(function (j) {
+          clearTimeout(timer);
+          self.latest = String(j.version || '');
+          self.state = self.newer(self.latest, window.GAME_VERSION || '0') ? 'newer' : 'latest';
+        })
+        .catch(function () { clearTimeout(timer); self.state = 'error'; });
+    },
+    open: function () {
+      const url = 'https://github.com/' + (window.GAME_REPO || '') + '/archive/refs/heads/main.zip';
+      try { window.open(url, '_blank'); } catch (e) { /* 被擋住就算了，畫面會提示網址 */ }
+    }
+  };
+
   // ------------------------------------------------------------ 標題
   class TitleScene {
-    constructor() { this.sel = 0; }
+    constructor() { this.sel = 0; Update.check(); }
     update() {
-      if (E.hit.up || E.hit.down) this.sel = 1 - this.sel;
+      if (E.hit.up) this.sel = (this.sel + 2) % 3;
+      if (E.hit.down) this.sel = (this.sel + 1) % 3;
       if (E.hit.ok) {
-        if (this.sel === 0) { G.fresh(); startGame(); } else E.push(new SaveScene('load'));
+        if (this.sel === 0) { G.fresh(); startGame(); }
+        else if (this.sel === 1) E.push(new SaveScene('load'));
+        else if (Update.state === 'newer') Update.open();
+        else Update.check();
       }
     }
     draw(wc) {
@@ -39,9 +75,11 @@
     drawUI(c) {
       E.text(c, '穿越三國', W / 2, 34, { size: 22, align: 'center', color: GOLD });
       E.text(c, '諸葛貓妖傳', W / 2, 62, { size: 16, align: 'center' });
-      E.panel(c, 88, 136, 80, 44);
-      E.menuList(c, ['開始遊戲', '讀取存檔'], this.sel, 98, 146, 16);
-      E.text(c, '戰鬥測試版 0.10　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
+      E.panel(c, 80, 124, 96, 60);
+      E.menuList(c, ['開始遊戲', '讀取存檔', Update.state === 'newer' ? '下載新版本' : '檢查更新'], this.sel, 90, 132, 16);
+      const msg = { idle: '', checking: '正在檢查更新…', latest: '已是最新版', newer: '有新版本 ' + Update.latest + '！選「下載新版本」', error: '無法連線檢查更新' }[Update.state];
+      E.text(c, msg, W / 2, 191, { size: 7, align: 'center', color: Update.state === 'newer' ? GOLD : GREY });
+      E.text(c, '戰鬥測試版 ' + (window.GAME_VERSION || '') + '　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
     }
   }
 
@@ -461,5 +499,6 @@
     }
   }
 
+  window.Updater = Update;
   window.Scenes = { Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene };
 })();
