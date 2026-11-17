@@ -27,6 +27,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await shot('1_title');
 
   await tap('Enter');
+  await sleep(400);
+  check('new game opens the intro dialogue', (await st()).scene === 'DialogScene');
+  for (let g = 0; g < 20 && (await st()).scene === 'DialogScene'; g++) await tap('z', 40, 250);
+  await sleep(300);
+  check('intro sets flag intro_done and returns to map', (await st()).flags.intro_done === true && (await st()).scene === 'MapScene', (await st()).flags);
   let s = await st();
   check('new game enters map at start', s.scene === 'MapScene' && s.map === 'zhuoxian' && s.pos.x === 15 && s.pos.y === 9, s.pos);
   await sleep(300);
@@ -54,12 +59,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('Z opens dialogue', (await st()).scene === 'DialogScene');
   await sleep(1500);
   await shot('3_dialog');
-  for (let g = 0; g < 20; g++) { const c = await page.evaluate(() => Engine.top().choosing); if (c) break; await tap('z', 40, 250); }
-  await shot('4_choice');
-  await tap('ArrowDown'); await tap('z');   // 第二個選項：智力路線
-  s = await st();
-  check('choice sets flag route=wit', s.flags.route === 'wit', s.flags);
+  await shot('3_dialog');
   for (let g = 0; g < 20 && (await st()).scene === 'DialogScene'; g++) await tap('z', 40, 250);
+  await page.evaluate(() => { Game.flags.route = 'wit'; });   // 路線選擇現在在酒肆（劉備提問），這裡直接設定
+  s = await st();
+  check('route flag can be set (wit)', s.flags.route === 'wit', s.flags);
   await sleep(300);
   check('dialogue closes back to map', (await st()).scene === 'MapScene');
 

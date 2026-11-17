@@ -47,12 +47,13 @@ function fight(party, group, flags, rng, boss) {
 function heal(party) { party.forEach(m => { m.hp = m.hpMax; m.tp = m.tpMax; }); }
 
 const route = process.argv[2] || 'force', N = process.argv[3] === undefined ? 5 : +process.argv[3], TRIALS = 200;
-const stat = { winBoss: 0, lossField: 0, n: 0, avgLv: 0, avgRounds: 0 };
+const N2 = process.argv[4] === undefined ? 6 : +process.argv[4];
+const stat = { win2: 0, n2: 0, lv2: 0, winBoss: 0, lossField: 0, n: 0, avgLv: 0, avgRounds: 0 };
 for (let t = 0; t < TRIALS; t++) {
   const rng = seeded(1234 + t);
   const party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(mk);
   // 劉關張入隊時追到 2 級（暫定）
-  party.slice(1).forEach(m => BL.gainExp(m, B.expTable[2]));
+  party.slice(1).forEach(m => BL.gainExp(m, BL.expFor(2)));
   party.forEach(m => spend(m, route));
   const flags = { route };
   let dead = false;
@@ -68,5 +69,22 @@ for (let t = 0; t < TRIALS; t++) {
   stat.avgLv += party[0].level;
   const r = fight(party, B.groups.boss[0], flags, rng, true);
   stat.n++; stat.avgRounds += r.b.round; if (r.o === 'win') stat.winBoss++;
+  if (r.o !== 'win') continue;
+  // 第二段：廣陽野外 N2 場（field2）再打渠帥
+  let dead2 = false;
+  heal(party);
+  for (let i = 0; i < N2 && !dead2; i++) {
+    const groups = B.groups.field2; const g = groups[Math.floor(rng() * groups.length)];
+    const rr = fight(party, g, flags, rng, false);
+    party.forEach(m => spend(m, route));
+    if (rr.o === 'lose') dead2 = true;
+    if (i % 3 === 2) heal(party);
+  }
+  heal(party); Game.items.herb = 6; Game.items.tonic = 2;
+  if (dead2) continue;
+  stat.lv2 += party[0].level;
+  const r2 = fight(party, B.groups.boss2[0], flags, rng, true);
+  stat.n2++; if (r2.o === 'win') stat.win2++;
 }
 console.log(`route=${route} fights=${N}: field losses ${stat.lossField}/${TRIALS}; boss win ${stat.winBoss}/${stat.n}; avg nyao Lv ${(stat.avgLv/stat.n).toFixed(1)}; avg boss rounds ${(stat.avgRounds/stat.n).toFixed(1)}`);
+console.log(`stage2 fights=${N2}: boss2 win ${stat.win2}/${stat.n2}; avg nyao Lv ${(stat.lv2/Math.max(1,stat.n2)).toFixed(1)}`);

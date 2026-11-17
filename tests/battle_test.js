@@ -41,6 +41,10 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   await page.goto(URL); await sleep(500);
   await tap('Enter');
+  await sleep(400);
+  await talk();     // 序幕對話
+  await sleep(300);
+  await page.evaluate(() => { Game.flags.heard_merchant = true; });   // 先聽過市集的消息，劉備才會正式招募
   let s = await S();
   check('new game: gold 50, 3 herbs, 1 member', s.gold === 50 && s.items.herb === 3 && s.party.length === 1, { g: s.gold, i: s.items });
 
@@ -49,12 +53,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await tap('ArrowRight');
   s = await S();
   check('walked to (17,9) next to Liu Bei', s.pos.x === 17 && s.pos.y === 9, s.pos);
-  await tap('z'); await sleep(900); await tap('z'); await sleep(500);
+  await tap('z'); await sleep(400);
+  await talk();
+  await sleep(300);
   s = await S();
-  check('talking to Liu Bei recruits him (party 2, flag set, NPC hidden)', s.party.length === 2 && s.flags.recruited_liubei && s.scene === 'DialogScene', { n: s.party.length, sc: s.scene });
-  await sleep(900); await tap('z'); await sleep(300);
-  s = await S();
-  check('back on map after the recruit message', s.scene === 'MapScene');
+  check('talking to Liu Bei recruits him (party 2, flag set, back on map)', s.party.length === 2 && s.flags.recruited_liubei && s.scene === 'MapScene', { n: s.party.length, sc: s.scene });
   const hid = await page.evaluate(() => !Engine.top().npcAt(18, 9));
   check('Liu Bei NPC no longer blocks (18,9)', hid);
 
@@ -64,23 +67,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   s = await S();
   check('party of 4', s.party.length === 4 && s.scene === 'MapScene', s.party.map(p => p.n));
 
-  // 路線選擇：村民 (9,6)。目前在 (13,8)
-  await tap('ArrowLeft'); await tap('ArrowLeft'); await tap('ArrowLeft'); await tap('ArrowLeft'); // (13,9)
-  await tap('ArrowUp');                                                                         // faces NPC at (13,8)
-  await tap('z'); await sleep(300);
-  await page.waitForFunction(() => Engine.top().constructor.name === 'DialogScene');
-  // 第一句→選項句：手動推進到選項出現
-  for (let g = 0; g < 20; g++) { const c = await page.evaluate(() => Engine.top().choosing); if (c) break; await tap('z', 40, 250); }
-  s = await S();
-  check('choice dialog open (choosing)', s.scene === 'DialogScene');
-  await shot('route_choice');
-  await talk(0);   // 武力路線
-  s = await S();
-  check('route=force stored, back on map', s.flags.route === 'force' && s.scene === 'MapScene', { r: s.flags.route, sc: s.scene });
-  await tap('z'); await sleep(300);
-  const dl = await page.evaluate(() => Engine.top().lines[0].text);
-  check('villager now says the route is locked', /已經選好路線/.test(dl), dl);
-  await talk();
+  // 路線選擇改在酒肆由劉備提問（story_test 驗證）；這裡直接設定武力路線
+  await page.evaluate(() => { Game.flags.route = 'force'; });
 
   // 狀態畫面顯示路線技能
   await tap('Escape'); await tap('Enter'); await shot('status_route');
@@ -120,7 +108,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   s = await S(); check('back to map from item screen', s.scene === 'MapScene', s.scene);
 
   // ---- 旅館 & 商店
-  await page.evaluate(() => { Game.gold = 100; Game.party[2].hp = 5; Game.party[2].tp = 0; Engine.replaceAll(new Scenes.Map('inn', { x: 8, y: 3, dir: 'up' })); });
+  await page.evaluate(() => { Game.flags.oath_done = true; Game.gold = 100; Game.party[2].hp = 5; Game.party[2].tp = 0; Engine.replaceAll(new Scenes.Map('inn', { x: 8, y: 3, dir: 'up' })); });
   await sleep(300); await tap('z'); await sleep(1800); await tap('z'); await sleep(100);
   await tap('z');  // 住宿
   await sleep(300);
@@ -153,7 +141,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.evaluate(() => { Game.party.forEach(m => { m.atk = 120; m.hp = m.hpMax = 999; }); Engine.replaceAll(new Scenes.Map('field', { x: 11, y: 17, dir: 'down' })); });
   await sleep(300);
   await tap('ArrowDown'); // 面向下？已在 (11,17)，boss 在 (11,18)
-  await tap('z'); await sleep(2000); await tap('z'); await sleep(200); await tap('z'); await sleep(2000); await tap('z'); await sleep(500);
+  await tap('z'); await sleep(400); await talk(); await sleep(500);
   s = await S(); check('boss battle starts after dialogue', s.scene === 'BattleScene', s.scene);
   for (let i = 0; i < 15 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
   await shot('boss_cmd');

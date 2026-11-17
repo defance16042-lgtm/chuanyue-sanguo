@@ -1,9 +1,7 @@
 // 戰鬥資料：經驗表、道具、計謀／技能、敵人、敵群。數值為初版，之後依試玩調整。
 window.DATA = window.DATA || {};
 window.DATA.battle = {
-  // expTable[n] = 升到第 n 級所需的累積經驗
-  expTable: [0, 0, 12, 32, 62, 102, 152, 212, 282, 362],
-  maxLevel: 9,
+  // 等級沒有上限。升到第 n 級所需的累積經驗由 BattleLogic.expFor(n) 計算，越高級越多
   restPrice: 30,
 
   items: {
@@ -47,12 +45,14 @@ window.DATA.battle = {
     archer:   { name: '黃巾弓手', hp: 42,  atk: 14, def: 4,  spd: 10, exp: 10, gold: 10, sprite: 1 },
     bandit:   { name: '山賊',     hp: 64,  atk: 15, def: 8,  spd: 8,  exp: 13, gold: 14, sprite: 2 },
     captain:  { name: '黃巾小帥', hp: 90,  atk: 17, def: 9,  spd: 9,  exp: 20, gold: 22, sprite: 3 },
-    chengyuanzhi: { name: '程遠志', hp: 1100, atk: 30, def: 14, spd: 10, exp: 80, gold: 120, sprite: 4, boss: true, ai: 'boss' }
+    chengyuanzhi: { name: '程遠志', hp: 1100, atk: 30, def: 14, spd: 10, exp: 80, gold: 120, sprite: 4, boss: true, ai: 'boss' },
+    qushuai: { name: '黃巾渠帥', hp: 2600, atk: 52, def: 26, spd: 12, exp: 200, gold: 200, sprite: 5, boss: true, ai: 'boss' }
   },
   groups: {
     field1: [ ['turban', 'turban'], ['turban', 'archer'], ['archer', 'turban', 'turban'], ['bandit', 'turban'] ],
     field2: [ ['bandit', 'archer'], ['captain', 'turban'], ['bandit', 'turban', 'archer'], ['captain', 'archer', 'turban'] ],
-    boss:   [ ['chengyuanzhi', 'captain', 'archer', 'archer'] ]
+    boss:   [ ['chengyuanzhi', 'captain', 'archer', 'archer'] ],
+    boss2:  [ ['qushuai', 'captain', 'captain', 'archer'] ]
   },
   encounterRate: 0.07   // 每走一步遇敵機率（野外）
 };

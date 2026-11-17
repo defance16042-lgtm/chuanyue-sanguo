@@ -41,7 +41,7 @@
       E.text(c, '諸葛貓妖傳', W / 2, 62, { size: 16, align: 'center' });
       E.panel(c, 88, 136, 80, 44);
       E.menuList(c, ['開始遊戲', '讀取存檔'], this.sel, 98, 146, 16);
-      E.text(c, '戰鬥測試版 0.9.1　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
+      E.text(c, '戰鬥測試版 0.10　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
     }
   }
 
@@ -280,7 +280,7 @@
       this.npcs = m.npcs.map(function (n) { return Object.assign({}, n); });
       spawn = spawn || m.start;
       this.p = { x: spawn.x, y: spawn.y, dir: spawn.dir || 'down', moving: false, t: 0, tx: 0, ty: 0, step: 0 };
-      this.banner = 2000;
+      this.banner = 2000; this.evCheck = true;
       G.mapId = mapId; this.syncPos();
     }
     syncPos() { G.pos = { x: this.p.x, y: this.p.y, dir: this.p.dir }; }
@@ -304,11 +304,19 @@
         E.push(new DialogScene(D.dialogue[key]));
       }
       else if (obj && obj.type === 'save') E.push(new SaveScene('save'));
+      else {
+        const sign = (this.map.signs || []).find(function (k) { return k.x === tx && k.y === ty; });
+        if (sign) E.push(new DialogScene(D.dialogue[sign.dialogue]));
+      }
     }
     arrive() {
       const p = this.p;
       const w = this.map.warps.find(function (k) { return k.x === p.x && k.y === p.y; });
-      if (w) this.fade = { phase: 'out', t: 0, warp: w };
+      if (w && w.need && !G.flags[w.need]) {      // 條件未達成：不能過去，退回一格
+        if (w.deny) E.push(new DialogScene(D.dialogue[w.deny]));
+        p.x = w.bx !== undefined ? w.bx : p.x; p.y = w.by !== undefined ? w.by : p.y - 1; p.dir = 'up';
+      }
+      else if (w) this.fade = { phase: 'out', t: 0, warp: w };
       else if (this.map.encounter) this.stepEncounter();
       this.syncPos();
     }
@@ -334,6 +342,13 @@
         this.arrive();
         if (this.fade) return;
       }
+      if (this.evCheck) {   // 進入地圖時的劇情事件：條件達成且還沒看過才觸發
+        this.evCheck = false;
+        const ev = (this.map.events || []).find(function (e) {
+          return !G.flags[e.once] && (e.need || []).every(function (f) { return G.flags[f]; });
+        });
+        if (ev) { E.push(new DialogScene(D.dialogue[ev.dialogue])); return; }
+      }
       if (E.hit.cancel) { E.push(new MenuScene()); return; }
       if (E.hit.ok) { this.interact(); return; }
       const d = E.heldDir();
@@ -356,7 +371,7 @@
     startBattle(group, boss) {
       const self = this;
       this.hidden = true;
-      E.push(new Scenes.Battle(group, { boss: boss, bg: this.map.battleBg, onEnd: function (r) { self.hidden = false; self.afterBattle(r, boss); } }));
+      E.push(new Scenes.Battle(group, { boss: !!boss, bg: this.map.battleBg, onEnd: function (r) { self.hidden = false; self.afterBattle(r, boss); } }));
     }
     afterBattle(r, boss) {
       if (r === 'lose') {
@@ -365,8 +380,9 @@
         this.loadMap('zhuoxian', D.maps.zhuoxian.start);
         E.push(new DialogScene(D.dialogue.lose_after));
       } else if (r === 'win' && boss) {
-        G.flags.boss_down = true;
-        E.push(new DialogScene(D.dialogue.boss_after));
+        const info = typeof boss === 'object' ? boss : {};
+        G.flags[info.flag || 'boss_down'] = true;
+        E.push(new DialogScene(D.dialogue[info.after || 'boss_after']));
       }
     }
     say(text) { E.push(new DialogScene([{ speaker: '', text: text }])); }
@@ -374,7 +390,7 @@
       if (a.recruit) {
         if (G.flags['recruited_' + a.recruit]) return;
         const m = G.makeMember(a.recruit), lv = G.party[0].level;
-        if (lv > 1) window.BattleLogic.gainExp(m, D.battle.expTable[lv]);
+        if (lv > 1) window.BattleLogic.gainExp(m, window.BattleLogic.expFor(lv));
         m.hp = m.hpMax; m.tp = m.tpMax;
         G.party.push(m); G.flags['recruited_' + a.recruit] = true;
         this.say(m.name + '加入了隊伍！');
@@ -390,7 +406,8 @@
         G.gold -= it.price; G.items[a.buy] = (G.items[a.buy] || 0) + 1;
         this.say('買了' + it.name + '。（-' + it.price + '金，剩 ' + G.gold + '金）');
       } else if (a.battle) {
-        this.startBattle(D.battle.groups[a.battle][0], a.battle === 'boss');
+        const isBoss = a.battle === 'boss' || !!a.flag;
+        this.startBattle(D.battle.groups[a.battle][0], isBoss ? a : false);
       }
     }
     camera() {

@@ -237,11 +237,23 @@
     b.party.forEach(function (u) { u.ref.hp = u.hp; u.ref.tp = u.tp; });
   };
 
+  // 升到第 n 級所需的累積經驗：沒有等級上限，越高級每一級需要的經驗越多
+  //   每級增量：2 級 12；3～9 級 10×(n-1)；10 級起 10×(n-1) + (n-1)²/6，一路遞增
+  const expCache = [0, 0];
+  BL.expFor = function (n) {
+    if (n <= 1) return 0;
+    for (let k = expCache.length; k <= n; k++) {
+      const d = k === 2 ? 12 : (10 * (k - 1) + (k > 9 ? Math.floor((k - 1) * (k - 1) / 6) : 0));
+      expCache[k] = expCache[k - 1] + d;
+    }
+    return expCache[n];
+  };
+
   // 給經驗並處理升級。回傳升級資訊陣列
   BL.gainExp = function (member, amount) {
     const out = [];
     member.exp += amount;
-    while (member.level < B.maxLevel && member.exp >= B.expTable[member.level + 1]) {
+    while (member.exp >= BL.expFor(member.level + 1)) {
       member.level++;
       const c = root.DATA.characters[member.id], g = c.growth || {};
       const gain = { name: member.name, level: member.level, hp: 0, atk: 0, int: 0, def: 0, spd: 0, cha: 0, points: 0 };
