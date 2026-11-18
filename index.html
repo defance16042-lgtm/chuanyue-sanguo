@@ -8,18 +8,9 @@
   html, body { margin: 0; height: 100%; background: #0b0710; overflow: hidden; }
   body { display: flex; align-items: center; justify-content: center; }
   canvas { display: block; image-rendering: pixelated; }
-  #update-status { position: fixed; z-index: 1000; top: 14px; right: 14px; width: min(360px, calc(100vw - 36px)); box-sizing: border-box; padding: 12px 14px; border: 1px solid #8061a0; border-radius: 9px; background: rgba(20, 13, 30, .96); color: #f0e6ff; font: 14px/1.5 "Microsoft JhengHei", sans-serif; box-shadow: 0 5px 24px #0009; }
-  #update-status[hidden] { display: none; }
-  #update-progress { width: 100%; height: 8px; margin-top: 8px; accent-color: #c493ff; }
-  #update-install { margin-top: 8px; padding: 7px 10px; border: 1px solid #b28bd9; border-radius: 5px; background: #49335a; color: #fff; cursor: pointer; }
 </style>
 </head>
 <body>
-<aside id="update-status" role="status" aria-live="polite" hidden>
-  <div id="update-message"></div>
-  <progress id="update-progress" max="100" value="0" hidden></progress>
-  <button id="update-install" type="button" hidden>重新啟動並安裝</button>
-</aside>
 <canvas id="screen"></canvas>
 <script src="data/characters.js"></script>
 <script src="data/maps.js"></script>

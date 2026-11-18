@@ -56,6 +56,18 @@ function configureUpdater() {
     reportUpdate('error', `暫時無法檢查更新，仍可繼續遊戲。${error?.message ? ` (${error.message})` : ''}`);
   });
 
+  // 遊戲內「檢查更新」按鈕
+  ipcMain.handle('app:check-update', async () => {
+    if (!app.isPackaged || process.platform !== 'win32') {
+      reportUpdate('error', '開發模式／非 Windows 安裝版不提供自動更新。');
+      return false;
+    }
+    try { await autoUpdater.checkForUpdates(); return true; } catch (error) {
+      reportUpdate('error', `暫時無法檢查更新，仍可繼續遊戲。${error?.message ? ` (${error.message})` : ''}`);
+      return false;
+    }
+  });
+
   ipcMain.on('app:install-update', () => {
     if (updateDownloaded) autoUpdater.quitAndInstall(true, true);
   });

@@ -9,5 +9,8 @@ contextBridge.exposeInMainWorld('desktopApp', {
   },
   installUpdate() {
     ipcRenderer.send('app:install-update');
+  },
+  checkUpdate() {
+    return ipcRenderer.invoke('app:check-update');
   }
 });

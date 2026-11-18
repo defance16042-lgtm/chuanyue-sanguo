@@ -20,48 +20,117 @@
   }
 
   // ------------------------------------------------------------ 更新檢查
-  // 從 GitHub 讀取最新的 package.json 版本，與 src/version.js 的版本比較。
-  // 瀏覽器版（雙擊 index.html）：有新版時開啟下載頁。Windows 安裝版另有自己的自動更新。
+  // 兩種環境：
+  //  ‧ Windows 安裝版（Electron）：背景自動下載，下載完成後在遊戲內按「重新啟動並安裝」。
+  //  ‧ 瀏覽器版（雙擊 index.html）：從 GitHub 讀 update.json 比對版本，有新版就開啟下載頁。
   const Update = {
-    state: 'idle',        // idle / checking / latest / newer / error
+    state: 'idle',        // 瀏覽器版：idle / checking / latest / newer / error
     latest: '',
+    notes: [],
+    desk: null,           // 桌面版事件：{ status, message, percent }
+    isDesktop: !!(window.desktopApp && window.desktopApp.onUpdateStatus),
     newer: function (a, b) {   // a 是否比 b 新
       const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
       for (let i = 0; i < 3; i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d > 0; }
       return false;
     },
+    setDesktop: function (ev) { this.desk = ev; },
+    // 統一的狀態：kind = idle / checking / latest / newer / downloading / downloaded / error
+    info: function () {
+      if (this.isDesktop && this.desk) {
+        const d = this.desk, kind = { checking: 'checking', available: 'downloading', downloading: 'downloading', downloaded: 'downloaded', current: 'latest', error: 'error' }[d.status] || 'idle';
+        return { kind: kind, text: d.message || '', percent: Math.max(0, Math.min(100, Number(d.percent) || 0)) };
+      }
+      const text = { idle: '尚未檢查更新。', checking: '正在檢查更新…', latest: '已是最新版本。', newer: '發現新版本 ' + this.latest + '！', error: '無法連線檢查更新。' }[this.state];
+      return { kind: this.state, text: text, percent: 0 };
+    },
     check: function () {
+      if (this.isDesktop) {
+        this.desk = { status: 'checking', message: '正在檢查更新…' };
+        try { Promise.resolve(window.desktopApp.checkUpdate && window.desktopApp.checkUpdate()).catch(function () {}); } catch (e) { /* 忽略 */ }
+        return;
+      }
       if (this.state === 'checking') return;
       const self = this; this.state = 'checking';
       const repo = window.GAME_REPO || '';
       const ctl = typeof AbortController === 'function' ? new AbortController() : null;
       const timer = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
-      fetch('https://raw.githubusercontent.com/' + repo + '/main/package.json?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      fetch('https://raw.githubusercontent.com/' + repo + '/main/update.json?t=' + Date.now(), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
         .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
         .then(function (j) {
           clearTimeout(timer);
           self.latest = String(j.version || '');
+          self.notes = Array.isArray(j.notes) ? j.notes.map(String) : [];
           self.state = self.newer(self.latest, window.GAME_VERSION || '0') ? 'newer' : 'latest';
         })
         .catch(function () { clearTimeout(timer); self.state = 'error'; });
     },
     open: function () {
       const url = 'https://github.com/' + (window.GAME_REPO || '') + '/archive/refs/heads/main.zip';
-      try { window.open(url, '_blank'); } catch (e) { /* 被擋住就算了，畫面會提示網址 */ }
-    }
+      try { window.open(url, '_blank'); } catch (e) { /* 被擋住就算了 */ }
+    },
+    install: function () { if (this.isDesktop) window.desktopApp.installUpdate(); }
   };
+  window.Updater = Update;
+
+  // ------------------------------------------------------------ 更新畫面（遊戲內）
+  class UpdateScene {
+    constructor() { this.sel = 0; if (Update.info().kind === 'idle') Update.check(); }
+    actions() {
+      const k = Update.info().kind, a = [{ t: '檢查更新', f: function () { Update.check(); } }];
+      if (k === 'downloaded') a.unshift({ t: '重新啟動並安裝', f: function () { Update.install(); } });
+      else if (k === 'newer' && !Update.isDesktop) a.unshift({ t: '下載新版本', f: function () { Update.open(); } });
+      a.push({ t: '返回', f: function () { E.pop(); } });
+      return a;
+    }
+    update() {
+      const a = this.actions();
+      if (this.sel >= a.length) this.sel = a.length - 1;
+      if (E.hit.cancel) { E.pop(); return; }
+      if (E.hit.up) this.sel = (this.sel + a.length - 1) % a.length;
+      if (E.hit.down) this.sel = (this.sel + 1) % a.length;
+      if (E.hit.ok) a[this.sel].f();
+    }
+    drawUI(c) {
+      const inf = Update.info(), col = inf.kind === 'downloaded' || inf.kind === 'newer' ? GOLD : inf.kind === 'error' ? '#ff9a8a' : '#f4f4ff';
+      c.fillStyle = '#0c1030'; c.fillRect(8, 8, 240, 208);
+      E.panel(c, 8, 8, 240, 208);
+      E.text(c, '遊戲更新', 20, 16, { size: 12, color: GOLD });
+      E.text(c, '目前版本  ' + (window.GAME_VERSION || '?'), 20, 36, { size: 9 });
+      const newest = Update.isDesktop ? (inf.kind === 'downloaded' || inf.kind === 'downloading' ? '已有新版本' : '－') : (Update.latest || '－');
+      E.text(c, '最新版本  ' + newest, 20, 49, { size: 9 });
+      E.wrap(c, inf.text, 8, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 66 + i * 10, { size: 8, color: col }); });
+      if (inf.kind === 'downloading') {
+        c.fillStyle = '#222a50'; c.fillRect(20, 100, 216, 8);
+        c.fillStyle = '#8affa0'; c.fillRect(20, 100, Math.round(216 * inf.percent / 100), 8);
+        E.text(c, Math.floor(inf.percent) + '%', 128, 111, { size: 7, align: 'center', color: GREY });
+      }
+      if (Update.notes.length && (inf.kind === 'newer' || inf.kind === 'downloaded' || inf.kind === 'downloading')) {
+        E.text(c, '更新內容', 20, 118, { size: 8, color: GOLD });
+        Update.notes.slice(0, 4).forEach(function (n, i) { E.text(c, '‧' + n, 20, 129 + i * 10, { size: 7, color: GREY }); });
+      }
+      const a = this.actions();
+      E.menuList(c, a.map(function (x) { return x.t; }), this.sel, 150, 146, 14);
+      E.text(c, Update.isDesktop ? '新版本會在背景自動下載，完成後按「重新啟動並安裝」。' : '瀏覽器版：下載新版本後，覆蓋原本的資料夾即可（存檔不會消失）。', 20, 205, { size: 6, color: GREY });
+    }
+  }
 
   // ------------------------------------------------------------ 標題
   class TitleScene {
-    constructor() { this.sel = 0; Update.check(); }
+    constructor() { this.sel = 0; this.prompted = false; Update.check(); }
+    label() {
+      const k = Update.info().kind;
+      return k === 'downloaded' ? '重新啟動更新' : (k === 'newer' || k === 'downloading') ? '更新（有新版）' : '檢查更新';
+    }
     update() {
       if (E.hit.up) this.sel = (this.sel + 2) % 3;
       if (E.hit.down) this.sel = (this.sel + 1) % 3;
+      // 桌面版的新版本下載完成：自動跳出更新畫面（只提示一次）
+      if (!this.prompted && Update.isDesktop && Update.info().kind === 'downloaded') { this.prompted = true; E.push(new UpdateScene()); return; }
       if (E.hit.ok) {
         if (this.sel === 0) { G.fresh(); startGame(); }
         else if (this.sel === 1) E.push(new SaveScene('load'));
-        else if (Update.state === 'newer') Update.open();
-        else Update.check();
+        else E.push(new UpdateScene());
       }
     }
     draw(wc) {
@@ -76,9 +145,10 @@
       E.text(c, '穿越三國', W / 2, 34, { size: 22, align: 'center', color: GOLD });
       E.text(c, '諸葛貓妖傳', W / 2, 62, { size: 16, align: 'center' });
       E.panel(c, 80, 124, 96, 60);
-      E.menuList(c, ['開始遊戲', '讀取存檔', Update.state === 'newer' ? '下載新版本' : '檢查更新'], this.sel, 90, 132, 16);
-      const msg = { idle: '', checking: '正在檢查更新…', latest: '已是最新版', newer: '有新版本 ' + Update.latest + '！選「下載新版本」', error: '無法連線檢查更新' }[Update.state];
-      E.text(c, msg, W / 2, 191, { size: 7, align: 'center', color: Update.state === 'newer' ? GOLD : GREY });
+      E.menuList(c, ['開始遊戲', '讀取存檔', this.label()], this.sel, 90, 132, 16);
+      const inf = Update.info(), hot = inf.kind === 'newer' || inf.kind === 'downloaded' || inf.kind === 'downloading';
+      const msg = { idle: '', checking: '正在檢查更新…', latest: '已是最新版', newer: '有新版本 ' + Update.latest + '！到「更新」查看', downloading: '新版本下載中 ' + Math.floor(inf.percent) + '%', downloaded: '新版本已下載完成！', error: '無法連線檢查更新' }[inf.kind] || '';
+      E.text(c, msg, W / 2, 191, { size: 7, align: 'center', color: hot ? GOLD : GREY });
       E.text(c, '戰鬥測試版 ' + (window.GAME_VERSION || '') + '　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
     }
   }
