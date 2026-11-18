@@ -1,15 +1,18 @@
 // 裝備資料。五個欄位：weapon 武器、armor 護甲、helm 頭盔、boots 鞋靴、charm 飾品。
-// mods：能力加成（atk 武力、int 智力、def 防禦、spd 速度、lead 統率、luck 運氣、grd 守備）。
+// wtype：武器種類（劍／刀／矛／槍／扇），要和角色的武器種類相同才能裝備。
+// mods：能力加成（pow 攻擊力、def 防禦力、atk 武力、int 智力、spd 速度、lead 統率、luck 運氣、grd 守備）。
 // only：專屬裝備，只有該角色能裝。shop：商店販售（price 金）。
 window.DATA = window.DATA || {};
 window.DATA.slots = { weapon: '武器', armor: '護甲', helm: '頭盔', boots: '鞋靴', charm: '飾品' };
 window.DATA.equipment = {
   // 武器
-  wood_sword:  { name: '木劍',     slot: 'weapon', mods: { atk: 2 }, price: 40, shop: 1, desc: '練習用的劍' },
-  iron_sword:  { name: '鐵劍',     slot: 'weapon', mods: { atk: 5 }, price: 120, shop: 1, desc: '尋常鐵匠打的劍' },
-  spear:       { name: '長槍',     slot: 'weapon', mods: { atk: 6, spd: -1 }, price: 150, shop: 1, desc: '攻擊強，稍重' },
-  feather_fan: { name: '羽扇',     slot: 'weapon', mods: { int: 5 }, price: 130, shop: 1, desc: '輕搖羽扇，頭腦清晰' },
-  bamboo_book: { name: '竹簡兵書', slot: 'weapon', mods: { int: 3, lead: 3 }, price: 160, shop: 1, desc: '裡面寫的是行軍之法' },
+  wood_sword:  { name: '木劍',     slot: 'weapon', wtype: '劍', mods: { pow: 4 }, price: 40, shop: 1, desc: '練習用的劍' },
+  iron_sword:  { name: '鐵劍',     slot: 'weapon', wtype: '劍', mods: { pow: 10 }, price: 120, shop: 1, desc: '尋常鐵匠打的劍' },
+  iron_blade:  { name: '鐵刀',     slot: 'weapon', wtype: '刀', mods: { pow: 10 }, price: 120, shop: 1, desc: '厚背的鐵刀' },
+  iron_lance:  { name: '鐵矛',     slot: 'weapon', wtype: '矛', mods: { pow: 10, grd: 1 }, price: 130, shop: 1, desc: '矛頭沉，守得住' },
+  spear:       { name: '長槍',     slot: 'weapon', wtype: '槍', mods: { pow: 12, spd: -1 }, price: 150, shop: 1, desc: '攻擊強，稍重' },
+  feather_fan: { name: '羽扇',     slot: 'weapon', wtype: '扇', mods: { int: 5 }, price: 130, shop: 1, desc: '輕搖羽扇，頭腦清晰' },
+  bamboo_book: { name: '竹簡兵書', slot: 'weapon', wtype: '扇', mods: { int: 3, lead: 3 }, price: 160, shop: 1, desc: '裡面寫的是行軍之法' },
   // 護甲
   cloth:       { name: '布衣',     slot: 'armor', mods: { def: 1 }, price: 30, shop: 1, desc: '一般百姓穿的衣服' },
   leather:     { name: '皮甲',     slot: 'armor', mods: { def: 3 }, price: 90, shop: 1, desc: '輕便的皮甲' },
@@ -26,11 +29,11 @@ window.DATA.equipment = {
   amulet:      { name: '護身符',   slot: 'charm', mods: { grd: 4 }, price: 130, shop: 1, desc: '廟裡求來的平安符' },
   // 戰利品（敵人掉落）
   yellow_scarf:{ name: '黃巾',     slot: 'helm', mods: { def: 2, luck: 1 }, price: 0, desc: '黃巾賊的頭巾，洗乾淨還能戴' },
-  rebel_blade: { name: '賊將大刀', slot: 'weapon', mods: { atk: 7 }, price: 0, desc: '程遠志用過的大刀' },
+  rebel_blade: { name: '賊將大刀', slot: 'weapon', wtype: '刀', mods: { pow: 14 }, price: 0, desc: '程遠志用過的大刀' },
   // 專屬武器
-  qinglong:    { name: '青龍偃月刀', slot: 'weapon', mods: { atk: 9, lead: 2 }, only: 'guanyu', price: 0, desc: '關羽專屬。刀光如青龍' },
-  serpent:     { name: '丈八蛇矛', slot: 'weapon', mods: { atk: 9, grd: 2 }, only: 'zhangfei', price: 0, desc: '張飛專屬。一矛橫掃一片' },
-  twin_swords: { name: '雙股劍',   slot: 'weapon', mods: { atk: 4, int: 3, lead: 3 }, only: 'liubei', price: 0, desc: '劉備專屬。一對長劍，劍穗隨風' }
+  qinglong:    { name: '青龍偃月刀', slot: 'weapon', wtype: '刀', mods: { pow: 18, lead: 2 }, only: 'guanyu', price: 0, desc: '關羽專屬。刀光如青龍' },
+  serpent:     { name: '丈八蛇矛', slot: 'weapon', wtype: '矛', mods: { pow: 18, grd: 2 }, only: 'zhangfei', price: 0, desc: '張飛專屬。一矛橫掃一片' },
+  twin_swords: { name: '雙股劍',   slot: 'weapon', wtype: '劍', mods: { pow: 8, int: 3, lead: 3 }, only: 'liubei', price: 0, desc: '劉備專屬。一對長劍，劍穗隨風' }
 };
 // 敵人掉落：敵人 id → [裝備 id, 機率]
 window.DATA.drops = {
@@ -41,5 +44,5 @@ window.DATA.drops = {
 };
 // 商店：蘇雙（涿縣）
 window.DATA.shops = {
-  suishuang: ['wood_sword', 'iron_sword', 'spear', 'feather_fan', 'cloth', 'leather', 'headband', 'iron_helm', 'straw_shoes', 'jade', 'amulet']
+  suishuang: ['wood_sword', 'iron_sword', 'iron_blade', 'iron_lance', 'spear', 'feather_fan', 'cloth', 'leather', 'headband', 'iron_helm', 'straw_shoes', 'jade', 'amulet']
 };

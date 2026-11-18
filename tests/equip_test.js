@@ -8,11 +8,13 @@ const check = (n, ok, x) => { console.log((ok ? 'PASS ' : 'FAIL ') + n + (ok ? '
 G.fresh(); G.party.push(G.makeMember('guanyu'));
 const gy = G.party[1], base = gy.atk;
 check('trait adds to effective atk', G.eff(gy, 'atk') === base + 3, G.eff(gy, 'atk'));
-G.addGear('iron_sword'); G.equip(gy, 'weapon', 'iron_sword');
-check('equip raises atk and uses inventory', G.eff(gy, 'atk') === base + 8 && !G.equipInv.iron_sword, G.eff(gy, 'atk'));
+G.addGear('iron_blade'); G.equip(gy, 'weapon', 'iron_blade');
+check('equip raises 攻擊力 by 10 and uses inventory', G.eff(gy, 'pow') === (base + 3) * 2 + 10 && !G.equipInv.iron_blade, G.eff(gy, 'pow'));
+check('battle unit carries weapon pow', BL.newBattle(G.party, ['turban'], {}).party[1].pow === 10);
+check('weapon type restricts: sword not for 刀 user, blade not for 扇 user', !G.canEquip(gy, 'wood_sword') && !G.canEquip(G.party[0], 'iron_blade') && G.canEquip(G.party[0], 'feather_fan'));
 check('exclusive gear only for owner', G.canEquip(gy, 'qinglong') && !G.canEquip(G.party[0], 'qinglong'));
 G.equip(gy, 'weapon', null);
-check('unequip returns to inventory', G.equipInv.iron_sword === 1 && !gy.equip.weapon);
+check('unequip returns to inventory', G.equipInv.iron_blade === 1 && !gy.equip.weapon);
 G.equip(gy, 'helm', null);
 // 隨機成長：沒有配點，升級各項能力隨機增加，且統計上接近成長率
 const n = G.makeMember('nyao'); const before = { atk: n.atk, lead: n.lead };
@@ -26,7 +28,7 @@ const z = G.makeMember('zoujing'); check('guest flag', z.guest === true);
 G.party.push(z);
 const b = BL.newBattle(G.party, ['turban'], { rng: () => 0.5 });
 check('lead bonus from highest 統率', Math.abs(b.leadBonus - Math.max(...b.party.map(u => u.lead)) * 0.003) < 1e-9, b.leadBonus);
-check('battle unit uses effective stats', b.party[1].atk === G.eff(gy, 'atk'), b.party[1].atk);
+check('battle unit uses effective stats', b.party[1].atk === G.eff(gy, 'atk') && b.party[1].pow === 0, b.party[1].atk);
 // 舊存檔轉換
 const old = G.snapshot(); old.party = [{ id: 'nyao', name: '諸葛貓妖', sprite: 0, allocatable: true, level: 3, exp: 30, hpMax: 150, hp: 150, tpMax: 9, tp: 9, atk: 12, int: 14, def: 12, spd: 14, cha: 10, points: 5 }];
 old.equipInv = undefined;

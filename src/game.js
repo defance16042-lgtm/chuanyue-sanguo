@@ -20,8 +20,13 @@
     return v;
   };
   // 實際能力值（基本值＋裝備＋特性）
-  Game.eff = function (m, key) { return (m[key] || 0) + Game.bonus(m, key); };
-  Game.canEquip = function (m, id) { const it = D.equipment[id]; return !!it && (!it.only || it.only === m.id); };
+  // 攻擊力＝武力×2＋裝備攻擊力；防禦力＝防禦（兵力、守備換算）＋裝備
+  Game.eff = function (m, key) {
+    if (key === 'pow') return Game.eff(m, 'atk') * 2 + Game.bonus(m, 'pow');
+    return (m[key] || 0) + Game.bonus(m, key);
+  };
+  Game.canEquip = function (m, id) { const it = D.equipment[id]; if (!it || (it.only && it.only !== m.id)) return false;
+    const c = D.characters[m.id]; return !(it.wtype && c && c.weapon && it.wtype !== c.weapon); };
   Game.equip = function (m, slot, id) {
     m.equip = m.equip || {};
     const old = m.equip[slot];

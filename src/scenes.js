@@ -259,9 +259,9 @@
   }
 
   // ------------------------------------------------------------ 角色資料（唯讀）
-  const STAT_ROWS = [['atk', '武力'], ['int', '智力'], ['spd', '速度'], ['lead', '統率'], ['luck', '運氣'], ['grd', '守備'], ['def', '防禦']];
+  const STAT_ROWS = [['pow', '攻擊力'], ['def', '防禦力'], ['atk', '武力'], ['int', '智力'], ['spd', '速度'], ['lead', '統率'], ['luck', '運氣'], ['grd', '守備']];
   function statCell(c, m, key, label, x, y, col) {
-    const base = key === 'def' ? m.def : (m[key] || 0), b = G.bonus(m, key);
+    const base = key === 'def' ? m.def : key === 'pow' ? 2 * G.eff(m, 'atk') : (m[key] || 0), b = key === 'pow' ? G.bonus(m, 'pow') : G.bonus(m, key);
     E.text(c, label, x, y, { color: col || '#f4f4ff' });
     E.text(c, String(base + b), x + 34, y, { color: b > 0 ? '#8affa0' : b < 0 ? '#ff7a6a' : (col || '#f4f4ff') });
   }
@@ -289,13 +289,13 @@
       E.text(c, '職類 ' + (ch.cls || '－') + '　武器種類 ' + (ch.weapon || '－'), 20, 44, { size: 8 });
       E.text(c, 'Lv ' + m.level + '　經驗 ' + m.exp + ' / 下一級 ' + window.BattleLogic.expFor(m.level + 1), 20, 58, { size: 8 });
       E.text(c, '兵力 ' + m.hp + ' / ' + m.hpMax + '　戰術點 ' + m.tp + ' / ' + m.tpMax, 20, 70, { size: 8 });
-      STAT_ROWS.forEach(function (r, i) { statCell(c, m, r[0], r[1], 20 + (i % 2) * 96, 84 + Math.floor(i / 2) * 13); });
-      if (ch.trait) E.text(c, '特性：' + ch.trait.name + '（' + ch.trait.desc + '）', 20, 141, { size: 8, color: GOLD });
+      STAT_ROWS.forEach(function (r, i) { statCell(c, m, r[0], r[1], 20 + (i % 2) * 96, 82 + Math.floor(i / 2) * 12); });
+      if (ch.trait) E.text(c, '特性：' + ch.trait.name + '（' + ch.trait.desc + '）', 20, 134, { size: 8, color: GOLD });
       const sk = window.BattleLogic.skillsFor(m, G.flags).map(function (x) { return x.name; });
-      E.text(c, '計謀：' + (sk.join('、') || '無'), 20, 153, { size: 8 });
+      E.text(c, '計謀：' + (sk.join('、') || '無'), 20, 148, { size: 8 });
       const eq = m.equip || {};
-      E.text(c, '裝備：' + Object.keys(D.slots).map(function (k) { return eq[k] ? D.equipment[eq[k]].name : '－'; }).join(' / '), 20, 164, { size: 7, color: GREY });
-      if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 176 + i * 9, { size: 7, color: GREY }); });
+      E.text(c, '裝備：' + Object.keys(D.slots).map(function (k) { return eq[k] ? D.equipment[eq[k]].name : '－'; }).join(' / '), 20, 160, { size: 7, color: GREY });
+      if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 172 + i * 9, { size: 7, color: GREY }); });
       E.text(c, (G.party.length > 1 ? '左右換人　' : '') + 'X 返回　（升級時能力自動隨機成長）', 20, 204, { size: 7, color: GREY });
     }
   }
@@ -341,7 +341,7 @@
         E.text(c, (sel ? '▶ ' : '　') + D.slots[k], 20, y, { size: 9, color: sel ? GOLD : '#f4f4ff' });
         E.text(c, it ? it.name : '－', 68, y, { size: 9, color: sel ? GOLD : '#f4f4ff' });
       }, this);
-      STAT_ROWS.forEach(function (r, i) { statCell(c, m, r[0], r[1], 150 + 0, 36 + i * 12, '#f4f4ff'); });
+      STAT_ROWS.forEach(function (r, i) { statCell(c, m, r[0], r[1], 150, 34 + i * 11, '#f4f4ff'); });
       if (this.mode === 'pick') {
         const list = this.cands(), slot = slots[this.slot], cur = eq[slot] && D.equipment[eq[slot]];
         E.text(c, '背包（' + D.slots[slot] + '）', 20, 112, { size: 8, color: GOLD });
@@ -356,7 +356,7 @@
         const diffs = [];
         STAT_ROWS.forEach(function (r) { const d = ((nw && nw.mods[r[0]]) || 0) - ((cur && cur.mods[r[0]]) || 0); if (d) diffs.push({ t: r[1] + (d > 0 ? '+' : '') + d, up: d > 0 }); });
         diffs.forEach(function (d, i) { E.text(c, d.t, 150, 124 + i * 11, { size: 8, color: d.up ? '#8affa0' : '#ff7a6a' }); });
-        if (nw) E.text(c, nw.desc, 20, 192, { size: 7, color: GREY });
+        if (nw) E.text(c, (nw.wtype ? '【' + nw.wtype + '】' : '') + nw.desc, 20, 192, { size: 7, color: GREY });
         E.text(c, 'Z 裝上　X 返回', 150, 196, { size: 7, color: GREY });
       } else {
         const inv = Object.keys(G.equipInv).filter(function (id) { return G.equipInv[id] > 0; }).length;
@@ -387,9 +387,9 @@
       const top = Math.max(0, Math.min(this.sel - 5, this.ids.length - 11));
       this.ids.slice(top, top + 11).forEach(function (id, k) {
         const i = top + k, it = D.equipment[id], sel = i === this.sel, y = 34 + k * 13, col = sel ? GOLD : '#f4f4ff';
-        E.text(c, (sel ? '▶ ' : '　') + it.name, 20, y, { size: 8, color: col });
+        E.text(c, (sel ? '▶ ' : '　') + it.name + (it.wtype ? '(' + it.wtype + ')' : ''), 20, y, { size: 8, color: col });
         E.text(c, it.price + '金', 90, y, { size: 8, color: col });
-        E.text(c, Object.keys(it.mods).map(function (k2) { return ({ atk: '武', int: '智', def: '防', spd: '速', lead: '統', luck: '運', grd: '守' })[k2] + (it.mods[k2] > 0 ? '+' : '') + it.mods[k2]; }).join(' '), 130, y, { size: 8, color: col });
+        E.text(c, Object.keys(it.mods).map(function (k2) { return ({ pow: '攻', atk: '武', int: '智', def: '防', spd: '速', lead: '統', luck: '運', grd: '守' })[k2] + (it.mods[k2] > 0 ? '+' : '') + it.mods[k2]; }).join(' '), 130, y, { size: 8, color: col });
       }, this);
       const it = D.equipment[this.ids[this.sel]];
       E.text(c, this.msg || it.desc, 20, 184, { size: 8, color: this.msg ? GOLD : GREY });

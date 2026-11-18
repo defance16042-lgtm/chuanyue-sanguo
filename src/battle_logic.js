@@ -19,7 +19,7 @@
   function unitFromMember(m, i) {
     const G = root.Game, e = function (k) { return G && G.eff ? G.eff(m, k) : (m[k] || 0); };
     return { side: 'party', idx: i, ref: m, id: m.id, name: m.name, hp: m.hp, hpMax: m.hpMax, tp: m.tp, tpMax: m.tpMax,
-      atk: e('atk'), int: e('int'), def: e('def'), spd: e('spd'), lead: e('lead'), luck: e('luck'), cha: e('lead'), buffs: {}, confused: 0, defending: false, escaped: false };
+      atk: e('atk'), pow: G && G.bonus ? G.bonus(m, 'pow') : 0, int: e('int'), def: e('def'), spd: e('spd'), lead: e('lead'), luck: e('luck'), cha: e('lead'), buffs: {}, confused: 0, defending: false, escaped: false };
   }
   function unitFromEnemy(id, i) {
     const e = B.enemies[id];
@@ -80,7 +80,7 @@
   function lead(b, a) { return a.side === 'party' ? 1 + (b.leadBonus || 0) : 1; }
   function crit(b, a) { return (a.side === 'party' && b.rng() < 0.03 + (a.luck || 0) * 0.005) ? 1.5 : 1; }
   function physDamage(b, a, t, power) {
-    const base = BL.eff(a, 'atk') * 2 - BL.eff(t, 'def') * (t.defending ? 1.5 : 1);
+    const base = BL.eff(a, 'atk') * 2 + (a.pow || 0) - BL.eff(t, 'def') * (t.defending ? 1.5 : 1);
     return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a) * crit(b, a)));
   }
   function tactDamage(b, a, t, power) {
