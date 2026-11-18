@@ -290,12 +290,13 @@
       E.text(c, 'Lv ' + m.level + '　經驗 ' + m.exp + ' / 下一級 ' + window.BattleLogic.expFor(m.level + 1), 20, 58, { size: 8 });
       E.text(c, '兵力 ' + m.hp + ' / ' + m.hpMax + '　戰術點 ' + m.tp + ' / ' + m.tpMax, 20, 70, { size: 8 });
       STAT_ROWS.forEach(function (r, i) { statCell(c, m, r[0], r[1], 20 + (i % 2) * 96, 82 + Math.floor(i / 2) * 12); });
-      if (ch.trait) E.text(c, '特性：' + ch.trait.name + '（' + ch.trait.desc + '）', 20, 134, { size: 8, color: GOLD });
+      if (ch.trait) E.text(c, '特性：' + ch.trait.name + '（' + ch.trait.desc + '）', 20, 141, { size: 8, color: GOLD });
       const sk = window.BattleLogic.skillsFor(m, G.flags).map(function (x) { return x.name; });
-      E.text(c, '計謀：' + (sk.join('、') || '無'), 20, 148, { size: 8 });
+      E.text(c, '計謀：' + (sk.join('、') || '無'), 20, 151, { size: 8 });
       const eq = m.equip || {};
-      E.text(c, '裝備：' + Object.keys(D.slots).map(function (k) { return eq[k] ? D.equipment[eq[k]].name : '－'; }).join(' / '), 20, 160, { size: 7, color: GREY });
-      if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 172 + i * 9, { size: 7, color: GREY }); });
+      E.text(c, '地形：' + Object.keys(D.terrainNames).map(function (k) { return D.terrainNames[k] + ((ch.terrain && ch.terrain[k]) || 'B'); }).join('　'), 20, 131, { size: 8 });
+      E.text(c, '裝備：' + Object.keys(D.slots).map(function (k) { return eq[k] ? D.equipment[eq[k]].name : '－'; }).join(' / '), 20, 161, { size: 7, color: GREY });
+      if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 171 + i * 9, { size: 7, color: GREY }); });
       E.text(c, (G.party.length > 1 ? '左右換人　' : '') + 'X 返回　（升級時能力自動隨機成長）', 20, 204, { size: 7, color: GREY });
     }
   }
@@ -414,6 +415,7 @@
       if (x < 0 || y < 0 || x >= this.w || y >= this.h) return -1;
       return D.legend[this.map.tiles[y][x]];
     }
+    terrainHere() { return D.terrainOf[this.tileAt(this.p.x, this.p.y)] || 'plain'; }
     visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf]); }
     npcAt(x, y) { return this.npcs.find(function (n) { return n.x === x && n.y === y && this.visible(n); }, this); }
     objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y; }); }
@@ -497,7 +499,7 @@
     startBattle(group, boss) {
       const self = this;
       this.hidden = true;
-      E.push(new Scenes.Battle(group, { boss: !!boss, bg: this.map.battleBg, onEnd: function (r) { self.hidden = false; self.afterBattle(r, boss); } }));
+      E.push(new Scenes.Battle(group, { boss: !!boss, bg: this.map.battleBg, terrain: this.terrainHere(), onEnd: function (r) { self.hidden = false; self.afterBattle(r, boss); } }));
     }
     afterBattle(r, boss) {
       if (r === 'lose') {

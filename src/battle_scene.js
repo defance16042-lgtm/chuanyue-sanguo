@@ -13,7 +13,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     constructor(group, opts) {
       opts = opts || {};
       this.opts = opts;
-      this.b = BL.newBattle(G.party, group, { flags: G.flags, boss: !!opts.boss, canFlee: opts.canFlee !== false && !opts.boss });
+      this.b = BL.newBattle(G.party, group, { flags: G.flags, boss: !!opts.boss, canFlee: opts.canFlee !== false && !opts.boss, terrain: opts.terrain || 'plain' });
       this.state = 'msg'; this.queue = []; this.wait = 0; this.after = null;
       this.msgText = ''; this.floats = []; this.cur = 0; this.plans = []; this.sel = 0; this.sub = []; this.subSel = 0;
       this.pending = null; this.targets = []; this.targetSel = 0; this.lines = []; this.result = null;
@@ -250,18 +250,34 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
 
     // ---- 繪製 ----
     drawBg(wc) {
-      // 草原：天空、遠山、草地與草叢（程式畫的，之後可換成圖）
+      const T = this.b.terrain || 'plain';
+      const sky = { plain: ['#5a8ad0', '#b8d8f0'], forest: ['#4a7a9a', '#a8c8c0'], mountain: ['#7a8aa8', '#d0d8e8'], sea: ['#4a80d0', '#c8e4f8'] }[T];
       const g = wc.createLinearGradient(0, 0, 0, 60);
-      g.addColorStop(0, '#5a8ad0'); g.addColorStop(1, '#b8d8f0');
+      g.addColorStop(0, sky[0]); g.addColorStop(1, sky[1]);
       wc.fillStyle = g; wc.fillRect(0, 0, W, 60);
-      wc.fillStyle = '#6a9a78';
-      [[0, 52, 70, 14], [50, 56, 90, 12], [150, 50, 106, 16]].forEach(function (h) { wc.fillRect(h[0], h[1] - h[3] + 12, h[2], h[3]); });
-      wc.fillStyle = '#58a838'; wc.fillRect(0, 60, W, 100);
-      wc.fillStyle = '#4a9030';
+      if (T === 'mountain') {
+        wc.fillStyle = '#7a7a90'; [[0, 20, 90], [70, 8, 110], [150, 24, 106]].forEach(function (m) { for (let y = 0; y < 44; y++) wc.fillRect(m[0] + Math.max(0, 44 - y) * 0 + (44 - y) * 0.5 * (m[2] / 90), m[1] + 12 + y, Math.max(2, m[2] - (44 - y) * (m[2] / 45)), 1); });
+      } else if (T === 'sea') {
+        wc.fillStyle = '#9ac8e8'; wc.fillRect(0, 52, W, 8);
+      } else {
+        wc.fillStyle = '#6a9a78';
+        [[0, 52, 70, 14], [50, 56, 90, 12], [150, 50, 106, 16]].forEach(function (h) { wc.fillRect(h[0], h[1] - h[3] + 12, h[2], h[3]); });
+      }
+      const ground = { plain: ['#58a838', '#4a9030', '#78c858'], forest: ['#2e7a40', '#246a34', '#46a05a'], mountain: ['#9a8468', '#86725a', '#b49c7c'], sea: ['#2c64b8', '#2456a4', '#6aa4e0'] }[T];
+      wc.fillStyle = ground[0]; wc.fillRect(0, 60, W, 100);
+      wc.fillStyle = ground[1];
       for (let y = 64; y < 160; y += 8) for (let x = ((y / 8) % 2) * 8; x < W; x += 16) { wc.fillRect(x, y, 3, 1); wc.fillRect(x + 1, y - 1, 1, 1); }
-      wc.fillStyle = '#78c858';
+      wc.fillStyle = ground[2];
       for (let y = 68; y < 160; y += 12) for (let x = ((y / 4) % 3) * 6 + 4; x < W; x += 24) wc.fillRect(x, y, 2, 1);
+      if (T === 'forest') {   // 遠處的樹冠
+        wc.fillStyle = '#1e5a2c'; for (let x = 4; x < W; x += 22) { wc.fillRect(x, 44, 12, 12); wc.fillRect(x + 4, 56, 4, 6); }
+      }
+      if (T === 'sea') {      // 浪花
+        wc.fillStyle = '#d8ecfa'; for (let y = 70; y < 160; y += 14) for (let x = ((y / 7) % 2) * 10; x < W; x += 28) wc.fillRect(x, y, 8, 1);
+      }
       wc.fillStyle = '#0b0710'; wc.fillRect(0, 160, W, 64);
+      wc.fillStyle = 'rgba(0,0,0,0.55)'; wc.fillRect(98, 2, 60, 11);
+      E.text(wc, '地形：' + window.DATA.terrainNames[T], 128, 3, { size: 8, color: '#ffd668', align: 'center' });
     }
     draw(wc) {
       this.drawBg(wc);
@@ -375,6 +391,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         E.text(c, (t.title && t.title !== t.name ? t.title + '　' : '') + (t.cls || '') + '　武器 ' + (t.weapon || '－'), 74, 181, { size: 8, color: GREY });
         E.text(c, '兵力 ' + t.hp + '/' + t.hpMax + '　攻擊力 ' + (t.atk * 2) + '　防禦力 ' + t.def, 74, 192, { size: 8 });
         E.text(c, '智 ' + t.int + '　速 ' + t.spd + '　統 ' + (t.lead || 0) + '　運 ' + (t.luck || 0), 74, 202, { size: 8 });
+        E.text(c, '地形 ' + Object.keys(window.DATA.terrainNames).map(function (k) { return window.DATA.terrainNames[k] + ((t.terr && t.terr[k]) || 'B'); }).join(' '), 190, 168, { size: 7, color: GREY });
         E.wrap(c, (t.desc || '') + (tbl[t.id] ? '（身上帶著裝備）' : ''), 7, 172).slice(0, 1).forEach(function (l, i) { E.text(c, l, 74, 212, { size: 7, color: GREY }); });
         this.targetMark = t;
       } else if (this.state === 'cmd') {

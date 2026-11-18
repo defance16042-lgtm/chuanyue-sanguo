@@ -19,12 +19,12 @@
   function unitFromMember(m, i) {
     const G = root.Game, e = function (k) { return G && G.eff ? G.eff(m, k) : (m[k] || 0); };
     return { side: 'party', idx: i, ref: m, id: m.id, name: m.name, hp: m.hp, hpMax: m.hpMax, tp: m.tp, tpMax: m.tpMax,
-      atk: e('atk'), pow: G && G.bonus ? G.bonus(m, 'pow') : 0, int: e('int'), def: e('def'), spd: e('spd'), lead: e('lead'), luck: e('luck'), cha: e('lead'), buffs: {}, confused: 0, defending: false, escaped: false };
+      terr: (root.DATA.characters[m.id] || {}).terrain || {}, atk: e('atk'), pow: G && G.bonus ? G.bonus(m, 'pow') : 0, int: e('int'), def: e('def'), spd: e('spd'), lead: e('lead'), luck: e('luck'), cha: e('lead'), buffs: {}, confused: 0, defending: false, escaped: false };
   }
   function unitFromEnemy(id, i) {
     const e = B.enemies[id];
     return { side: 'enemy', idx: i, id: id, name: e.name, hp: e.hp, hpMax: e.hp, tp: 0, tpMax: 0,
-      atk: e.atk, pow: 0, int: e.int != null ? e.int : e.atk, def: e.def, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
+      terr: e.terrain || {}, atk: e.atk, pow: 0, int: e.int != null ? e.int : e.atk, def: e.def, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
       buffs: {}, confused: 0, defending: false };
   }
 
@@ -35,7 +35,7 @@
       party: party.filter(function (m) { return m.hp > 0; }).map(unitFromMember),
       enemies: group.map(unitFromEnemy),
       flags: opts.flags || {}, rng: opts.rng || Math.random, round: 0,
-      canFlee: opts.canFlee !== false, boss: !!opts.boss, allMembers: party
+      terrain: opts.terrain || 'plain', canFlee: opts.canFlee !== false, boss: !!opts.boss, allMembers: party
     };
     // 戰死者仍保留在 allMembers，戰鬥結束時同步
     b.party.forEach(function (u, i) { u.idx = i; });
@@ -78,15 +78,18 @@
     return null;
   };
 
+  // 地形適性：S＋12%、A＋6%、B 不變、C －10%（影響攻擊與防禦）
+  const TERR = { S: 1.12, A: 1.06, B: 1, C: 0.9 };
+  BL.terrMul = function (b, u) { return TERR[(u.terr && u.terr[b.terrain]) || 'B'] || 1; };
   function lead(b, a) { return 1 + (a.side === 'party' ? (b.leadBonus || 0) : (b.leadBonusEnemy || 0)); }
   function crit(b, a) { return b.rng() < 0.03 + (a.luck || 0) * 0.005 ? 1.5 : 1; }
   let curB = null;
   function physDamage(b, a, t, power) {
-    const base = BL.eff(a, 'atk') * 2 + (a.pow || 0) - BL.eff(t, 'def') * (t.defending ? 1.5 : 1);
+    const base = (BL.eff(a, 'atk') * 2 + (a.pow || 0)) * BL.terrMul(b, a) - BL.eff(t, 'def') * BL.terrMul(b, t) * (t.defending ? 1.5 : 1);
     return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a) * crit(b, a)));
   }
   function tactDamage(b, a, t, power) {
-    const base = a.int * 2.2 - BL.eff(t, 'def') * 0.6;
+    const base = a.int * 2.2 * BL.terrMul(b, a) - BL.eff(t, 'def') * 0.6 * BL.terrMul(b, t);
     return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a)));
   }
 

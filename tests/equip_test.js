@@ -36,4 +36,13 @@ check('old save restores', G.restore(JSON.parse(JSON.stringify(old))));
 const o = G.party[0];
 check('old save: points spent randomly, cha→lead, new stats', o.points === undefined && o.cha === undefined && o.lead > 0 && o.luck > 0 && o.grd > 0 && (o.atk + o.int + o.spd + o.lead + o.luck + o.grd) >= 12 + 14 + 14 + 5 + 8 + 14 + 6, o);
 check('equipment data consistent', Object.values(D.equipment).every(e => D.slots[e.slot]) && Object.values(D.shops).every(l => l.every(id => D.equipment[id])) && Object.values(D.drops).every(d => D.equipment[d[0]]));
+// 地形
+check('forest/mountain/sea are walkable and mapped', [19, 20, 21].every(t => !D.solidTiles.includes(t)) && D.terrainOf[19] === 'forest' && D.terrainOf[20] === 'mountain' && D.terrainOf[21] === 'sea');
+check('every map tile letter exists in legend', Object.values(D.maps).every(m => m.tiles.every(r => [...r].every(ch => ch in D.legend))));
+const mk2 = terrain => { const bb = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5, terrain }); return bb; };
+const dmg = terrain => { const bb = mk2(terrain); const ev = BL.perform(bb, bb.party[0], { type: 'attack', target: bb.enemies[0] }); return ev.find(e => e.type === 'dmg').amount; };
+check('terrain affects damage: 關羽 plain(A) > sea(B) vs bandit; bandit weak on plain(C)', dmg('plain') > dmg('sea'), [dmg('plain'), dmg('sea')]);
+const bb2 = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5, terrain: 'forest' });
+const hit = t => { const x = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5, terrain: t }); x.party[0].luck = 0; return BL.perform(x, x.enemies[0], { type: 'attack', target: x.party[0] }).find(e => e.type === 'dmg').amount; };
+check('bandit hits harder in forest(A) than on plain(C)', hit('forest') > hit('plain'), [hit('forest'), hit('plain')]);
 console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

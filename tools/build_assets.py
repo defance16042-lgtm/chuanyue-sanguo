@@ -425,9 +425,54 @@ def build_sprites():
     return sheet
 
 
+def tile_forest():
+    # 森林：一整片樹冠（可以走進去）
+    im = noise_tile((40, 110, 56), [(30, 92, 48), (52, 128, 66), (24, 80, 42)], 11, 60)
+    for cx, cy in ((4, 4), (11, 5), (7, 11), (13, 12), (2, 12)):
+        for y in range(16):
+            for x in range(16):
+                d = (x - cx) ** 2 + (y - cy) ** 2
+                if d <= 7:
+                    im.putpixel((x, y), ((28, 90, 46) if (x + y) % 3 else (44, 120, 60)) + (255,))
+                elif d <= 9:
+                    im.putpixel((x, y), (20, 60, 34, 255))
+    return im
+
+
+def tile_mountain():
+    # 山：灰褐色山峰，頂上有一點雪（可以走過去）
+    im = noise_tile((150, 130, 100), [(136, 116, 88), (164, 144, 112), (120, 102, 78)], 12, 40)
+    for cx, h in ((4, 9), (11, 12)):
+        for y in range(16 - h, 16):
+            half = (y - (16 - h)) * 0.55 + 0.5
+            for x in range(16):
+                if abs(x - cx) <= half:
+                    c = (110, 94, 76) if x <= cx else (138, 120, 96)
+                    if y - (16 - h) <= 2:
+                        c = (236, 236, 244)
+                    im.putpixel((x, y), c + (255,))
+                elif abs(x - cx) <= half + 0.8:
+                    im.putpixel((x, y), OUTLINE)
+    return im
+
+
+def tile_sea():
+    # 海：比池塘更深的藍，有白色浪花（可以走過去）
+    im = Image.new("RGBA", (16, 16), (30, 80, 160, 255))
+    for y in range(16):
+        for x in range(16):
+            if (x + y * 3) % 9 == 0:
+                im.putpixel((x, y), (60, 120, 200, 255))
+    for y in (2, 7, 12):
+        for x in range(16):
+            if (x * 2 + y) % 7 < 2:
+                im.putpixel((x, y), (200, 228, 250, 255))
+    return im
+
+
 def build_tiles():
     makers = [tile_grass, tile_road, tile_water, tile_tree, tile_stone, tile_floor, tile_roof, tile_house_wall, tile_door,
-              tile_fence, tile_well, tile_crate, tile_barrel, tile_flowers, tile_stall, tile_sign, tile_thatch, tile_haystack, tile_bush]
+              tile_fence, tile_well, tile_crate, tile_barrel, tile_flowers, tile_stall, tile_sign, tile_thatch, tile_haystack, tile_bush, tile_forest, tile_mountain, tile_sea]
     sheet = Image.new("RGBA", (16 * len(makers), 16))
     for i, m in enumerate(makers):
         sheet.paste(m(), (i * 16, 0))
