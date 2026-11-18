@@ -52,7 +52,7 @@ const N2 = process.argv[4] === undefined ? 6 : +process.argv[4];
 const stat = { win2: 0, n2: 0, lv2: 0, winBoss: 0, lossField: 0, n: 0, avgLv: 0, avgRounds: 0 };
 for (let t = 0; t < TRIALS; t++) {
   const rng = seeded(1234 + t);
-  const party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(mk);
+  const party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].concat(process.env.GUEST === '0' ? [] : ['zoujing']).map(mk);
   // 劉關張入隊時追到 2 級（暫定）
   party.slice(1).forEach(m => BL.gainExp(m, BL.expFor(2)));
   const flags = { route };

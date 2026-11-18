@@ -24,7 +24,7 @@
   function unitFromEnemy(id, i) {
     const e = B.enemies[id];
     return { side: 'enemy', idx: i, id: id, name: e.name, hp: e.hp, hpMax: e.hp, tp: 0, tpMax: 0,
-      atk: e.atk, int: e.atk, def: e.def, spd: e.spd, cha: 0, exp: e.exp, gold: e.gold, sprite: e.sprite, boss: !!e.boss, ai: e.ai || 'plain',
+      atk: e.atk, pow: 0, int: e.int != null ? e.int : e.atk, def: e.def, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
       buffs: {}, confused: 0, defending: false };
   }
 
@@ -39,8 +39,9 @@
     };
     // 戰死者仍保留在 allMembers，戰鬥結束時同步
     b.party.forEach(function (u, i) { u.idx = i; });
-    // 統率：隊中最高統率讓全隊傷害提高（每點 +0.3%）
-    b.leadBonus = b.party.reduce(function (s, u) { return Math.max(s, u.lead || 0); }, 0) * 0.003;
+    // 統率：各陣營中最高的統率讓全隊傷害提高（每點 +0.3%）
+    const top = function (l) { return l.reduce(function (s, u) { return Math.max(s, u.lead || 0); }, 0) * 0.003; };
+    b.leadBonus = top(b.party); b.leadBonusEnemy = top(b.enemies);
     return b;
   };
 
@@ -77,8 +78,9 @@
     return null;
   };
 
-  function lead(b, a) { return a.side === 'party' ? 1 + (b.leadBonus || 0) : 1; }
-  function crit(b, a) { return (a.side === 'party' && b.rng() < 0.03 + (a.luck || 0) * 0.005) ? 1.5 : 1; }
+  function lead(b, a) { return 1 + (a.side === 'party' ? (b.leadBonus || 0) : (b.leadBonusEnemy || 0)); }
+  function crit(b, a) { return b.rng() < 0.03 + (a.luck || 0) * 0.005 ? 1.5 : 1; }
+  let curB = null;
   function physDamage(b, a, t, power) {
     const base = BL.eff(a, 'atk') * 2 + (a.pow || 0) - BL.eff(t, 'def') * (t.defending ? 1.5 : 1);
     return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a) * crit(b, a)));
@@ -89,7 +91,7 @@
   }
 
   function hurt(t, dmg, ev) {
-    if (t.side === 'party' && t.luck && Math.random() < t.luck * 0.003) { ev.push({ type: 'msg', text: t.name + '閃過了攻擊！' }); return; }
+    if (t.luck && curB && curB.rng() < t.luck * 0.003) { ev.push({ type: 'msg', text: t.name + '閃過了攻擊！' }); return; }
     t.hp = Math.max(0, t.hp - dmg);
     ev.push({ type: 'dmg', target: t, amount: dmg, dead: t.hp <= 0 });
   }
@@ -116,6 +118,7 @@
 
   // action：{ type:'attack'|'skill'|'item'|'defend'|'flee', skill:id, item:id, target:unit }
   BL.perform = function (b, a, action) {
+    curB = b;
     const ev = [];
     if (a.hp <= 0 || a.escaped) return ev;
     const t0 = action.type;
@@ -215,6 +218,7 @@
   // 頭目專屬招式（敵方技能不耗 TP）
   const oldPerform = BL.perform;
   BL.perform = function (b, a, action) {
+    curB = b;
     if (action.type === 'boss_all') {
       const ev = [{ type: 'msg', text: a.name + '揮軍衝鋒！' }];
       BL.alive(b.party).forEach(function (t) { hurt(t, Math.max(1, Math.round(physDamage(b, a, t, 0.7))), ev); });

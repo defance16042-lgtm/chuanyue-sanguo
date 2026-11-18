@@ -42,12 +42,12 @@ window.DATA.battle = {
 
   // atk 武力、int 智力；ai: 'plain'（普通攻擊）、'boss'（會用技能）
   enemies: {
-    turban:   { name: '黃巾兵',   hp: 50,  atk: 12, def: 6,  spd: 7,  exp: 9,  gold: 8,  sprite: 0 },
-    archer:   { name: '黃巾弓手', hp: 42,  atk: 14, def: 4,  spd: 10, exp: 10, gold: 10, sprite: 1 },
-    bandit:   { name: '山賊',     hp: 64,  atk: 15, def: 8,  spd: 8,  exp: 13, gold: 14, sprite: 2 },
-    captain:  { name: '黃巾小帥', hp: 90,  atk: 17, def: 9,  spd: 9,  exp: 20, gold: 22, sprite: 3 },
-    chengyuanzhi: { name: '程遠志', hp: 1100, atk: 30, def: 14, spd: 10, exp: 80, gold: 120, sprite: 4, boss: true, ai: 'boss' },
-    qushuai: { name: '黃巾渠帥', hp: 2600, atk: 52, def: 26, spd: 12, exp: 200, gold: 200, sprite: 5, boss: true, ai: 'boss' }
+    turban:   { name: '黃巾兵', int: 6, lead: 0, luck: 3, title: '黃巾兵', cls: '步兵', weapon: '刀', desc: '頭纏黃巾的農民兵，人多勢眾，個體不強。',   hp: 50,  atk: 12, def: 6,  spd: 7,  exp: 9,  gold: 8,  sprite: 0 },
+    archer:   { name: '黃巾弓手', int: 12, lead: 0, luck: 8, title: '黃巾弓手', cls: '弓兵', weapon: '弓', desc: '站得遠，速度快，但很脆弱。', hp: 42,  atk: 14, def: 4,  spd: 10, exp: 10, gold: 10, sprite: 1 },
+    bandit:   { name: '山賊', int: 8, lead: 2, luck: 5, title: '山賊', cls: '賊兵', weapon: '斧', desc: '趁亂打劫的山賊，下手比黃巾兵狠。',     hp: 64,  atk: 15, def: 8,  spd: 8,  exp: 13, gold: 14, sprite: 2 },
+    captain:  { name: '黃巾小帥', int: 10, lead: 8, luck: 5, title: '黃巾小帥', cls: '小隊長', weapon: '刀', desc: '統領十餘人的小頭目，兵力和防禦較高。', hp: 90,  atk: 17, def: 9,  spd: 9,  exp: 20, gold: 22, sprite: 3 },
+    chengyuanzhi: { name: '程遠志', int: 16, lead: 15, luck: 8, title: '黃巾將領', cls: '將領', weapon: '刀', desc: '涿郡黃巾的首領，會全體衝鋒與重斬。', hp: 1100, atk: 30, def: 14, spd: 10, exp: 80, gold: 120, sprite: 4, boss: true, ai: 'boss' },
+    qushuai: { name: '黃巾渠帥', int: 28, lead: 22, luck: 10, title: '黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '廣陽黃巾的首領，兵力雄厚，會全體衝鋒與重斬。', hp: 2600, atk: 52, def: 26, spd: 12, exp: 200, gold: 200, sprite: 5, boss: true, ai: 'boss' }
   },
   groups: {
     field1: [ ['turban', 'turban'], ['turban', 'archer'], ['archer', 'turban', 'turban'], ['bandit', 'turban'] ],

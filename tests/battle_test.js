@@ -167,6 +167,26 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('all-attack battle finishes', s && s.scene === 'MapScene', s && s.scene);
   for (let i = 0; i < 6 && (await S()).scene !== 'MapScene'; i++) await tap('z');
 
+  // ---- 偵察：不耗回合，顯示敵人資料，X 回到指令
+  await page.evaluate(() => { Engine.top().startBattle(['captain', 'bandit'], false); });
+  for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
+  const cmdIdx = await page.evaluate(() => { const b = Engine.top(); return { cur: b.cur, round: b.b.round }; });
+  await tap('ArrowRight'); await tap('ArrowRight'); await tap('z');      // 第 3 欄：偵察
+  let sc = await page.evaluate(() => { const b = Engine.top(); return { st: b.state, ty: b.pending && b.pending.type }; });
+  await tap('z');
+  sc = await page.evaluate(() => { const b = Engine.top(); return { st: b.state, cur: b.cur, round: b.b.round, n: b.targets.length }; });
+  check('偵察 opens the scout panel without using the turn', sc.st === 'scout' && sc.cur === cmdIdx.cur && sc.round === cmdIdx.round, sc);
+  await tap('ArrowDown');
+  sc = await page.evaluate(() => Engine.top().scoutIdx);
+  check('偵察 can switch enemy', sc === 1, sc);
+  await shot('scout');
+  await tap('x');
+  sc = await page.evaluate(() => { const b = Engine.top(); return { st: b.state, cur: b.cur }; });
+  check('X leaves scout back to command menu', sc.st === 'cmd' && sc.cur === cmdIdx.cur, sc);
+  await page.evaluate(() => { Engine.top().b.enemies.forEach(e => { e.hp = 0; }); });
+  await page.evaluate(() => { const b = Engine.top(); b.finish('win'); });
+  for (let i = 0; i < 12 && (await S()).scene !== 'MapScene'; i++) await tap('z');
+
   // ---- 全體攻擊：按一次就自動打到底（不再每回合問指令），再按一下取消
   await page.evaluate(() => { Game.party.forEach(m => { m.atk = 12; m.lead = 0; m.luck = 0; m.hp = m.hpMax = 999; }); Engine.top().startBattle(['captain', 'bandit'], false); });
   for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
