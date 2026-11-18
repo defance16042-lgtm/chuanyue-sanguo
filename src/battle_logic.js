@@ -10,15 +10,16 @@
   // 隊員目前可用的技能清單（含路線解鎖）
   BL.skillsFor = function (member, flags) {
     const ids = (B.charSkills[member.id] || []).slice();
-    if (member.allocatable && flags && flags.route && B.routeSkills[flags.route]) {
+    if (member.id === 'nyao' && flags && flags.route && B.routeSkills[flags.route]) {
       B.routeSkills[flags.route].forEach(function (e) { if (member.level >= e[0]) ids.push(e[1]); });
     }
     return ids.map(function (id) { return Object.assign({ id: id }, B.skills[id]); });
   };
 
   function unitFromMember(m, i) {
+    const G = root.Game, e = function (k) { return G && G.eff ? G.eff(m, k) : (m[k] || 0); };
     return { side: 'party', idx: i, ref: m, id: m.id, name: m.name, hp: m.hp, hpMax: m.hpMax, tp: m.tp, tpMax: m.tpMax,
-      atk: m.atk, int: m.int, def: m.def, spd: m.spd, cha: m.cha || 0, buffs: {}, confused: 0, defending: false, escaped: false };
+      atk: e('atk'), int: e('int'), def: e('def'), spd: e('spd'), lead: e('lead'), luck: e('luck'), cha: e('lead'), buffs: {}, confused: 0, defending: false, escaped: false };
   }
   function unitFromEnemy(id, i) {
     const e = B.enemies[id];
@@ -38,6 +39,8 @@
     };
     // 戰死者仍保留在 allMembers，戰鬥結束時同步
     b.party.forEach(function (u, i) { u.idx = i; });
+    // 統率：隊中最高統率讓全隊傷害提高（每點 +0.3%）
+    b.leadBonus = b.party.reduce(function (s, u) { return Math.max(s, u.lead || 0); }, 0) * 0.003;
     return b;
   };
 
@@ -74,16 +77,19 @@
     return null;
   };
 
+  function lead(b, a) { return a.side === 'party' ? 1 + (b.leadBonus || 0) : 1; }
+  function crit(b, a) { return (a.side === 'party' && b.rng() < 0.03 + (a.luck || 0) * 0.005) ? 1.5 : 1; }
   function physDamage(b, a, t, power) {
     const base = BL.eff(a, 'atk') * 2 - BL.eff(t, 'def') * (t.defending ? 1.5 : 1);
-    return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1)));
+    return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a) * crit(b, a)));
   }
   function tactDamage(b, a, t, power) {
     const base = a.int * 2.2 - BL.eff(t, 'def') * 0.6;
-    return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1)));
+    return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a)));
   }
 
   function hurt(t, dmg, ev) {
+    if (t.side === 'party' && t.luck && Math.random() < t.luck * 0.003) { ev.push({ type: 'msg', text: t.name + '閃過了攻擊！' }); return; }
     t.hp = Math.max(0, t.hp - dmg);
     ev.push({ type: 'dmg', target: t, amount: dmg, dead: t.hp <= 0 });
   }
@@ -249,22 +255,37 @@
     return expCache[n];
   };
 
-  // 給經驗並處理升級。回傳升級資訊陣列
-  BL.gainExp = function (member, amount) {
+  // 隨機替某項能力 +1（舊存檔的剩餘能力點用）
+  const RANDOM_KEYS = ['atk', 'int', 'spd', 'lead', 'luck', 'grd'];
+  BL.randomStat = function (m) { const k = RANDOM_KEYS[Math.floor(Math.random() * RANDOM_KEYS.length)]; m[k] = (m[k] || 0) + 1; return k; };
+
+  // 給經驗並處理升級：依成長率自動隨機成長（沒有人手動配點）
+  BL.gainExp = function (member, amount, rng) {
     const out = [];
+    rng = rng || Math.random;
     member.exp += amount;
     while (member.exp >= BL.expFor(member.level + 1)) {
       member.level++;
-      const c = root.DATA.characters[member.id], g = c.growth || {};
-      const gain = { name: member.name, level: member.level, hp: 0, atk: 0, int: 0, def: 0, spd: 0, cha: 0, points: 0 };
-      gain.hp = g.hp || 12; member.hpMax += gain.hp; member.hp = Math.min(member.hpMax, member.hp + gain.hp);
-      if (member.allocatable) { gain.points = c.pointsPerLevel || 3; member.points += gain.points; }
-      else { gain.atk = g.atk || 0; gain.int = g.int || 0; gain.cha = g.cha || 0; member.atk += gain.atk; member.int += gain.int; member.cha = (member.cha || 0) + gain.cha; }
+      const c = root.DATA.characters[member.id] || {}, g = c.growth || {};
+      const gain = { name: member.name, level: member.level, hp: 0, atk: 0, int: 0, spd: 0, lead: 0, luck: 0, grd: 0, tp: 0 };
+      gain.hp = Math.round((g.hp || 12) * (0.8 + rng() * 0.4));
+      member.hpMax += gain.hp; member.hp = Math.min(member.hpMax, member.hp + gain.hp);
+      ['atk', 'int', 'spd', 'lead', 'luck', 'grd', 'tp'].forEach(function (k) {
+        const r = g[k] || 0; let n = Math.floor(r); if (rng() < r - n) n++;
+        gain[k] = n;
+        if (k === 'tp') member.tpMax += n; else member[k] = (member[k] || 0) + n;
+      });
       root.Game && root.Game.recalc ? root.Game.recalc(member) : (member.def = Math.round(member.hpMax * 0.08));
-      gain.spd = member.level % 3 === 0 ? 1 : 0; member.spd += gain.spd;
-      gain.tp = member.level % 2 === 0 ? 1 : 0; member.tpMax += gain.tp;
       out.push(gain);
     }
+    return out;
+  };
+
+  // 戰利品：依掉落表擲骰
+  BL.drops = function (b, rng) {
+    const out = [], tbl = (root.DATA && root.DATA.drops) || {};
+    rng = rng || Math.random;
+    b.enemies.forEach(function (e) { const d = tbl[e.id]; if (d && rng() < d[1]) out.push(d[0]); });
     return out;
   };
 

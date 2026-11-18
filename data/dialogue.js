@@ -42,7 +42,8 @@ window.DATA.dialogue = {
   ],
   suishuang: [
     { speaker: '蘇雙', text: '我跟張兄的想法一樣：亂世裡，有本事的人缺的是本錢，我們缺的是眼光。' },
-    { speaker: '蘇雙', text: '看你也不像普通人，貓耳朵都豎得這麼直。' }
+    { speaker: '蘇雙', text: '看你也不像普通人，貓耳朵都豎得這麼直。我手上有些兵器甲冑，要不要看看？',
+      choices: [ { label: '看看貨', act: { shop: 'suishuang' } }, { label: '不用了' } ] }
   ],
   merchant: [
     { speaker: '張世平', text: '要買點什麼？打仗之前，傷藥是越多越好。',
@@ -142,7 +143,8 @@ window.DATA.dialogue = {
     { speaker: '鄒靖', text: '你們就是涿縣新募的義兵？我是校尉鄒靖，奉命討黃巾。' },
     { speaker: '劉備', text: '在下劉備，願率鄉勇追隨校尉，為朝廷效力。' },
     { speaker: '鄒靖', text: '好！先把南邊這片路上的黃巾游騎清掉。他們的首領在南邊紮營，擊敗他再向我報告。' },
-    { speaker: '諸葛貓妖', text: '清掉游騎……可以順便練練等級吧？先把傷藥買足，再出發。', set: { camp_ok: true } }
+    { speaker: '諸葛貓妖', text: '清掉游騎……可以順便練練等級吧？先把傷藥買足，再出發。', set: { camp_ok: true } },
+    { speaker: '鄒靖', text: '我也隨你們走一趟。官軍不能閒著，這段路由我助戰。', act: { guest: 'zoujing' } }
   ],
   zoujing_after: [
     { speaker: '鄒靖', text: '程遠志已經伏誅，做得好。可是廣陽那邊的黃巾更凶，連幽州刺史郭勳、太守劉衛都被他們殺了。' },
@@ -182,6 +184,9 @@ window.DATA.dialogue = {
   ],
   boss2_after: [
     { speaker: '', text: '廣陽黃巾渠帥倒下了，殘黨一哄而散。' },
+    { speaker: '鄒靖', text: '幽州的賊勢已清。我得回營向上官復命，各位保重。後會有期！', act: { leave: 'zoujing' } },
+    { speaker: '', text: '三位好漢連番血戰，手中的兵器彷彿有了靈性——劉備的雙股劍、關羽的青龍偃月刀、張飛的丈八蛇矛，各自綻放出光芒。', act: { gear: ['twin_swords', 'qinglong', 'serpent'] } },
+    { speaker: '', text: '（獲得專屬武器：雙股劍、青龍偃月刀、丈八蛇矛。到「裝備」畫面裝上。）' },
     { speaker: '劉備', text: '我們為廣陽的百姓討回了一點公道。但黃巾遍布天下，這只是開始。' },
     { speaker: '', text: '此時，一名信使從遠方趕來，帶來中原的消息：潁川的黃巾首領波才，已經在長社擊敗了朱儁，並包圍了皇甫嵩。' },
     { speaker: '劉備', text: '朝廷危急，我們必須出發。下一站——潁川！' },

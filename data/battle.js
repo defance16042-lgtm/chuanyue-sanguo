@@ -31,7 +31,8 @@ window.DATA.battle = {
     nyao: [],
     liubei: ['inspire', 'mend'],
     guanyu: ['qinglong'],
-    zhangfei: ['roar']
+    zhangfei: ['roar'],
+    zoujing: ['roar']
   },
   // 選了路線之後才解鎖（只限諸葛貓妖）。每項為 [解鎖等級, 技能]
   routeSkills: {

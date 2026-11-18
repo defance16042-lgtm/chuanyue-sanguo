@@ -117,12 +117,12 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑'];
         G.gold = (G.gold || 0) + v.gold;
         this.lines.push('戰鬥勝利！');
         this.lines.push('獲得 ' + v.share + ' 經驗值、' + v.gold + ' 金');
+        BL.drops(b).forEach(function (id) { G.addGear(id); self.lines.push('撿到裝備：' + D.equipment[id].name); });
         b.party.forEach(function (u) {
           if (u.ref.hp <= 0) u.ref.hp = 1;
           else BL.gainExp(u.ref, v.share).forEach(function (g) {
             let s = g.name + '升到 Lv' + g.level + '！兵力+' + g.hp;
-            if (g.points) s += '、能力點+' + g.points;
-            else { if (g.atk) s += '、武力+' + g.atk; if (g.int) s += '、智力+' + g.int; if (g.cha) s += '、魅力+' + g.cha; }
+            [['atk', '武力'], ['int', '智力'], ['spd', '速度'], ['lead', '統率'], ['luck', '運氣'], ['grd', '守備'], ['tp', '戰術點']].forEach(function (p) { if (g[p[0]]) s += '、' + p[1] + '+' + g[p[0]]; });
             self.lines.push(s);
           });
         });

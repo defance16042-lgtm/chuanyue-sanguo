@@ -1,12 +1,13 @@
 // 戰鬥平衡模擬：node tools/sim_battle.js [路線 force|wit] [野外戰鬥場數]
 const path = require('path');
 globalThis.window = globalThis;
-require('../data/characters.js'); require('../data/battle.js');
+require('../data/characters.js'); require('../data/maps.js'); require('../data/battle.js'); require('../data/equipment.js');
 const BL = require('../src/battle_logic.js');
-const Game = { items: { herb: 6, tonic: 2, smoke: 0 } }; globalThis.Game = Game;
+
+const BLX = BL; require('../src/game.js'); const Game = globalThis.Game; Game.items = { herb: 6, tonic: 2, smoke: 0 };
 const D = DATA, B = D.battle;
 
-function mk(id) { const c = D.characters[id]; return { id, name: c.name, allocatable: !!c.allocatable, level: 1, exp: 0, hpMax: c.hp, hp: c.hp, tpMax: c.tp, tp: c.tp, atk: c.atk, int: c.int, def: Math.round(c.hp * 0.08), spd: c.spd, cha: c.cha, points: c.startPoints || 0 }; }
+function mk(id) { return Game.makeMember(id); }
 function seeded(s) { return () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; }; }
 
 function spend(m, route) { // 把點數全加到路線屬性
@@ -54,14 +55,12 @@ for (let t = 0; t < TRIALS; t++) {
   const party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(mk);
   // 劉關張入隊時追到 2 級（暫定）
   party.slice(1).forEach(m => BL.gainExp(m, BL.expFor(2)));
-  party.forEach(m => spend(m, route));
   const flags = { route };
   let dead = false;
   for (let i = 0; i < N && !dead; i++) {
     const groups = B.groups.field1; const g = groups[Math.floor(rng() * groups.length)];
     const r = fight(party, g, flags, rng, false);
-    party.forEach(m => spend(m, route));
-    if (r.o === 'lose') { stat.lossField++; dead = true; }
+      if (r.o === 'lose') { stat.lossField++; dead = true; }
     if (i % 3 === 2) heal(party);   // 約每 3 場回旅館休息一次
   }
   if (!dead && N % 3 !== 0) { /* 打 Boss 前先休息 */ } heal(party); Game.items.herb = 6; Game.items.tonic = 2;
@@ -76,8 +75,7 @@ for (let t = 0; t < TRIALS; t++) {
   for (let i = 0; i < N2 && !dead2; i++) {
     const groups = B.groups.field2; const g = groups[Math.floor(rng() * groups.length)];
     const rr = fight(party, g, flags, rng, false);
-    party.forEach(m => spend(m, route));
-    if (rr.o === 'lose') dead2 = true;
+      if (rr.o === 'lose') dead2 = true;
     if (i % 3 === 2) heal(party);
   }
   heal(party); Game.items.herb = 6; Game.items.tonic = 2;

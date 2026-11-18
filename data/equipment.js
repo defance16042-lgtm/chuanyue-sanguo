@@ -1,0 +1,45 @@
+// 裝備資料。五個欄位：weapon 武器、armor 護甲、helm 頭盔、boots 鞋靴、charm 飾品。
+// mods：能力加成（atk 武力、int 智力、def 防禦、spd 速度、lead 統率、luck 運氣、grd 守備）。
+// only：專屬裝備，只有該角色能裝。shop：商店販售（price 金）。
+window.DATA = window.DATA || {};
+window.DATA.slots = { weapon: '武器', armor: '護甲', helm: '頭盔', boots: '鞋靴', charm: '飾品' };
+window.DATA.equipment = {
+  // 武器
+  wood_sword:  { name: '木劍',     slot: 'weapon', mods: { atk: 2 }, price: 40, shop: 1, desc: '練習用的劍' },
+  iron_sword:  { name: '鐵劍',     slot: 'weapon', mods: { atk: 5 }, price: 120, shop: 1, desc: '尋常鐵匠打的劍' },
+  spear:       { name: '長槍',     slot: 'weapon', mods: { atk: 6, spd: -1 }, price: 150, shop: 1, desc: '攻擊強，稍重' },
+  feather_fan: { name: '羽扇',     slot: 'weapon', mods: { int: 5 }, price: 130, shop: 1, desc: '輕搖羽扇，頭腦清晰' },
+  bamboo_book: { name: '竹簡兵書', slot: 'weapon', mods: { int: 3, lead: 3 }, price: 160, shop: 1, desc: '裡面寫的是行軍之法' },
+  // 護甲
+  cloth:       { name: '布衣',     slot: 'armor', mods: { def: 1 }, price: 30, shop: 1, desc: '一般百姓穿的衣服' },
+  leather:     { name: '皮甲',     slot: 'armor', mods: { def: 3 }, price: 90, shop: 1, desc: '輕便的皮甲' },
+  scale:       { name: '鐵札甲',   slot: 'armor', mods: { def: 6, spd: -1 }, price: 220, shop: 1, desc: '鐵片編成，較重' },
+  // 頭盔
+  headband:    { name: '頭巾',     slot: 'helm', mods: { def: 1 }, price: 25, shop: 1, desc: '包頭的布巾' },
+  iron_helm:   { name: '鐵盔',     slot: 'helm', mods: { def: 2, grd: 2 }, price: 100, shop: 1, desc: '擋得住一記悶棍' },
+  // 鞋靴
+  straw_shoes: { name: '草鞋',     slot: 'boots', mods: { spd: 1 }, price: 30, shop: 1, desc: '劉備家的名產' },
+  leather_boot:{ name: '皮靴',     slot: 'boots', mods: { spd: 2, def: 1 }, price: 110, shop: 1, desc: '跑得快，也耐穿' },
+  // 飾品
+  jade:        { name: '玉佩',     slot: 'charm', mods: { luck: 4 }, price: 140, shop: 1, desc: '據說能帶來好運' },
+  war_drum:    { name: '小戰鼓',   slot: 'charm', mods: { lead: 4 }, price: 170, shop: 1, desc: '敲一敲，士氣更旺' },
+  amulet:      { name: '護身符',   slot: 'charm', mods: { grd: 4 }, price: 130, shop: 1, desc: '廟裡求來的平安符' },
+  // 戰利品（敵人掉落）
+  yellow_scarf:{ name: '黃巾',     slot: 'helm', mods: { def: 2, luck: 1 }, price: 0, desc: '黃巾賊的頭巾，洗乾淨還能戴' },
+  rebel_blade: { name: '賊將大刀', slot: 'weapon', mods: { atk: 7 }, price: 0, desc: '程遠志用過的大刀' },
+  // 專屬武器
+  qinglong:    { name: '青龍偃月刀', slot: 'weapon', mods: { atk: 9, lead: 2 }, only: 'guanyu', price: 0, desc: '關羽專屬。刀光如青龍' },
+  serpent:     { name: '丈八蛇矛', slot: 'weapon', mods: { atk: 9, grd: 2 }, only: 'zhangfei', price: 0, desc: '張飛專屬。一矛橫掃一片' },
+  twin_swords: { name: '雙股劍',   slot: 'weapon', mods: { atk: 4, int: 3, lead: 3 }, only: 'liubei', price: 0, desc: '劉備專屬。一對長劍，劍穗隨風' }
+};
+// 敵人掉落：敵人 id → [裝備 id, 機率]
+window.DATA.drops = {
+  chengyuanzhi: ['rebel_blade', 1.0],
+  qushuai: ['yellow_scarf', 1.0],
+  archer: ['headband', 0.08],
+  captain: ['yellow_scarf', 0.12]
+};
+// 商店：蘇雙（涿縣）
+window.DATA.shops = {
+  suishuang: ['wood_sword', 'iron_sword', 'spear', 'feather_fan', 'cloth', 'leather', 'headband', 'iron_helm', 'straw_shoes', 'jade', 'amulet']
+};

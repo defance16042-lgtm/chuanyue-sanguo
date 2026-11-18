@@ -14,7 +14,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const tap = async (k, hold = 70, after = 170) => { await page.keyboard.down(k); await sleep(hold); await page.keyboard.up(k); await sleep(after); };
   const shot = n => page.screenshot({ path: `${OUT}/b_${n}.png` });
   const S = () => page.evaluate(() => { const t = Engine.top(); return { scene: t.constructor.name, state: t.state, map: Game.mapId, pos: Game.pos, gold: Game.gold, items: Game.items, flags: Game.flags,
-    party: Game.party.map(m => ({ n: m.name, lv: m.level, hp: m.hp, hpMax: m.hpMax, tp: m.tp, tpMax: m.tpMax, exp: m.exp, atk: m.atk, int: m.int, pts: m.points })) }; });
+    party: Game.party.map(m => ({ n: m.name, lv: m.level, hp: m.hp, hpMax: m.hpMax, tp: m.tp, tpMax: m.tpMax, exp: m.exp, atk: m.atk, int: m.int, })) }; });
 
 
   async function talk(choiceIdx = 0) {   // 把目前的對話用真按鍵讀完；遇到選項就選第 choiceIdx 個
@@ -100,7 +100,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // 回復道具：先讓某人受傷，從選單用傷藥
   await page.evaluate(() => { Game.party[1].hp = 10; });
-  await tap('Escape'); await tap('ArrowDown'); await tap('Enter');
+  await tap('Escape'); await tap('ArrowDown'); await tap('ArrowDown'); await tap('Enter');
   s = await S(); check('item screen opens', s.scene === 'ItemScene', s.scene);
   await tap('z'); await tap('ArrowDown'); await tap('z'); await shot('item_use');
   s = await S();
@@ -136,7 +136,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await tap('ArrowDown'); await tap('z');
   for (let i = 0; i < 60 && (await S()).scene === 'BattleScene'; i++) await tap('z', 40, 100);
   s = await S(); check('smoke bomb escapes; back on map; smoke used up', s.scene === 'MapScene' && s.items.smoke === 0, { sc: s.scene, sm: s.items.smoke });
-  await page.evaluate(() => { Math.random = Object.getPrototypeOf(Math).random || Math.random; });
+  await page.evaluate(() => { Math.random = () => 0.5; });
 
   // ---- Boss：把隊伍調強，真按鍵打到底
   await page.evaluate(() => { Game.party.forEach(m => { m.atk = 120; m.hp = m.hpMax = 999; }); Engine.replaceAll(new Scenes.Map('field', { x: 11, y: 17, dir: 'down' })); });
@@ -168,7 +168,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   for (let i = 0; i < 6 && (await S()).scene !== 'MapScene'; i++) await tap('z');
 
   // ---- 全體攻擊：按一次就自動打到底（不再每回合問指令），再按一下取消
-  await page.evaluate(() => { Game.party.forEach(m => { m.atk = 22; m.hp = m.hpMax = 999; }); Engine.top().startBattle(['captain', 'bandit'], false); });
+  await page.evaluate(() => { Game.party.forEach(m => { m.atk = 12; m.lead = 0; m.luck = 0; m.hp = m.hpMax = 999; }); Engine.top().startBattle(['captain', 'bandit'], false); });
   for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
   await tap('ArrowRight'); await tap('z');
   let cmdAgain = false, maxRound = 0;
@@ -195,7 +195,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(300);
 
   // ---- 戰敗：把隊伍弄成 1 血、攻擊 1，打黃巾兵
-  await page.evaluate(() => { Game.gold = 101; Game.party.forEach(m => { m.atk = 1; m.int = 1; m.def = 0; m.hp = 1; }); Engine.top().startBattle(['bandit', 'bandit', 'captain'], false); });
+  await page.evaluate(() => { Game.gold = 101; Game.party.forEach(m => { m.atk = 1; m.int = 1; m.luck = 0; m.lead = 0; m.grd = 0; m.def = 0; m.hp = 1; }); Engine.top().startBattle(['bandit', 'bandit', 'captain'], false); });
   s = await fightByKeys({});
   for (let i = 0; i < 10 && (await S()).scene !== 'MapScene'; i++) await tap('z');
   s = await S();

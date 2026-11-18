@@ -74,10 +74,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await shot('5_menu');
   await tap('Enter');
   check('menu -> status', (await st()).scene === 'StatusScene');
-  await tap('z');                       // +1 atk
-  await tap('ArrowDown'); await tap('z'); await tap('z');  // +2 int
+  await tap('z'); await tap('ArrowDown'); await tap('z');   // 角色資料是唯讀，不能配點
   s = await st();
-  check('allocation: atk 13, int 14, points 3', s.nyao.atk === 13 && s.nyao.int === 14 && s.nyao.points === 3, s.nyao);
+  check('status is read-only: atk 13, int 13, no points', s.nyao.atk === 13 && s.nyao.int === 13 && s.nyao.points === undefined, s.nyao);
   await shot('6_status');
   await tap('x'); await tap('x');
   check('status/menu close back to map', (await st()).scene === 'MapScene');
@@ -120,7 +119,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await tap('ArrowDown'); await tap('Enter');       // back to slot 1 (wraps): valid
   await sleep(400);
   s = await st();
-  check('valid save restores map, position, stats and flags', s.scene === 'MapScene' && s.map === 'zhuoxian' && s.pos.x === 16 && s.pos.y === 6 && s.nyao.atk === 13 && s.nyao.int === 14 && s.nyao.points === 3 && s.flags.route === 'wit', s);
+  check('valid save restores map, position, stats and flags', s.scene === 'MapScene' && s.map === 'zhuoxian' && s.pos.x === 16 && s.pos.y === 6 && s.nyao.atk === 13 && s.nyao.int === 13 && s.flags.route === 'wit', s);
   await shot('10_loaded');
 
   // window resize keeps integer scaling
