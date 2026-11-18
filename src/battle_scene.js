@@ -250,7 +250,14 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
 
     // ---- 繪製 ----
     drawBg(wc) {
-      const T = this.b.terrain || 'plain';
+      const T = this.b.terrain || 'plain', img = E.images['bg_' + T];
+      if (img) {
+        wc.drawImage(img, 0, 0);
+        wc.fillStyle = '#0b0710'; wc.fillRect(0, 160, W, 64);
+        wc.fillStyle = 'rgba(0,0,0,0.55)'; wc.fillRect(98, 2, 60, 11);
+        E.text(wc, '地形：' + window.DATA.terrainNames[T], 128, 3, { size: 8, color: '#ffd668', align: 'center' });
+        return;
+      }
       const sky = { plain: ['#5a8ad0', '#b8d8f0'], forest: ['#4a7a9a', '#a8c8c0'], mountain: ['#7a8aa8', '#d0d8e8'], sea: ['#4a80d0', '#c8e4f8'] }[T];
       const g = wc.createLinearGradient(0, 0, 0, 60);
       g.addColorStop(0, sky[0]); g.addColorStop(1, sky[1]);
