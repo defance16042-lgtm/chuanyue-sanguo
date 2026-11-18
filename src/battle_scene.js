@@ -15,7 +15,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       this.opts = opts;
       this.b = BL.newBattle(G.party, group, { flags: G.flags, boss: !!opts.boss, canFlee: opts.canFlee !== false && !opts.boss, terrain: opts.terrain || 'plain', fire: opts.fire });
       this.state = 'msg'; this.queue = []; this.wait = 0; this.after = null;
-      this.msgText = ''; this.floats = []; this.cur = 0; this.plans = []; this.sel = 0; this.sub = []; this.subSel = 0;
+      this.msgText = ''; this.floats = []; this.fxs = []; this.cur = 0; this.plans = []; this.sel = 0; this.sub = []; this.subSel = 0;
       this.pending = null; this.targets = []; this.targetSel = 0; this.lines = []; this.result = null;
       this.execQueue = []; this.time = 0; this.actor = null; this.bg = opts.bg || 'grass';
       this.layout();
@@ -48,6 +48,13 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       const self = this;
       if (ev.type === 'msg') { this.msgText = ev.text; this.wait = MSG_MS; }
       else if (ev.type === 'act') { ev.actor.anim = { kind: ev.kind, t: 0 }; this.wait = 0; }
+      else if (ev.type === 'fx') {
+        const p = this.unitPos(ev.target), h = ev.target.ch || 32;
+        const dur = { fire: 620 + ev.level * 70, bolt: 520, heal: 560, slash: 230, aura: 520, star: 520, shock: 400 }[ev.fx] || 400;
+        this.fxs.push({ fx: ev.fx, x: p.x, y: p.y + (ev.target.ch ? ev.target.ch * 0.5 : 14), level: ev.level, t: 0, dur: dur, seed: Math.random() * 1000 });
+        this.wait = 0;
+      }
+      else if (ev.type === 'wait') { this.wait = ev.ms; }
       else if (ev.type === 'status') { this.msgText = ev.text; this.wait = MSG_MS; }
       else if (ev.type === 'dmg') {
         const p = this.unitPos(ev.target);
@@ -149,6 +156,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       this.b.party.concat(this.b.enemies).forEach(function (u) { if (u.anim) { u.anim.t += dt; if (u.anim.t > 560) u.anim = null; } });
       this.floats.forEach(function (f) { f.t += dt; });
       this.floats = this.floats.filter(function (f) { return f.t < 700; });
+      this.fxs.forEach(function (f) { f.t += dt; });
+      this.fxs = this.fxs.filter(function (f) { return f.t < f.dur; });
 
       const s = this.state;
       if (s === 'msg') {
@@ -163,6 +172,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (this.wait <= 0) this.stepExec();
       } else if (s === 'cmd') this.updateCmd();
       else if (s === 'skill' || s === 'item') this.updateSub();
+      else if (s === 'mode') this.updateMode();
       else if (s === 'target') this.updateTarget();
       else if (s === 'scout') this.updateScout();
       else if (s === 'result') this.updateResult();
@@ -211,6 +221,12 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       if (it.disabled) return;
       if (it.skill) {
         const k = it.skill.target;
+        if (it.skill.choice) {   // 計謀可選單體／全體
+          const sk = it.skill, u = this.b.party[this.cur];
+          this.modeSkill = sk;
+          this.sub2 = [{ label: '單體', right: sk.tp + 'TP', mode: 'one', disabled: u.tp < sk.tp }, { label: '全體', right: (sk.allTp || sk.tp) + 'TP', mode: 'all', disabled: u.tp < (sk.allTp || sk.tp) }];
+          this.mode2 = 0; this.state = 'mode'; return;
+        }
         if (k === 'one') this.pickTarget('enemy', { type: 'skill', skill: it.skill.id });
         else if (k === 'ally') this.pickTarget('ally', { type: 'skill', skill: it.skill.id });
         else this.commit({ type: 'skill', skill: it.skill.id });
@@ -218,6 +234,16 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (it.def.escape) this.commit({ type: 'item', item: it.item });
         else this.pickTarget('ally', { type: 'item', item: it.item });
       }
+    }
+    updateMode() {
+      if (E.hit.up || E.hit.down) this.mode2 = 1 - this.mode2;
+      if (E.hit.cancel) { this.state = 'skill'; return; }
+      if (!E.hit.ok) return;
+      const m = this.sub2[this.mode2], sk = this.modeSkill;
+      if (m.disabled) return;
+      const side = sk.kind === 'heal' ? 'ally' : 'enemy';
+      if (m.mode === 'all') this.commit({ type: 'skill', skill: sk.id, mode: 'all' });
+      else this.pickTarget(side, { type: 'skill', skill: sk.id, mode: 'one' });
     }
     pickTarget(side, action) {
       this.pending = action;
@@ -386,6 +412,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         E.text(c, '▼', p.x, p.y - 11 + (Math.floor(E.time / 250) % 2) * 2, { size: 9, color: GOLD, align: 'center' });
       }
       // 傷害數字
+      this.fxs.forEach(function (f) { self.drawFx(c, f); });
       this.floats.forEach(function (f) {
         const y = f.y - 4 - Math.min(f.t, 300) * 0.04;
         E.text(c, f.text, f.x, y, { size: 12, color: f.color, align: 'center' });
@@ -393,7 +420,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
 
       // 下方：頭像框＋訊息框（指令選單會蓋在訊息框上）
       // 選指令／技能／目標時顯示「正在下指令的人」；動作播放時顯示出手的人（我方）
-      const choosing = ['cmd', 'skill', 'item', 'target', 'scout'].indexOf(this.state) >= 0;
+      const choosing = ['cmd', 'skill', 'item', 'mode', 'target', 'scout'].indexOf(this.state) >= 0;
       const who = choosing ? (b.party[Math.max(0, this.cur)] || b.party[0]) : (this.actor && this.actor.side === 'party' ? this.actor : b.party[Math.max(0, this.cur)] || b.party[0]);
       c.fillStyle = '#fff'; c.fillRect(6, 164, 56, 58); c.fillStyle = '#10204a'; c.fillRect(7, 165, 54, 56);
       const pi = who ? G.portraitOf(who.ref) : -1;
@@ -429,6 +456,16 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
           E.text(c, it.right, 126, y, { size: 9, color: col });
           if (sel) E.text(c, it.skill ? self.skillDesc(it.skill) : it.def.desc, 160, y + 1, { size: 8, color: GREY });
         });
+      } else if (this.state === 'mode') {
+        const sk = this.modeSkill;
+        E.text(c, sk.name, 74, 168, { size: 9, color: GOLD });
+        this.sub2.forEach(function (it, i) {
+          const y = 182 + i * 11, sel = i === self.mode2, col = it.disabled ? GREY : (sel ? GOLD : '#f4f4ff');
+          if (sel) E.text(c, '▶', 74, y, { size: 9, color: GOLD });
+          E.text(c, it.label, 86, y, { size: 9, color: col });
+          E.text(c, it.right, 126, y, { size: 9, color: col });
+          if (sel) E.text(c, it.mode === 'one' ? '集中一人　威力大' : (sk.kind === 'heal' ? '全員回復　每人較少' : '攻擊全敵　每人較輕'), 160, y + 1, { size: 8, color: GREY });
+        });
       } else if (this.state === 'target') {
         const t = this.targets[this.targetSel];
         E.text(c, t.name, 74, 172, { size: 10, color: GOLD });
@@ -441,7 +478,71 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }
     }
 
+    // 戰鬥特效：像素風小精靈，貼在目標身上，清楚不遮畫面；等級越高，火苗越多越大
+    drawFx(c, f) {
+      const k = Math.min(1, f.t / f.dur), L = f.level, x = Math.round(f.x), y = Math.round(f.y);
+      const rnd = function (i) { const v = Math.sin(f.seed + i * 12.9898) * 43758.5453; return v - Math.floor(v); };
+      const R = function (col, px, py, w, h) { c.fillStyle = col; c.fillRect(Math.round(px), Math.round(py), w, h); };
+      const PAL = { '1': '#a01000', '2': '#e83810', '3': '#ff9020', '4': '#ffe040', '5': '#fffff0' };
+      const blit = function (rows, px, py, sc) {
+        for (let r = 0; r < rows.length; r++) for (let q = 0; q < rows[r].length; q++) { const ch = rows[r][q]; if (ch !== '.') R(PAL[ch], px + q * sc, py + r * sc, sc, sc); }
+      };
+      const FL = [   // 火苗兩幀
+        ['...2...', '..22...', '..232..', '.2332.2', '.23432.', '2234322', '2334432', '.23432.', '..222..'],
+        ['....2..', '...22..', '.2.232.', '.23332.', '2234322', '2234432', '2334432', '.23432.', '..222..']];
+      const FLB = [  // 大火苗
+        ['.....2.....', '....22.....', '....232..2.', '...2332.22.', '.2.23332232', '.22233432332', '.2233343432.', '2223344432.2', '22334454432.', '2233445544322', '.233445544332', '..2334444332.', '...23344332..', '....222222...'].map(r => r.slice(0, 11)),
+        ['......2....', '.....22....', '.2...232...', '.22.2332.2.', '.2322333222', '.2333343322', '2233344432.2', '2233445443322', '.233445544332', '22334455443.2', '.233445544332', '..2334444332.', '...23344332..', '....222222...'].map(r => r.slice(0, 11))];
+      c.save();
+      if (f.fx === 'fire') {
+        const fade = k > 0.8 ? (1 - k) / 0.2 : 1, n = 1 + L, big = L >= 3, rows = big ? FLB : FL, w = rows[0][0].length, hgt = rows[0].length, sc = 1 + (L >= 5 ? 1 : 0) * (big ? 0 : 1);
+        c.globalAlpha = fade;
+        const fr = Math.floor(f.t / 110) % 2;
+        const slots = [[0, 2], [-8, 4], [8, 4], [-4, -6], [4, -6], [0, 8]];
+        for (let i = 0; i < n; i++) {
+          const o = slots[i % slots.length], bob = Math.floor(Math.sin(f.t / 90 + i * 2) * 1.2), start = Math.min(1, Math.max(0, (k - i * 0.04) * 4));
+          if (start <= 0) continue;
+          blit(rows[(fr + i) % 2], x + o[0] - Math.floor(w * sc / 2), y + o[1] + 2 - Math.round(hgt * sc * start) + bob, sc);
+        }
+        for (let i = 0; i < L * 2; i++) {   // 火星
+          const t2 = (k * 1.6 + rnd(i + 200)) % 1; c.globalAlpha = (1 - t2) * fade;
+          R(i % 2 ? '#ffe040' : '#ff9020', x + (rnd(i + 300) - 0.5) * 24, y + 6 - t2 * (14 + L * 4), 1, 1);
+        }
+      } else if (f.fx === 'bolt') {
+        c.globalAlpha = k < 0.7 ? 1 : (1 - k) / 0.3;
+        const n = Math.min(3, 1 + Math.floor(L / 2));
+        for (let j = 0; j < n; j++) {
+          let px = x + (j - (n - 1) / 2) * 7, py = y - 26;
+          for (let i = 0; i < 6; i++) {
+            const nx = x + (j - (n - 1) / 2) * 5 + (rnd(i + j * 9 + Math.floor(f.t / 100)) - 0.5) * 8, ny = py + 5 + Math.floor(L / 2);
+            R('#fff', Math.min(px, nx), py, Math.abs(nx - px) + 1, ny - py + 1);
+            R('#60b0ff', Math.min(px, nx) + 1, py, 1, ny - py + 1);
+            px = nx; py = ny;
+          }
+          R('#fff', px - 2, py, 5, 1); R('#ffe040', px - 1, py + 1, 3, 1);
+        }
+      } else if (f.fx === 'heal') {
+        const fade = k > 0.7 ? (1 - k) / 0.3 : 1;
+        for (let i = 0; i < 4 + L * 2; i++) {
+          const t2 = (k * 1.3 + rnd(i)) % 1; c.globalAlpha = (1 - t2) * fade;
+          const px = x + Math.round((rnd(i + 20) - 0.5) * 20), py = y + 10 - Math.round(t2 * 26);
+          R('#fff', px, py, 1, 3); R('#fff', px - 1, py + 1, 3, 1); R('#40e070', px, py + 1, 1, 1);
+        }
+      } else if (f.fx === 'slash') {
+        const w = Math.min(1, k * 2.2); c.globalAlpha = k < 0.7 ? 1 : (1 - k) / 0.3;
+        for (let i = 0; i < Math.round(14 * w); i++) { R('#fff', x - 8 + i, y - 8 + i, 1 + (i % 3 === 1 ? 1 : 0), 1); R('#c8c8ff', x - 7 + i, y - 8 + i, 1, 1); }
+      } else if (f.fx === 'shock' || f.fx === 'aura' || f.fx === 'star') {
+        const col = f.fx === 'shock' ? '#f0e070' : f.fx === 'aura' ? '#ffd060' : '#e090ff';
+        c.globalAlpha = 1 - k; c.strokeStyle = col; c.lineWidth = 1;
+        c.beginPath(); c.ellipse(x, y + 8, 5 + k * 12, 2 + k * 5, 0, 0, 7); c.stroke();
+        if (f.fx === 'star') for (let i = 0; i < 4; i++) { const a = f.t / 150 + i * 1.57; R('#fff', x + Math.cos(a) * 9, y - 12 + Math.sin(a) * 3, 2, 2); }
+        if (f.fx === 'aura') for (let i = 0; i < 5; i++) { const t2 = (k + i / 5) % 1; R(col, x + (rnd(i) - 0.5) * 16, y + 10 - t2 * 22, 1, 2); }
+      }
+      c.restore();
+    }
+
     skillDesc(s) {
+      if (s.choice) return s.kind === 'heal' ? '回復　可選單體/全體' : '計謀　可選單體/全體';
       if (s.kind === 'heal') return '回復兵力';
       if (s.kind === 'buff') return s.stat === 'atk' ? '全隊武力↑' : '全隊防禦↑';
       if (s.kind === 'debuff') return '全敵攻擊↓';

@@ -46,4 +46,26 @@ const bb2 = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5,
 const hit = t => { const x = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5, terrain: t }); x.party[0].luck = 0; return BL.perform(x, x.enemies[0], { type: 'attack', target: x.party[0] }).find(e => e.type === 'dmg').amount; };
 check('bandit hits harder in forest(A) than on plain(C)', hit('forest') > hit('plain'), [hit('forest'), hit('plain')]);
 check('every party character has a portrait index within the sheet', ['nyao', 'liubei', 'guanyu', 'zhangfei', 'zoujing'].every(id => G.portraitOf(G.makeMember(id)) >= 0 && G.portraitOf(G.makeMember(id)) < 5));
+// 計謀：單體／全體
+{
+  const mk = () => { G.fresh(); const p = G.party[0]; p.int = 40; const bb = BL.newBattle(G.party, ['turban', 'turban', 'turban'], { rng: () => 0.5 }); bb.party[0].tp = 20; return bb; };
+  const sumDmg = ev => ev.filter(e => e.type === 'dmg').reduce((a, e) => a + e.amount, 0);
+  let bb = mk(); const e1 = BL.perform(bb, bb.party[0], { type: 'skill', skill: 'fire', mode: 'one', target: bb.enemies[0] });
+  const one = e1.filter(e => e.type === 'dmg'); const tp1 = 20 - bb.party[0].tp;
+  bb = mk(); const e2 = BL.perform(bb, bb.party[0], { type: 'skill', skill: 'fire', mode: 'all' });
+  const all = e2.filter(e => e.type === 'dmg'); const tp2 = 20 - bb.party[0].tp;
+  check('fire single hits 1 foe, all hits 3', one.length === 1 && all.length === 3, [one.length, all.length]);
+  check('all mode costs more TP', tp2 > tp1, [tp1, tp2]);
+  check('single hits harder than each spread hit', one[0].amount > all[0].amount, [one[0].amount, all[0].amount]);
+  check('fx events precede damage, with wait', e2.findIndex(e => e.type === 'fx') < e2.findIndex(e => e.type === 'wait') && e2.findIndex(e => e.type === 'wait') < e2.findIndex(e => e.type === 'dmg'));
+  const lv = e => e.find(x => x.type === 'fx').level;
+  G.fresh(); G.party[0].int = 10; const lo = BL.newBattle(G.party, ['turban'], { rng: () => 0.5 }); lo.party[0].tp = 20;
+  G.fresh(); G.party[0].int = 90; const hi = BL.newBattle(G.party, ['turban'], { rng: () => 0.5 }); hi.party[0].tp = 20;
+  check('higher int → stronger fire level', lv(BL.perform(hi, hi.party[0], { type: 'skill', skill: 'fire', mode: 'one', target: hi.enemies[0] })) > lv(BL.perform(lo, lo.party[0], { type: 'skill', skill: 'fire', mode: 'one', target: lo.enemies[0] })));
+  // 補血：全體
+  G.fresh(); G.party.push(G.makeMember('liubei')); const hb = BL.newBattle(G.party, ['turban'], { rng: () => 0.5 });
+  hb.party.forEach(u => { u.hp = 1; }); hb.party[1].tp = 20;
+  const he = BL.perform(hb, hb.party[1], { type: 'skill', skill: 'mend', mode: 'all' });
+  check('mend all heals every ally', he.filter(e => e.type === 'heal').length === 2, he);
+}
 console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

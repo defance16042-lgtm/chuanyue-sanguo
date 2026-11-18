@@ -18,11 +18,13 @@ function chooseAction(b, u, flags) {
   const hurtMate = mates.slice().sort((x, y) => x.hp / x.hpMax - y.hp / y.hpMax)[0];
   if (hurtMate.hp / hurtMate.hpMax < 0.35 && Game.items.herb > 0) { Game.items.herb--; return { type: 'item', item: 'herb', target: hurtMate }; }
   const sk = BL.skillsFor(u.ref, flags).filter(s => u.tp >= s.tp);
+  const mode = foes.length >= 3 ? 'all' : 'one';
+  const cost = s => (s.choice && mode === 'all' && s.allTp) ? s.allTp : s.tp;
   const heal = sk.find(s => s.kind === 'heal');
   if (heal && hurtMate.hp / hurtMate.hpMax < 0.6) return { type: 'skill', skill: heal.id, target: hurtMate };
-  const atkSk = sk.filter(s => s.kind === 'phys' || s.kind === 'tact').sort((a, c) => c.tp - a.tp)[0];
+  const atkSk = sk.filter(s => (s.kind === 'phys' || s.kind === 'tact') && u.tp >= cost(s)).sort((a, c) => cost(c) - cost(a))[0];
   const tgt = foes.slice().sort((x, y) => x.hp - y.hp)[0];
-  if (atkSk && (foes.length > 1 || tgt.hp > 40)) return { type: 'skill', skill: atkSk.id, target: tgt };
+  if (atkSk && (foes.length > 1 || tgt.hp > 40)) return { type: 'skill', skill: atkSk.id, target: tgt, mode: atkSk.choice ? mode : undefined };
   const buff = sk.find(s => s.kind === 'buff' || s.kind === 'debuff');
   if (buff && b.round === 1) return { type: 'skill', skill: buff.id, target: tgt };
   return { type: 'attack', target: tgt };

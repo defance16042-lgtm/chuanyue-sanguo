@@ -104,6 +104,8 @@
     const foes = a.side === 'party' ? b.enemies : b.party;
     const friends = a.side === 'party' ? b.party : b.enemies;
     const kind = skill ? skill.target : 'one';
+    // 可選單體／全體的計謀：全體模式依技能種類打全敵或補全隊
+    if (skill && skill.choice && action.mode === 'all') return BL.alive(skill.kind === 'heal' ? friends : foes);
     if (kind === 'all') return BL.alive(foes);
     if (kind === 'allAlly') return BL.alive(friends);
     if (kind === 'self') return [a];
@@ -161,12 +163,14 @@
       return ev;
     }
 
-    let skill = null;
+    let skill = null, allMode = false;
     if (t0 === 'skill') {
       skill = B.skills[action.skill];
-      if (!skill || a.tp < skill.tp) { ev.push({ type: 'msg', text: a.name + '戰術點不足' }); return ev; }
-      a.tp -= skill.tp;
-      ev.push({ type: 'msg', text: a.name + '使出' + skill.name });
+      allMode = !!(skill && skill.choice && action.mode === 'all');
+      const cost = skill ? (allMode && skill.allTp ? skill.allTp : skill.tp) : 0;
+      if (!skill || a.tp < cost) { ev.push({ type: 'msg', text: a.name + '戰術點不足' }); return ev; }
+      a.tp -= cost;
+      ev.push({ type: 'msg', text: a.name + '使出' + skill.name + (skill.choice ? (allMode ? '（全體）' : '（單體）') : '') });
     } else {
       if (a.confused > 0) ev.push({ type: 'msg', text: a.name + '陷入混亂！' });
       else ev.push({ type: 'msg', text: a.name + '發動攻擊' });
@@ -177,30 +181,44 @@
     if (!targets.length) return ev;
 
     const kind = skill ? skill.kind : 'phys';
+    const power0 = skill ? (allMode && skill.allPower ? skill.allPower : skill.power) : 1;
+    const fxName = skill ? (skill.fx || (kind === 'tact' ? 'bolt' : kind === 'heal' ? 'heal' : 'slash')) : 'slash';
+    // 特效等級：計謀／回復看「智力×威力」，越高越強（火焰越高）；物理看威力
+    const level = kind === 'tact' ? clamp(1 + Math.floor(a.int * power0 / 22), 1, 5)
+      : kind === 'heal' ? clamp(1 + Math.floor(a.int * power0 / 40), 1, 4)
+      : clamp(1 + Math.floor((power0 - 0.7) / 0.5), 1, 3);
+    const fxEv = [], resEv = [];
     targets.forEach(function (t) {
+      fxEv.push({ type: 'fx', fx: fxName, target: t, level: level });
       if (kind === 'phys') {
-        const hits = (skill && skill.hits) || 1, power = skill ? skill.power : 1;
-        for (let i = 0; i < hits && t.hp > 0; i++) hurt(t, physDamage(b, a, t, power), ev);
+        const hits = (skill && skill.hits) || 1;
+        for (let i = 0; i < hits && t.hp > 0; i++) hurt(t, physDamage(b, a, t, power0), resEv);
       } else if (kind === 'tact') {
-        hurt(t, tactDamage(b, a, t, skill.power), ev);
+        hurt(t, tactDamage(b, a, t, power0), resEv);
       } else if (kind === 'heal') {
-        const h = Math.min(Math.round(a.int * skill.power), t.hpMax - t.hp);
-        t.hp += h; ev.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp });
+        const h = Math.min(Math.round(a.int * power0), t.hpMax - t.hp);
+        t.hp += h; resEv.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp });
       } else if (kind === 'buff') {
-        t.buffs[skill.stat] = { mult: 1 + (skill.mult - 1) * (1 + (a.cha || 0) / 100), turns: skill.turns + 1 };   // 魅力讓鼓舞更有效
-        ev.push({ type: 'status', target: t, text: t.name + (skill.stat === 'atk' ? '氣勢大振' : '防禦提升') });
+        t.buffs[skill.stat] = { mult: 1 + (skill.mult - 1) * (1 + (a.cha || 0) / 100), turns: skill.turns + 1 };   // 統率讓鼓舞更有效
+        resEv.push({ type: 'status', target: t, text: t.name + (skill.stat === 'atk' ? '氣勢大振' : '防禦提升') });
       } else if (kind === 'debuff') {
         t.buffs[skill.stat] = { mult: Math.max(0.4, 1 - (1 - skill.mult) * (1 + (a.cha || 0) / 100)), turns: skill.turns + 1 };
-        ev.push({ type: 'status', target: t, text: t.name + '被震懾，攻擊下降' });
+        resEv.push({ type: 'status', target: t, text: t.name + '被震懾，攻擊下降' });
       } else if (kind === 'confuse') {
         // 智力越高越容易成功；頭目抵抗較強
         const chance = clamp(0.55 + (a.int - t.def) * 0.02 + (a.cha || 0) * 0.005 - (t.boss ? 0.35 : 0), 0.15, 0.9);
-        if (b.rng() < chance) { t.confused = skill.turns + 1; ev.push({ type: 'status', target: t, text: t.name + '陷入混亂' }); }
-        else ev.push({ type: 'msg', text: t.name + '識破了計謀' });
+        if (b.rng() < chance) { t.confused = skill.turns + 1; resEv.push({ type: 'status', target: t, text: t.name + '陷入混亂' }); }
+        else resEv.push({ type: 'msg', text: t.name + '識破了計謀' });
       }
     });
+    // 先同時播放所有目標的特效，等特效演完才結算傷害（扣血跟著命中）
+    Array.prototype.push.apply(ev, fxEv);
+    ev.push({ type: 'wait', ms: BL.FX_MS[fxName] ? BL.FX_MS[fxName] + (fxName === 'fire' ? level * 70 : 0) : 300 });
+    Array.prototype.push.apply(ev, resEv);
     return ev;
   };
+
+  BL.FX_MS = { fire: 620, bolt: 520, heal: 560, slash: 230, aura: 520, star: 520, shock: 400 };
 
   // 敵方行動決策
   BL.planEnemy = function (b, u) {
@@ -224,13 +242,15 @@
     curB = b;
     if (action.type === 'boss_all') {
       const ev = [{ type: 'msg', text: a.name + '揮軍衝鋒！' }];
+      BL.alive(b.party).forEach(function (t) { ev.push({ type: 'fx', fx: 'slash', target: t, level: 1 }); });
+      ev.push({ type: 'wait', ms: 230 });
       BL.alive(b.party).forEach(function (t) { hurt(t, Math.max(1, Math.round(physDamage(b, a, t, 0.7))), ev); });
       return ev;
     }
     if (action.type === 'boss_heavy') {
       const ev = [{ type: 'msg', text: a.name + '大喝一聲，使出重斬！' }];
       const t = action.target && action.target.hp > 0 ? action.target : BL.alive(b.party)[0];
-      if (t) hurt(t, physDamage(b, a, t, 1.6), ev);
+      if (t) { ev.push({ type: 'fx', fx: 'slash', target: t, level: 3 }); ev.push({ type: 'wait', ms: 230 }); hurt(t, physDamage(b, a, t, 1.6), ev); }
       return ev;
     }
     return oldPerform(b, a, action);

@@ -14,19 +14,21 @@ window.DATA.battle = {
   // 每個技能：tp 消耗、power 倍率、hits 連擊次數
   skills: {
     // 各角色專屬
-    qinglong: { name: '青龍斬', tp: 3, kind: 'phys', target: 'one', power: 1.7 },
-    roar:     { name: '怒喝',   tp: 2, kind: 'debuff', target: 'all', stat: 'atk', mult: 0.75, turns: 3 },
-    inspire:  { name: '鼓舞',   tp: 3, kind: 'buff', target: 'allAlly', stat: 'atk', mult: 1.25, turns: 3 },
-    mend:     { name: '撫慰',   tp: 3, kind: 'heal', target: 'ally', power: 2.4 },
-    strategy: { name: '亂世奇謀', tp: 4, kind: 'tact', target: 'all', power: 1.25 },
+    // choice:true ＝選完技能後可以再選「單體／全體」。單體威力高；全體每人威力較低（allPower），並多耗 TP（allTp）。
+    // fx：施放特效（fire 火焰、bolt 奇謀閃電、heal 回復光、slash 斬擊、aura 光環、star 迷惑、shock 震懾）
+    qinglong: { name: '青龍斬', tp: 3, kind: 'phys', target: 'one', power: 1.7, fx: 'slash' },
+    roar:     { name: '怒喝',   tp: 2, kind: 'debuff', target: 'all', stat: 'atk', mult: 0.75, turns: 3, fx: 'shock' },
+    inspire:  { name: '鼓舞',   tp: 3, kind: 'buff', target: 'allAlly', stat: 'atk', mult: 1.25, turns: 3, fx: 'aura' },
+    mend:     { name: '撫慰',   tp: 3, allTp: 5, kind: 'heal', target: 'ally', choice: true, power: 2.4, allPower: 1.4, fx: 'heal' },
+    strategy: { name: '亂世奇謀', tp: 4, allTp: 6, kind: 'tact', target: 'one', choice: true, power: 2.0, allPower: 1.3, fx: 'bolt' },
     // 武力路線
-    smash:    { name: '猛擊',   tp: 3, kind: 'phys', target: 'one', power: 1.6 },
-    flurry:   { name: '連斬',   tp: 4, kind: 'phys', target: 'one', power: 0.8, hits: 2 },
-    breach:   { name: '破陣',   tp: 6, kind: 'phys', target: 'all', power: 0.85 },
+    smash:    { name: '猛擊',   tp: 3, kind: 'phys', target: 'one', power: 1.6, fx: 'slash' },
+    flurry:   { name: '連斬',   tp: 4, kind: 'phys', target: 'one', power: 0.8, hits: 2, fx: 'slash' },
+    breach:   { name: '破陣',   tp: 6, kind: 'phys', target: 'all', power: 0.85, fx: 'slash' },
     // 智力路線
-    fire:     { name: '火計',   tp: 5, kind: 'tact', target: 'all', power: 1.5 },
-    discord:  { name: '離間',   tp: 3, kind: 'confuse', target: 'one', turns: 2 },
-    rally:    { name: '激勵',   tp: 4, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.3, turns: 3 }
+    fire:     { name: '火計',   tp: 5, allTp: 7, kind: 'tact', target: 'one', choice: true, power: 2.5, allPower: 1.5, fx: 'fire' },
+    discord:  { name: '離間',   tp: 3, kind: 'confuse', target: 'one', turns: 2, fx: 'star' },
+    rally:    { name: '激勵',   tp: 4, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.3, turns: 3, fx: 'aura' }
   },
   charSkills: {
     nyao: [],
