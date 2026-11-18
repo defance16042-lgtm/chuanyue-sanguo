@@ -27,8 +27,8 @@ function chooseAction(b, u, flags) {
   if (buff && b.round === 1) return { type: 'skill', skill: buff.id, target: tgt };
   return { type: 'attack', target: tgt };
 }
-function fight(party, group, flags, rng, boss) {
-  const b = BL.newBattle(party, group, { flags, rng, boss, canFlee: !boss });
+function fight(party, group, flags, rng, boss, fire) {
+  const b = BL.newBattle(party, group, { flags, rng, boss, canFlee: !boss, fire });
   for (let r = 0; r < 60; r++) {
     BL.beginRound(b);
     for (const u of BL.order(b)) {
@@ -38,6 +38,8 @@ function fight(party, group, flags, rng, boss) {
       if (BL.outcome(b)) break;
     }
     const o = BL.outcome(b); if (o) break;
+    BL.fireEvents(b);
+    if (BL.outcome(b)) break;
     BL.endRound(b);
   }
   BL.syncBack(b);
@@ -49,7 +51,7 @@ function heal(party) { party.forEach(m => { m.hp = m.hpMax; m.tp = m.tpMax; }); 
 
 const route = process.argv[2] || 'force', N = process.argv[3] === undefined ? 5 : +process.argv[3], TRIALS = 200;
 const N2 = process.argv[4] === undefined ? 6 : +process.argv[4];
-const stat = { win2: 0, n2: 0, lv2: 0, winBoss: 0, lossField: 0, n: 0, avgLv: 0, avgRounds: 0 };
+const stat = { win3: 0, n3: 0, lv3: 0, win2: 0, n2: 0, lv2: 0, winBoss: 0, lossField: 0, n: 0, avgLv: 0, avgRounds: 0 };
 for (let t = 0; t < TRIALS; t++) {
   const rng = seeded(1234 + t);
   const party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].concat(process.env.GUEST === '0' ? [] : ['zoujing']).map(mk);
@@ -83,6 +85,24 @@ for (let t = 0; t < TRIALS; t++) {
   stat.lv2 += party[0].level;
   const r2 = fight(party, B.groups.boss2[0], flags, rng, true);
   stat.n2++; if (r2.o === 'win') stat.win2++;
+  if (r2.o !== 'win') continue;
+  // 第三段：鄒靖離隊、曹操助戰；潁川野外 N3 場（field3）再打波才（長社火攻：第 2、4 回合結束敵全體受 15%）
+  const N3 = process.argv[5] === undefined ? 5 : +process.argv[5];
+  const cao = mk('caocao'); BL.gainExp(cao, BL.expFor(party[0].level));
+  party.pop(); party.push(cao); heal(party);
+  let dead3 = false;
+  for (let i = 0; i < N3 && !dead3; i++) {
+    const groups = B.groups.field3; const g = groups[Math.floor(rng() * groups.length)];
+    const rr = fight(party, g, flags, rng, false);
+    if (rr.o === 'lose') dead3 = true;
+    if (i % 3 === 2) heal(party);
+  }
+  heal(party); Game.items.herb = 6; Game.items.tonic = 2;
+  if (dead3) continue;
+  stat.lv3 += party[0].level;
+  const r3 = fight(party, B.groups.boss3[0], flags, rng, true, { rounds: [2, 4], pct: 0.15, texts: [] });
+  stat.n3++; if (r3.o === 'win') stat.win3++;
 }
 console.log(`route=${route} fights=${N}: field losses ${stat.lossField}/${TRIALS}; boss win ${stat.winBoss}/${stat.n}; avg nyao Lv ${(stat.avgLv/stat.n).toFixed(1)}; avg boss rounds ${(stat.avgRounds/stat.n).toFixed(1)}`);
 console.log(`stage2 fights=${N2}: boss2 win ${stat.win2}/${stat.n2}; avg nyao Lv ${(stat.lv2/Math.max(1,stat.n2)).toFixed(1)}`);
+console.log(`stage3 fights=${process.argv[5] === undefined ? 5 : +process.argv[5]}: boss3 win ${stat.win3}/${stat.n3}; avg nyao Lv ${(stat.lv3/Math.max(1,stat.n3)).toFixed(1)}`);

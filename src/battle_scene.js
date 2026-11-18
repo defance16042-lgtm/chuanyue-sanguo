@@ -6,14 +6,14 @@
 const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', '偵察'];
   const MSG_MS = 520, DMG_MS = 480;
   // 戰鬥小人（24×24，有武器與揮砍／施法動作）所在的列；沒有的人暫時用地圖小人
-  const BATTLE_ROW = { nyao: 0, liubei: 1, guanyu: 2, zhangfei: 3 };
+  const BATTLE_ROW = { nyao: 0, liubei: 1, guanyu: 2, zhangfei: 3, caocao: 4 };
 
   class BattleScene {
     // group：敵人 id 陣列；opts：{ boss, canFlee, onEnd(result) }，result 為 'win'|'lose'|'flee'
     constructor(group, opts) {
       opts = opts || {};
       this.opts = opts;
-      this.b = BL.newBattle(G.party, group, { flags: G.flags, boss: !!opts.boss, canFlee: opts.canFlee !== false && !opts.boss, terrain: opts.terrain || 'plain' });
+      this.b = BL.newBattle(G.party, group, { flags: G.flags, boss: !!opts.boss, canFlee: opts.canFlee !== false && !opts.boss, terrain: opts.terrain || 'plain', fire: opts.fire });
       this.state = 'msg'; this.queue = []; this.wait = 0; this.after = null;
       this.msgText = ''; this.floats = []; this.cur = 0; this.plans = []; this.sel = 0; this.sub = []; this.subSel = 0;
       this.pending = null; this.targets = []; this.targetSel = 0; this.lines = []; this.result = null;
@@ -94,6 +94,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         const o = BL.outcome(b);
         if (o) return this.finish(o);
         if (this.oi >= this.order.length) {
+          const fe = BL.fireEvents(b);
+          if (fe.length) { this.queue = fe; break; }
           BL.endRound(b);
           const o2 = BL.outcome(b);
           if (o2) return this.finish(o2);

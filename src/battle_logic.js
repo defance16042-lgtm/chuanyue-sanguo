@@ -35,7 +35,7 @@
       party: party.filter(function (m) { return m.hp > 0; }).map(unitFromMember),
       enemies: group.map(unitFromEnemy),
       flags: opts.flags || {}, rng: opts.rng || Math.random, round: 0,
-      terrain: opts.terrain || 'plain', canFlee: opts.canFlee !== false, boss: !!opts.boss, allMembers: party
+      terrain: opts.terrain || 'plain', fire: opts.fire ? { rounds: opts.fire.rounds.slice(), pct: opts.fire.pct, texts: (opts.fire.texts || []).slice(), n: 0 } : null, canFlee: opts.canFlee !== false, boss: !!opts.boss, allMembers: party
     };
     // 戰死者仍保留在 allMembers，戰鬥結束時同步
     b.party.forEach(function (u, i) { u.idx = i; });
@@ -260,6 +260,22 @@
       expCache[k] = expCache[k - 1] + d;
     }
     return expCache[n];
+  };
+
+  // 戰場事件「縱火」：指定回合結束時，場上所有敵人受到最大兵力一定比例的火燒傷害（可燒死雜兵，頭目最少留 1 兵力）
+  BL.fireEvents = function (b) {
+    const f = b.fire;
+    if (!f || f.rounds.indexOf(b.round) < 0 || f.done === b.round) return [];
+    f.done = b.round;
+    const ev = [{ type: 'msg', text: f.texts[f.n] || '火勢蔓延，敵軍陷入混亂！' }]; f.n++;
+    b.enemies.forEach(function (e) {
+      if (e.hp <= 0) return;
+      let d = Math.max(1, Math.round(e.hpMax * f.pct));
+      if (e.boss) d = Math.min(d, e.hp - 1);
+      e.hp = Math.max(0, e.hp - d);
+      ev.push({ type: 'dmg', target: e, amount: d, dead: e.hp <= 0, hpAfter: e.hp });
+    });
+    return ev;
   };
 
   // 隨機替某項能力 +1（舊存檔的剩餘能力點用）

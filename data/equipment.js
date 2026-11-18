@@ -38,11 +38,15 @@ window.DATA.equipment = {
 // 敵人掉落：敵人 id → [裝備 id, 機率]
 window.DATA.drops = {
   chengyuanzhi: ['rebel_blade', 1.0],
+  bocai: ['scale', 1.0],
+  elite: ['leather', 0.1],
   qushuai: ['yellow_scarf', 1.0],
   archer: ['headband', 0.08],
   captain: ['yellow_scarf', 0.12]
 };
 // 商店：蘇雙（涿縣）
+window.DATA.shopNames = { suishuang: '蘇雙的貨攤', changshe: '長社軍需官' };
 window.DATA.shops = {
+  changshe: ['iron_sword', 'iron_blade', 'iron_lance', 'spear', 'feather_fan', 'bamboo_book', 'leather', 'scale', 'iron_helm', 'leather_boot', 'jade', 'war_drum', 'amulet'],
   suishuang: ['wood_sword', 'iron_sword', 'iron_blade', 'iron_lance', 'spear', 'feather_fan', 'cloth', 'leather', 'headband', 'iron_helm', 'straw_shoes', 'jade', 'amulet']
 };

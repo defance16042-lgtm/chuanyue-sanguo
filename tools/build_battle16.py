@@ -109,6 +109,7 @@ PARTY = [
     (dict(BA.CHARACTERS[1][1]), "swords"),
     (dict(BA.CHARACTERS[2][1]), "glaive"),
     (dict(BA.CHARACTERS[3][1]), "spear"),
+    (dict(BA.CHARACTERS[17][1]), "swords"),     # 曹操
 ]
 ENEMIES = [
     # 黃巾兵：黃頭巾、褐衣、長矛
@@ -123,6 +124,8 @@ ENEMIES = [
     (dict(pal=((226, 176, 136), (30, 22, 24), (230, 186, 50), (200, 60, 50), (60, 40, 30)), beard="long", hat=YEL, plume=(200, 60, 50)), "sabre"),
     # 廣陽黃巾渠帥：紅巾、黃甲、鬍子、大刀
     (dict(pal=((226, 176, 136), (40, 28, 28), (240, 190, 50), (190, 50, 50), (60, 40, 30)), beard="short", hat=(190, 50, 50), plume=(240, 220, 90)), "sabre"),
+    # 波才：黃巾大帥，黃盔紅纓、黃甲、亂鬚、闊刀
+    (dict(BA.CHARACTERS[18][1]), "sabre"),
 ]
 
 

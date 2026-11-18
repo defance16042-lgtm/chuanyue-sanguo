@@ -139,16 +139,112 @@ window.DATA.maps = {
       'T..........,,..........T',
       'T...f...X..,,..B...f...T',
       'T..........,,..........T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TTTTTTTTTTT,,TTTTTTTTTTT'
     ],
     start: { x: 11, y: 1, dir: 'down' },
     warps: [
       { x: 11, y: 0, to: 'field', tx: 11, ty: 18, dir: 'up' },
-      { x: 12, y: 0, to: 'field', tx: 12, ty: 18, dir: 'up' }
+      { x: 12, y: 0, to: 'field', tx: 12, ty: 18, dir: 'up' },
+      { x: 11, y: 19, to: 'yingchuan', tx: 13, ty: 1, dir: 'down', need: 'boss2_down', deny: 'path_blocked2' },
+      { x: 12, y: 19, to: 'yingchuan', tx: 14, ty: 1, dir: 'down', need: 'boss2_down', deny: 'path_blocked2' }
     ],
     npcs: [
       { id: 'boss2', name: '黃巾渠帥', sprite: 12, x: 11, y: 17, dir: 'up', dialogue: 'boss_qushuai', hideIf: 'boss2_down' },
       { id: 'refugee', name: '倖存的百姓', sprite: 7, x: 6, y: 7, dir: 'down', dialogue: 'refugee' }
+    ],
+    objects: []
+  },
+  yingchuan: {
+    name: '潁川道',
+    battleBg: 'grass',
+    home: { map: 'guangyang' },
+    encounter: { group: 'field3', rate: 0.09, minSteps: 4 },
+    tiles: [
+      'TTTTTTTTTTTTT,,TTTTTTTTTTTTT',
+      'T............,,............T',
+      'T............,,............T',
+      'T.YYYYYYYY...,,....MMMMMMMMT',
+      'T.YYYYYYYY.f.,,....MMMMMMMMT',
+      'T.YYYYYYYY..,,,.f..MMMMMMMMT',
+      'T.YYYYYYYY...,,....MMMMMMMMT',
+      'T.YYYYYYYY...,,....MMMMMMMMT',
+      'T.YYYYYYYY...,,....MMMMMMMMT',
+      'T.........f..,,............T',
+      'T..TRRRRR...,,,.~~......b..T',
+      'T...WWWWW....,,.~~...b.....T',
+      'T...WWWWW....,,......T.T...T',
+      'T...WWDWW....,,............T',
+      'T............,,....YYYYYYYYT',
+      'T.MMMMMMM...,,,....YYYYYYYYT',
+      'T.MMMMMMM..f.,,....YYYYYYYYT',
+      'T.MMMMMMM....,,.f..YYYYYYYYT',
+      'T.MMMMMMM....,,....YYYYYYYYT',
+      'T.MMMMMMM....,,....YYYYYYYYT',
+      'T.MMMMMMM.b.,,,....YYYYYYYYT',
+      'T............,,..b.........T',
+      'T..f.........,,............T',
+      'TTTTTTTTTTTTT,,TTTTTTTTTTTTT'
+    ],
+    start: { x: 13, y: 1, dir: 'down' },
+    events: [
+      { once: 'yc_intro_done', dialogue: 'yc_intro' }
+    ],
+    signs: [
+      { x: 15, y: 4, dialogue: 'yc_sign' }
+    ],
+    warps: [
+      { x: 13, y: 0, to: 'guangyang', tx: 11, ty: 18, dir: 'up' },
+      { x: 14, y: 0, to: 'guangyang', tx: 12, ty: 18, dir: 'up' },
+      { x: 13, y: 23, to: 'changshe', tx: 11, ty: 1, dir: 'down' },
+      { x: 14, y: 23, to: 'changshe', tx: 12, ty: 1, dir: 'down' }
+    ],
+    npcs: [
+      { id: 'kuibing', name: '朱儁軍潰兵', sprite: 9, x: 12, y: 7, dir: 'right', dialogue: 'yc_kuibing' },
+      { id: 'ycelder', name: '逃難的老人', sprite: 6, x: 15, y: 12, dir: 'left', dialogue: 'yc_elder' },
+      { id: 'ycwoman', name: '抱孩子的婦人', sprite: 7, x: 10, y: 14, dir: 'right', dialogue: 'yc_woman' },
+      { id: 'ycfarmer', name: '躲在樹後的農夫', sprite: 11, x: 20, y: 10, dir: 'down', dialogue: 'yc_farmer' }
+    ],
+    objects: []
+  },
+  changshe: {
+    name: '長社',
+    battleBg: 'grass',
+    home: { map: 'changshe' },
+    tiles: [
+      'TTTTTTTTTTT,,TTTTTTTTTTT',
+      'T..........,,..........T',
+      'T.RRRRRRRb.,,.fRRRRRRR.T',
+      'T.RRRRRRR..,,..RRRRRRR.T',
+      'T.RRRRRRR..,,..RRRRRRR.T',
+      'T.WWWDWWW..,,..WWWDWWW.T',
+      'T....,,,,,,,,.....,....T',
+      'T..........,,.....,....T',
+      'T.......f..,,..b..,....T',
+      'T..,,,,,,,,,,,,,,,,,,..T',
+      'T...,......,,......,...T',
+      'T...,...b..,,..f...,...T',
+      'T.RRRRR....,,....RRRRR.T',
+      'T.RRRRR....,,....RRRRR.T',
+      'T.WWDWW....,,....WWDWW.T',
+      'T........f.,,.b........T',
+      'T......HH..,,..HH......T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 11, y: 1, dir: 'down' },
+    warps: [
+      { x: 11, y: 0, to: 'yingchuan', tx: 13, ty: 22, dir: 'up' },
+      { x: 12, y: 0, to: 'yingchuan', tx: 14, ty: 22, dir: 'up' }
+    ],
+    npcs: [
+      { id: 'huangfu', name: '皇甫嵩', sprite: 16, x: 5, y: 6, dir: 'down', dialogue: 'hf_first', alt: { flag: 'guest_caocao', dialogue: 'hf_plan' }, hideIf: 'bocai_down' },
+      { id: 'huangfu2', name: '皇甫嵩', sprite: 16, x: 5, y: 6, dir: 'down', dialogue: 'hf_after', showIf: 'bocai_down' },
+      { id: 'caocao_npc', name: '曹操', sprite: 17, x: 12, y: 3, dir: 'down', dialogue: 'cc_first', showIf: 'huangfu_met', hideIf: 'guest_caocao' },
+      { id: 'csguard1', name: '守城官兵', sprite: 9, x: 10, y: 2, dir: 'right', dialogue: 'cs_guard' },
+      { id: 'csguard2', name: '守城官兵', sprite: 9, x: 13, y: 2, dir: 'left', dialogue: 'cs_guard' },
+      { id: 'csguard3', name: '舉火把的士兵', sprite: 9, x: 16, y: 9, dir: 'left', dialogue: 'cs_torch' },
+      { id: 'quarter', name: '軍需官', sprite: 10, x: 4, y: 11, dir: 'down', dialogue: 'cs_quarter' },
+      { id: 'csvillager', name: '城裡的百姓', sprite: 7, x: 19, y: 11, dir: 'left', dialogue: 'cs_villager' },
+      { id: 'cschild', name: '孩子', sprite: 8, x: 10, y: 12, dir: 'up', dialogue: 'cs_child' }
     ],
     objects: []
   },

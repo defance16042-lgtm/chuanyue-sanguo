@@ -234,9 +234,10 @@
       if (l.speaker) {
         // 說話者有大頭像（主角、劉關張、助戰角色）就顯示在對話框上方
         const sc = Object.keys(D.characters).map(function (k) { return D.characters[k]; }).find(function (x) { return x.name === l.speaker && typeof x.portrait === 'number'; });
-        if (sc && E.images.portraits) {
+        const pi = sc ? sc.portrait : (D.npcPortraits || {})[l.speaker];
+        if (typeof pi === 'number' && E.images.portraits) {
           c.fillStyle = '#fff'; c.fillRect(10, 88, 52, 52); c.fillStyle = '#10204a'; c.fillRect(11, 89, 50, 50);
-          c.drawImage(E.images.portraits, sc.portrait * 48, 0, 48, 48, 12, 90, 48, 48);
+          c.drawImage(E.images.portraits, pi * 48, 0, 48, 48, 12, 90, 48, 48);
         }
         const w = E.measure(c, l.speaker, 9) + 16;
         E.panel(c, 14, 142, w, 16);
@@ -445,7 +446,7 @@
 
   // ------------------------------------------------------------ 裝備店
   class ShopScene {
-    constructor(shopId) { this.ids = D.shops[shopId] || []; this.sel = 0; this.msg = ''; }
+    constructor(shopId) { this.ids = D.shops[shopId] || []; this.title = (D.shopNames && D.shopNames[shopId]) || '貨攤'; this.sel = 0; this.msg = ''; }
     update() {
       const n = this.ids.length;
       if (E.hit.cancel) { E.pop(); return; }
@@ -460,7 +461,7 @@
     drawUI(c) {
       c.fillStyle = '#0c1030'; c.fillRect(8, 8, 240, 208);
       E.panel(c, 8, 8, 240, 208);
-      E.text(c, '蘇雙的貨攤', 20, 16, { size: 11, color: GOLD });
+      E.text(c, this.title, 20, 16, { size: 11, color: GOLD });
       const top = Math.max(0, Math.min(this.sel - 5, this.ids.length - 11));
       this.ids.slice(top, top + 11).forEach(function (id, k) {
         const i = top + k, it = D.equipment[id], sel = i === this.sel, y = 34 + k * 13, col = sel ? GOLD : '#f4f4ff';
@@ -575,13 +576,14 @@
     startBattle(group, boss) {
       const self = this;
       this.hidden = true;
-      E.push(new Scenes.Battle(group, { boss: !!boss, bg: this.map.battleBg, terrain: this.terrainHere(), onEnd: function (r) { self.hidden = false; self.afterBattle(r, boss); } }));
+      E.push(new Scenes.Battle(group, { boss: !!boss, bg: this.map.battleBg, terrain: this.terrainHere(), fire: boss && boss.fire, onEnd: function (r) { self.hidden = false; self.afterBattle(r, boss); } }));
     }
     afterBattle(r, boss) {
       if (r === 'lose') {
         G.gold = Math.floor((G.gold || 0) / 2);
         G.party.forEach(function (m) { m.hp = m.hpMax; m.tp = m.tpMax; });
-        this.loadMap('zhuoxian', D.maps.zhuoxian.start);
+        const home = this.map.home || { map: 'zhuoxian' };
+        this.loadMap(home.map, D.maps[home.map].start);
         E.push(new DialogScene(D.dialogue.lose_after));
       } else if (r === 'win' && boss) {
         const info = typeof boss === 'object' ? boss : {};
@@ -591,6 +593,9 @@
     }
     say(text) { E.push(new DialogScene([{ speaker: '', text: text }])); }
     runAct(a) {
+      // 獎勵類動作可以和其他動作寫在同一個 act 裡
+      if (a.gold) G.gold = (G.gold || 0) + a.gold;
+      if (a.gear) a.gear.forEach(function (id) { G.addGear(id); });
       if (a.recruit) {
         if (G.flags['recruited_' + a.recruit]) return;
         const m = G.makeMember(a.recruit), lv = G.party[0].level;
@@ -613,8 +618,10 @@
           Object.keys(m.equip || {}).forEach(function (s) { G.addGear(m.equip[s]); });   // 裝備退回背包
           this.say(m.name + '離隊了。（身上的裝備已放回背包）');
         }
-      } else if (a.gear) {
-        a.gear.forEach(function (id) { G.addGear(id); });
+      } else if (a.item) {
+        if (a.once && G.flags[a.once]) return;
+        if (a.once) G.flags[a.once] = true;
+        G.items[a.item] = (G.items[a.item] || 0) + (a.n || 1);
       } else if (a.shop) {
         E.push(new ShopScene(a.shop));
       } else if (a.rest) {

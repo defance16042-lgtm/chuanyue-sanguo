@@ -50,5 +50,15 @@ window.DATA.characters = {
     growth: { hp: 18, atk: 1.8, int: 0.6, spd: 0.2, lead: 1.0, luck: 0.4, grd: 0.9, tp: 0.4 },
     trait: { name: '官軍紀律', desc: '統率 +2', mods: { lead: 2 } },
     bio: '幽州校尉，奉命討伐黃巾。與劉備一行只是暫時並肩作戰，任務一結束就會回營。'
+  },
+  caocao: {
+    id: 'caocao', name: '曹操', sprite: 17, portrait: 5, zi: '孟德', title: '騎都尉', cls: '武將', weapon: '劍', guest: true,
+    terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' },
+    hp: 150, tp: 10, atk: 17, int: 20, spd: 12, lead: 24, luck: 14, grd: 11,
+    growth: { hp: 19, atk: 1.6, int: 1.8, spd: 0.4, lead: 1.4, luck: 0.6, grd: 0.8, tp: 0.7 },
+    trait: { name: '亂世奸雄', desc: '統率 +3、運氣 +2', mods: { lead: 3, luck: 2 } },
+    bio: '沛國譙人，奉詔以騎都尉之職南下討伐潁川黃巾。機智果斷，笑起來讓人不太放心。'
   }
 };
+// 非隊員的對話頭像（說話者名稱 → portraits.png 的編號）
+window.DATA.npcPortraits = { '皇甫嵩': 6, '波才': 7 };
