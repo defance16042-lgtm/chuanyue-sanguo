@@ -232,6 +232,12 @@
       const l = this.line();
       E.panel(c, 8, 152, 240, 64);
       if (l.speaker) {
+        // 說話者有大頭像（主角、劉關張、助戰角色）就顯示在對話框上方
+        const sc = Object.keys(D.characters).map(function (k) { return D.characters[k]; }).find(function (x) { return x.name === l.speaker && typeof x.portrait === 'number'; });
+        if (sc && E.images.portraits) {
+          c.fillStyle = '#fff'; c.fillRect(10, 88, 52, 52); c.fillStyle = '#10204a'; c.fillRect(11, 89, 50, 50);
+          c.drawImage(E.images.portraits, sc.portrait * 48, 0, 48, 48, 12, 90, 48, 48);
+        }
         const w = E.measure(c, l.speaker, 9) + 16;
         E.panel(c, 14, 142, w, 16);
         E.text(c, l.speaker, 22, 145, { color: GOLD });
@@ -336,7 +342,7 @@
     E.text(c, String(base + b), x + 34, y, { color: b > 0 ? '#8affa0' : b < 0 ? '#ff7a6a' : (col || '#f4f4ff') });
   }
   function drawFace(c, m, x, y) {
-    if (m.sprite < 4 && E.images.portraits) c.drawImage(E.images.portraits, m.sprite * 48, 0, 48, 48, x, y, 48, 48);
+    if (G.portraitOf(m) >= 0 && E.images.portraits) c.drawImage(E.images.portraits, G.portraitOf(m) * 48, 0, 48, 48, x, y, 48, 48);
     else c.drawImage(E.images.sprites, 0, m.sprite * 16, 16, 16, x + 16, y + 16, 16, 16);
   }
   class StatusScene {

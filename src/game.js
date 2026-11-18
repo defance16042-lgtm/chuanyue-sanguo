@@ -25,6 +25,8 @@
     if (key === 'pow') return Game.eff(m, 'atk') * 2 + Game.bonus(m, 'pow');
     return (m[key] || 0) + Game.bonus(m, key);
   };
+  // 大頭像編號（沒有就回傳 -1）
+  Game.portraitOf = function (m) { const c = D.characters[m.id]; return c && typeof c.portrait === 'number' ? c.portrait : -1; };
   Game.canEquip = function (m, id) { const it = D.equipment[id]; if (!it || (it.only && it.only !== m.id)) return false;
     const c = D.characters[m.id]; return !(it.wtype && c && c.weapon && it.wtype !== c.weapon); };
   Game.equip = function (m, slot, id) {

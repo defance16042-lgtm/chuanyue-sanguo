@@ -45,4 +45,5 @@ check('terrain affects damage: 關羽 plain(A) > sea(B) vs bandit; bandit weak o
 const bb2 = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5, terrain: 'forest' });
 const hit = t => { const x = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5, terrain: t }); x.party[0].luck = 0; return BL.perform(x, x.enemies[0], { type: 'attack', target: x.party[0] }).find(e => e.type === 'dmg').amount; };
 check('bandit hits harder in forest(A) than on plain(C)', hit('forest') > hit('plain'), [hit('forest'), hit('plain')]);
+check('every party character has a portrait index within the sheet', ['nyao', 'liubei', 'guanyu', 'zhangfei', 'zoujing'].every(id => G.portraitOf(G.makeMember(id)) >= 0 && G.portraitOf(G.makeMember(id)) < 5));
 console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

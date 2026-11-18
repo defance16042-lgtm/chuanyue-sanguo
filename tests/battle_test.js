@@ -167,6 +167,26 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('all-attack battle finishes', s && s.scene === 'MapScene', s && s.scene);
   for (let i = 0; i < 6 && (await S()).scene !== 'MapScene'; i++) await tap('z');
 
+  // ---- 扣血要等「打到」的那一刻：下完指令、動作播放中，畫面兵力不能比實際動作進度先掉
+  await page.evaluate(() => { Engine.top().startBattle(['captain', 'bandit'], false); });
+  for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
+  for (let i = 0; i < 4; i++) { await tap('z'); await tap('z'); }   // 四人都選「攻擊」第一個敵人
+  const seen = await page.evaluate(() => new Promise(res => {
+    const b = Engine.top(), out = { early: 0, late: 0, frames: 0 };
+    const full = b.b.enemies.reduce((a, e) => a + e.hpMax, 0);
+    const t0 = performance.now();
+    (function loop() {
+      const real = b.b.enemies.reduce((a, e) => a + Math.max(0, e.hp), 0), shown = b.b.enemies.reduce((a, e) => a + Math.max(0, b.H(e)), 0);
+      out.frames++;
+      if (real < full && shown === full) out.early++;       // 邏輯已扣、畫面還沒扣（正確：動畫還沒打到）
+      if (shown < real) out.late++;                          // 畫面比邏輯扣得多（不可能）
+      if (performance.now() - t0 < 3000) requestAnimationFrame(loop); else res(out);
+    })();
+  }));
+  check('HP bars only drop when the hit lands (not at command time)', seen.early > 0 && seen.late === 0, seen);
+  await page.evaluate(() => { Engine.top().b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); Engine.top().finish('win'); });
+  for (let i = 0; i < 12 && (await S()).scene !== 'MapScene'; i++) await tap('z');
+
   // ---- 偵察：不耗回合，顯示敵人資料，X 回到指令
   await page.evaluate(() => { Engine.top().startBattle(['captain', 'bandit'], false); });
   for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);

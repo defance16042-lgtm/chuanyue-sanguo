@@ -96,7 +96,7 @@
   function hurt(t, dmg, ev) {
     if (t.luck && curB && curB.rng() < t.luck * 0.003) { ev.push({ type: 'msg', text: t.name + '閃過了攻擊！' }); return; }
     t.hp = Math.max(0, t.hp - dmg);
-    ev.push({ type: 'dmg', target: t, amount: dmg, dead: t.hp <= 0 });
+    ev.push({ type: 'dmg', target: t, amount: dmg, dead: t.hp <= 0, hpAfter: t.hp });
   }
 
   // 要打誰：若行動者混亂，目標改成隨機（可能打到自己人）
@@ -156,7 +156,7 @@
         return ev;
       }
       const t = action.target && action.target.hp > 0 ? action.target : a;
-      if (it.hp) { const h = Math.min(it.hp, t.hpMax - t.hp); t.hp += h; ev.push({ type: 'heal', target: t, amount: h }); }
+      if (it.hp) { const h = Math.min(it.hp, t.hpMax - t.hp); t.hp += h; ev.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp }); }
       if (it.tp) { const g = Math.min(it.tp, t.tpMax - t.tp); t.tp += g; ev.push({ type: 'tp', target: t, amount: g }); }
       return ev;
     }
@@ -185,7 +185,7 @@
         hurt(t, tactDamage(b, a, t, skill.power), ev);
       } else if (kind === 'heal') {
         const h = Math.min(Math.round(a.int * skill.power), t.hpMax - t.hp);
-        t.hp += h; ev.push({ type: 'heal', target: t, amount: h });
+        t.hp += h; ev.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp });
       } else if (kind === 'buff') {
         t.buffs[skill.stat] = { mult: 1 + (skill.mult - 1) * (1 + (a.cha || 0) / 100), turns: skill.turns + 1 };   // 魅力讓鼓舞更有效
         ev.push({ type: 'status', target: t, text: t.name + (skill.stat === 'atk' ? '氣勢大振' : '防禦提升') });

@@ -31,10 +31,10 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       // 小人站在兵力條正上方、對齊條的中間。我方條中心 x=70，敵方條中心 x=186
       this.b.enemies.forEach(function (e, i) {
         e.big = !!e.boss; e.size = 16; e.cw = 24; e.top = 0;
-        e.x = 186 - 12; e.y = self.rowY(i) + 2; e.shake = 0; e.fade = 1; e.row = i;
+        e.dhp = e.hp; e.x = 186 - 12; e.y = self.rowY(i) + 2; e.shake = 0; e.fade = 1; e.row = i;
       });
       this.b.party.forEach(function (u, i) {
-        u.cw = 24; u.top = 0;   // 戰鬥小人的格是 24×16：身體 16×16，右邊留給武器
+        u.dhp = u.hp; u.cw = 24; u.top = 0;   // 戰鬥小人的格是 24×16：身體 16×16，右邊留給武器
         u.x = 70 - 12; u.y = self.rowY(i) + 2; u.shake = 0; u.row = i;
       });
     }
@@ -42,6 +42,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     // ---- 訊息與事件佇列 ----
     say(text, then) { this.msgText = text; this.state = 'msg'; this.wait = MSG_MS; this.after = then || null; }
     unitPos(u) { return { x: u.x + u.cw / 2, y: u.y + u.top }; }
+    // 畫面上顯示的兵力：邏輯一次算完整個動作，但血量要等「打到」那一刻才扣（dhp＝畫面兵力）
+    H(u) { return u.dhp == null ? u.hp : u.dhp; }
     playEvent(ev) {
       const self = this;
       if (ev.type === 'msg') { this.msgText = ev.text; this.wait = MSG_MS; }
@@ -49,11 +51,12 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       else if (ev.type === 'status') { this.msgText = ev.text; this.wait = MSG_MS; }
       else if (ev.type === 'dmg') {
         const p = this.unitPos(ev.target);
-        ev.target.shake = 260;
+        ev.target.shake = 260; ev.target.dhp = ev.hpAfter != null ? ev.hpAfter : ev.target.hp;
         this.floats.push({ x: p.x, y: p.y, text: String(ev.amount), color: ev.target.side === 'enemy' ? '#fff' : RED, t: 0 });
         this.wait = DMG_MS;
         if (ev.dead) this.msgText = ev.target.name + (ev.target.side === 'enemy' ? '被擊潰了！' : '倒下了！');
       } else if (ev.type === 'heal' || ev.type === 'tp') {
+        if (ev.type === 'heal') ev.target.dhp = ev.hpAfter != null ? ev.hpAfter : ev.target.hp;
         const p = this.unitPos(ev.target);
         this.floats.push({ x: p.x, y: p.y, text: (ev.type === 'tp' ? 'TP+' : '') + ev.amount, color: GREEN, t: 0 });
         this.wait = DMG_MS;
@@ -137,9 +140,9 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     // ---- 指令選擇 ----
     update(dt) {
       this.time += dt;
-      this.b.party.concat(this.b.enemies).forEach(function (u) {
+      const self0 = this; this.b.party.concat(this.b.enemies).forEach(function (u) {
         if (u.shake > 0) u.shake -= dt;
-        if (u.side === 'enemy' && u.hp <= 0 && u.fade > 0) u.fade = Math.max(0, u.fade - dt / 400);
+        if (u.side === 'enemy' && self0.H(u) <= 0 && u.fade > 0) u.fade = Math.max(0, u.fade - dt / 400);
       });
       this.b.party.concat(this.b.enemies).forEach(function (u) { if (u.anim) { u.anim.t += dt; if (u.anim.t > 560) u.anim = null; } });
       this.floats.forEach(function (f) { f.t += dt; });
@@ -291,7 +294,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       const self = this;
       this.b.enemies.forEach(function (e) {
         if (e.fade <= 0) return;
-        const dead = e.hp <= 0, hurt = e.shake > 0;
+        const dead = self.H(e) <= 0, hurt = e.shake > 0;
         wc.globalAlpha = dead ? e.fade : 1;
         let dx = hurt ? (Math.floor(e.shake / 40) % 2 ? 2 : -2) : 0;
         let frame = Math.floor(E.time / 500 + e.row * 0.5) % 2;
@@ -310,7 +313,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     // 我方小人：待命／輪到你／揮砍／施法／受傷／倒下
     drawPartyUnit(wc, u) {
       const cmd = this.state === 'cmd' && this.b.party[this.cur] === u;
-      const hurt = u.shake > 0, dead = u.hp <= 0;
+      const hurt = u.shake > 0, dead = this.H(u) <= 0;
       const sx = hurt ? (Math.floor(u.shake / 40) % 2 ? 2 : -2) : 0;
       let off = 0, frame = Math.floor(E.time / 500) % 2;
       if (cmd) frame = 2;
@@ -349,12 +352,12 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         E.text(c, this.auto ? '自動戰鬥中　按確定取消' : '已取消，本回合結束後回到指令', 128, 1, { size: 8, color: GOLD, align: 'center' });
       // 兩側名單：名字、兵力數字、兵力條
       b.party.forEach(function (u, i) {
-        const y = self.rowY(i), dead = u.hp <= 0;
+        const y = self.rowY(i), dead = self.H(u) <= 0;
         const sel = self.state === 'cmd' && self.cur === i || (self.state === 'target' && self.targetSide === 'ally' && self.targets[self.targetSel] === u);
         E.text(c, u.name, 6, y + 2, { size: 10, color: dead ? GREY : (sel ? GOLD : '#fff') });
-        const low = !dead && u.hp / u.hpMax < 0.3;
-        E.text(c, String(u.hp), 8, y + 16, { size: 10, color: dead ? GREY : (low ? RED : '#fff') });
-        self.bar(c, 40, y + 19, 60, u.hp / u.hpMax, '#f0a030');
+        const low = !dead && self.H(u) / u.hpMax < 0.3;
+        E.text(c, String(self.H(u)), 8, y + 16, { size: 10, color: dead ? GREY : (low ? RED : '#fff') });
+        self.bar(c, 40, y + 19, 60, self.H(u) / u.hpMax, '#f0a030');
         const bf = [];
         if (u.buffs.atk) bf.push(u.buffs.atk.mult > 1 ? '攻↑' : '攻↓');
         if (u.buffs.def) bf.push('守↑');
@@ -364,11 +367,11 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       });
       b.enemies.forEach(function (e, i) {
         if (e.fade <= 0) return;
-        const y = self.rowY(i), dead = e.hp <= 0;
+        const y = self.rowY(i), dead = self.H(e) <= 0;
         const sel = self.state === 'target' && self.targetSide === 'enemy' && self.targets[self.targetSel] === e;
         E.text(c, e.name, 250, y + 2, { size: 10, align: 'right', color: dead ? GREY : (sel ? GOLD : '#fff') });
-        E.text(c, String(e.hp), 250, y + 16, { size: 10, align: 'right', color: dead ? GREY : '#fff' });
-        self.bar(c, 156, y + 19, 60, e.hp / e.hpMax, '#a050d0');
+        E.text(c, String(self.H(e)), 250, y + 16, { size: 10, align: 'right', color: dead ? GREY : '#fff' });
+        self.bar(c, 156, y + 19, 60, self.H(e) / e.hpMax, '#a050d0');
         const bf = [];
         if (e.confused > 0) bf.push('亂');
         if (e.buffs.atk) bf.push('攻↓');
@@ -387,16 +390,20 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       });
 
       // 下方：頭像框＋訊息框（指令選單會蓋在訊息框上）
-      const who = this.state === 'cmd' ? b.party[this.cur] : (this.actor && this.actor.side === 'party' ? this.actor : b.party[Math.max(0, this.cur)] || b.party[0]);
+      // 選指令／技能／目標時顯示「正在下指令的人」；動作播放時顯示出手的人（我方）
+      const choosing = ['cmd', 'skill', 'item', 'target', 'scout'].indexOf(this.state) >= 0;
+      const who = choosing ? (b.party[Math.max(0, this.cur)] || b.party[0]) : (this.actor && this.actor.side === 'party' ? this.actor : b.party[Math.max(0, this.cur)] || b.party[0]);
       c.fillStyle = '#fff'; c.fillRect(6, 164, 56, 58); c.fillStyle = '#10204a'; c.fillRect(7, 165, 54, 56);
-      if (who && who.ref.sprite < 4) c.drawImage(E.images.portraits, who.ref.sprite * 48, 0, 48, 48, 10, 169, 48, 48);
+      const pi = who ? G.portraitOf(who.ref) : -1;
+      if (pi >= 0) c.drawImage(E.images.portraits, pi * 48, 0, 48, 48, 10, 169, 48, 48);
+      else if (who) c.drawImage(E.images.sprites, 0, who.ref.sprite * 16, 16, 16, 26, 185, 16, 16);
       c.fillStyle = '#fff'; c.fillRect(66, 164, 184, 58); c.fillStyle = '#000'; c.fillRect(67, 165, 182, 56);
 
       if (this.state === 'scout') {
         const t = this.targets[this.scoutIdx], D = window.DATA, tbl = D.drops || {};
         E.text(c, t.name, 74, 168, { size: 10, color: GOLD });
         E.text(c, (t.title && t.title !== t.name ? t.title + '　' : '') + (t.cls || '') + '　武器 ' + (t.weapon || '－'), 74, 181, { size: 8, color: GREY });
-        E.text(c, '兵力 ' + t.hp + '/' + t.hpMax + '　攻擊力 ' + (t.atk * 2) + '　防禦力 ' + t.def, 74, 192, { size: 8 });
+        E.text(c, '兵力 ' + this.H(t) + '/' + t.hpMax + '　攻擊力 ' + (t.atk * 2) + '　防禦力 ' + t.def, 74, 192, { size: 8 });
         E.text(c, '智 ' + t.int + '　速 ' + t.spd + '　統 ' + (t.lead || 0) + '　運 ' + (t.luck || 0), 74, 202, { size: 8 });
         E.text(c, '地形 ' + Object.keys(window.DATA.terrainNames).map(function (k) { return window.DATA.terrainNames[k] + ((t.terr && t.terr[k]) || 'B'); }).join(' '), 190, 168, { size: 7, color: GREY });
         E.wrap(c, (t.desc || '') + (tbl[t.id] ? '（身上帶著裝備）' : ''), 7, 172).slice(0, 1).forEach(function (l, i) { E.text(c, l, 74, 212, { size: 7, color: GREY }); });
@@ -423,7 +430,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       } else if (this.state === 'target') {
         const t = this.targets[this.targetSel];
         E.text(c, t.name, 74, 172, { size: 10, color: GOLD });
-        E.text(c, '兵力 ' + t.hp + ' / ' + t.hpMax, 74, 188, { size: 9 });
+        E.text(c, '兵力 ' + this.H(t) + ' / ' + t.hpMax, 74, 188, { size: 9 });
         E.text(c, '上下選擇　Z 決定　X 返回', 74, 206, { size: 8, color: GREY });
       } else {
         let y = 171;
