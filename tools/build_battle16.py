@@ -141,6 +141,10 @@ ENEMIES = [
     (dict(pal=((220, 170, 130), (30, 22, 24), (170, 50, 44), (60, 60, 70), (60, 40, 30)), beard="long", hat=(60, 60, 70), plume=(230, 200, 60)), "sabre"),
     # 張梁：人公將軍，黃盔橘纓、金甲、長鬚、闊刀
     (dict(BA.CHARACTERS[21][1]), "sabre"),
+    # 張寶（row14）、張角（row15）、三張合體（row16）
+    (dict(BA.CHARACTERS[22][1]), "fan"),
+    (dict(BA.CHARACTERS[23][1]), "fan"),
+    (dict(BA.CHARACTERS[24][1]), "sabre"),
 ]
 
 

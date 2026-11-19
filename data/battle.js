@@ -76,6 +76,9 @@ window.DATA.battle = {
     qushuai: { name: '黃巾渠帥', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' }, int: 28, lead: 22, luck: 10, title: '黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '廣陽黃巾的首領，兵力雄厚，會全體衝鋒與重斬。', hp: 2600, atk: 52, def: 26, spd: 12, exp: 200, gold: 200, sprite: 5, boss: true, ai: 'boss' },
     veteran: { name: '黃巾悍卒', terrain: { plain: 'B', forest: 'B', mountain: 'A', sea: 'C' }, int: 10, lead: 6, luck: 5, title: '黃巾悍卒', cls: '精兵', weapon: '刀', desc: '身經百戰的黃巾老卒，穿著鐵甲，打起來像一堵牆。', hp: 170, atk: 28, def: 16, spd: 10, exp: 40, gold: 40, sprite: 11 },
     zhangliang: { name: '張梁', terrain: { plain: 'A', forest: 'B', mountain: 'A', sea: 'C' }, int: 44, lead: 34, luck: 10, title: '人公將軍', cls: '大帥', weapon: '刀', desc: '張角的三弟，自稱人公將軍，守在廣宗城外。黃巾軍中最有章法的一股，不會輕易亂陣。', hp: 12700, atk: 104, def: 48, spd: 12, exp: 760, gold: 640, sprite: 13, boss: true, ai: 'boss' },
+    zhangbao: { name: '張寶', terrain: { plain: 'B', forest: 'A', mountain: 'S', sea: 'B' }, int: 56, lead: 34, luck: 12, title: '地公將軍', cls: '大帥', weapon: '扇', desc: '張角的二弟，自稱地公將軍，據守下曲陽。精通妖術，在山地作戰特別強。', hp: 9800, atk: 96, def: 44, spd: 13, exp: 900, gold: 760, sprite: 14, boss: true, ai: 'boss' },
+    zhangjiao: { name: '張角', terrain: { plain: 'A', forest: 'A', mountain: 'A', sea: 'B' }, int: 64, lead: 40, luck: 14, title: '天公將軍・大賢良師', cls: '教主', weapon: '扇', desc: '太平道的教主，自稱天公將軍。以符水治病聚集百萬信徒，黃巾之亂的起點。', hp: 12500, atk: 102, def: 46, spd: 12, exp: 1100, gold: 900, sprite: 15, boss: true, ai: 'boss' },
+    sanzhang: { name: '三張合體', terrain: { plain: 'A', forest: 'A', mountain: 'A', sea: 'A' }, int: 70, lead: 44, luck: 15, title: '天公・地公・人公', cls: '合體', weapon: '刀', desc: '張角、張寶、張梁三兄弟以太平要術之力合而為一。黃巾之亂，最後的敵人。', hp: 18500, atk: 100, def: 48, spd: 12, exp: 2400, gold: 2000, sprite: 16, boss: true, ai: 'boss' },
     busi: { name: '卜巳', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'B' }, int: 28, lead: 30, luck: 8, title: '東郡黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '東郡黃巾的首領，駐紮在倉亭，人多勢眾、力氣很大，但不太會用腦。', hp: 10200, atk: 95, def: 44, spd: 12, exp: 620, gold: 520, sprite: 12, boss: true, ai: 'boss' },
     pengtuo: { name: '彭脫', terrain: { plain: 'A', forest: 'S', mountain: 'B', sea: 'C' }, int: 34, lead: 26, luck: 9, title: '汝南黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '汝南黃巾的首領，熟悉山林水澤，在森林裡特別難纏。', hp: 6300, atk: 76, def: 35, spd: 13, exp: 440, gold: 380, sprite: 7, boss: true, ai: 'boss' },
     zhaohong: { name: '趙弘', terrain: { plain: 'B', forest: 'B', mountain: 'A', sea: 'C' }, int: 30, lead: 28, luck: 8, title: '宛城黃巾大帥', cls: '大帥', weapon: '槍', desc: '宛城黃巾的大帥，聚眾十餘萬，佔據宛城。', hp: 8000, atk: 86, def: 40, spd: 12, exp: 480, gold: 420, sprite: 8, boss: true, ai: 'boss' },
@@ -93,6 +96,9 @@ window.DATA.battle = {
     field5: [ ['veteran', 'veteran', 'elite', 'archer'], ['veteran', 'captain', 'archer', 'archer'], ['elite', 'elite', 'veteran', 'bandit', 'archer'], ['captain', 'veteran', 'veteran', 'veteran'] ],
     field6: [ ['veteran', 'veteran', 'elite', 'archer'], ['captain', 'veteran', 'archer', 'archer'], ['elite', 'elite', 'veteran', 'veteran', 'archer'], ['captain', 'captain', 'veteran', 'elite'] ],
     boss8:  [ ['zhangliang', 'veteran', 'veteran', 'elite', 'elite', 'archer'] ],
+    boss9:  [ ['zhangbao', 'veteran', 'veteran', 'elite', 'elite', 'archer'] ],
+    boss10: [ ['zhangjiao', 'elite', 'elite', 'veteran', 'archer', 'archer'] ],
+    boss11: [ ['sanzhang', 'elite', 'elite', 'archer', 'archer'] ],
     boss4:  [ ['pengtuo', 'veteran', 'veteran', 'archer', 'archer'] ],
     boss5:  [ ['zhaohong', 'veteran', 'veteran', 'elite', 'archer'] ],
     boss7:  [ ['busi', 'veteran', 'veteran', 'elite', 'elite', 'archer'] ],
@@ -105,7 +111,7 @@ window.DATA.battle = {
 // rematch：旗標 → 敵人 id；rematchRate：每次遇敵時，有任一頭目被打倒的話，出現殘部的機率。
 (function () {
   const B = window.DATA.battle;
-  B.rematch = { boss_down: 'chengyuanzhi', boss2_down: 'qushuai', bocai_down: 'bocai', pengtuo_down: 'pengtuo', zhaohong_down: 'zhaohong', hanzhong_down: 'hanzhong', busi_down: 'busi', zhangliang_down: 'zhangliang' };
+  B.rematch = { boss_down: 'chengyuanzhi', boss2_down: 'qushuai', bocai_down: 'bocai', pengtuo_down: 'pengtuo', zhaohong_down: 'zhaohong', hanzhong_down: 'hanzhong', busi_down: 'busi', zhangliang_down: 'zhangliang', zhangbao_down: 'zhangbao', zhangjiao_down: 'zhangjiao' };
   B.rematchRate = 0.05;
   Object.keys(B.rematch).forEach(function (f) {
     const id = B.rematch[f], e = B.enemies[id];

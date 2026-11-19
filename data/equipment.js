@@ -35,6 +35,9 @@ window.DATA.equipment = {
   war_blade:   { name: '赤紋刀',   slot: 'weapon', wtype: '刀', mods: { pow: 22 }, price: 0, desc: '韓忠的佩刀，刀背刻著赤紋' },
   bronze_armor: { name: '青銅甲', slot: 'armor', mods: { def: 9 }, price: 0, desc: '卜巳穿在身上的青銅重甲，很重，但很硬' },
   renkong_sash: { name: '人公黃巾', slot: 'helm', mods: { lead: 4, int: 3, def: 3 }, price: 0, desc: '張梁頭上的黃巾，繡著「人公」二字' },
+  dikong_fan:  { name: '地公羽扇', slot: 'weapon', wtype: '扇', mods: { pow: 28, int: 4 }, price: 0, desc: '張寶使過的妖術羽扇，扇骨裡嵌著細小的符紙' },
+  taiping_book: { name: '太平要術', slot: 'charm', mods: { int: 8, lead: 4 }, price: 0, desc: '張角的太平道經書。寫的是符水與天下大勢，兩種都不太好懂' },
+  huangtian_banner: { name: '黃天令旗', slot: 'charm', mods: { lead: 6, luck: 5, def: 4 }, price: 0, desc: '三張合體後留下的黃色令旗，旗面上寫著「蒼天已死」四個字，已經褪色' },
   // 專屬武器
   qinglong:    { name: '青龍偃月刀', slot: 'weapon', wtype: '刀', mods: { pow: 18, lead: 2 }, only: 'guanyu', price: 0, desc: '關羽專屬。刀光如青龍' },
   serpent:     { name: '丈八蛇矛', slot: 'weapon', wtype: '矛', mods: { pow: 18, grd: 2 }, only: 'zhangfei', price: 0, desc: '張飛專屬。一矛橫掃一片' },
@@ -48,6 +51,7 @@ window.DATA.drops = {
   zhaohong: ['iron_helm2', 1.0],
   hanzhong: ['war_blade', 1.0],
   busi: ['bronze_armor', 1.0],
+  zhangbao: ['dikong_fan', 1.0], zhangbao_r: ['dikong_fan', 0.2], zhangjiao: ['taiping_book', 1.0], zhangjiao_r: ['taiping_book', 0.2], sanzhang: ['huangtian_banner', 1.0],
   zhangliang: ['renkong_sash', 1.0], zhangliang_r: ['renkong_sash', 0.2],
   veteran: ['leather', 0.12],
   bocai_r: ['scale', 0.25], pengtuo_r: ['river_charm', 0.2], zhaohong_r: ['iron_helm2', 0.2], hanzhong_r: ['war_blade', 0.2], busi_r: ['bronze_armor', 0.2], chengyuanzhi_r: ['rebel_blade', 0.2], qushuai_r: ['yellow_scarf', 0.3],

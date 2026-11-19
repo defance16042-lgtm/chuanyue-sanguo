@@ -438,7 +438,7 @@ window.DATA.maps = {
       'T......................T',
       'T......................T',
       'T......................T',
-      ',,,,,,,,,,,,,,,,,,,,,,,T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
       'T......................T',
       'T.....f................T',
       'T..RRRR........RRRR....T',
@@ -454,14 +454,99 @@ window.DATA.maps = {
       { once: 'gz_intro_done', dialogue: 'gz_intro' }
     ],
     warps: [
-      { x: 0, y: 10, to: 'jizhou', tx: 22, ty: 10, dir: 'left' }
+      { x: 0, y: 10, to: 'jizhou', tx: 22, ty: 10, dir: 'left' },
+      { x: 23, y: 10, to: 'xiaquyang', tx: 1, ty: 10, dir: 'right', need: 'zuofeng_done', deny: 'path_blocked7' }
     ],
     npcs: [
       { id: 'luzhi', name: '盧植', sprite: 19, x: 5, y: 6, dir: 'right', dialogue: 'gz_luzhi', hideIf: 'guest_luzhi' },
       { id: 'zhangliang', name: '張梁', sprite: 21, x: 17, y: 10, dir: 'left', dialogue: 'boss_zhangliang', showIf: 'guest_luzhi', hideIf: 'zhangliang_down' },
       { id: 'zuofeng', name: '左豐', sprite: 20, x: 7, y: 6, dir: 'left', dialogue: 'gz_zuofeng', showIf: 'zhangliang_down', hideIf: 'zuofeng_done' },
+      { id: 'huangfu5', name: '皇甫嵩', sprite: 16, x: 9, y: 8, dir: 'down', dialogue: 'gz_huangfu', showIf: 'zuofeng_done' },
       { id: 'gzsoldier', name: '守營士兵', sprite: 9, x: 9, y: 12, dir: 'up', dialogue: 'gz_soldier' },
       { id: 'gzmedic', name: '軍醫', sprite: 10, x: 5, y: 16, dir: 'down', dialogue: 'gz_medic' }
+    ],
+    objects: []
+  },
+  xiaquyang: {
+    name: '下曲陽',
+    battleBg: 'grass',
+    home: { map: 'guangzong' },
+    encounter: { group: 'field6', rate: 0.09, minSteps: 4 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T.MMMMMMMMMMMMMMMMMMM..T',
+      'T.MMMMMMMMMMMMMMMMMMM..T',
+      'T.MMM..............MM..T',
+      'T.MMM....MMMM......MM..T',
+      'T........MMMM..........T',
+      'T..YYY.................T',
+      'T..YYY.......f.........T',
+      'T......................T',
+      'T......................T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
+      'T......................T',
+      'T..MM..............YYY.T',
+      'T..MM..............YYY.T',
+      'T......f...............T',
+      'T..............MMMM....T',
+      'T..YYYYY.......MMMM....T',
+      'T..YYYYY...............T',
+      'T......................T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [
+      { once: 'xq_intro_done', dialogue: 'xq_intro' }
+    ],
+    warps: [
+      { x: 0, y: 10, to: 'guangzong', tx: 22, ty: 10, dir: 'left' },
+      { x: 23, y: 10, to: 'gzcity', tx: 1, ty: 10, dir: 'right', need: 'zhangbao_down', deny: 'path_blocked8' }
+    ],
+    npcs: [
+      { id: 'zhangbao', name: '張寶', sprite: 22, x: 17, y: 10, dir: 'left', dialogue: 'boss_zhangbao', hideIf: 'zhangbao_down' },
+      { id: 'xqscout', name: '皇甫嵩軍斥候', sprite: 9, x: 6, y: 12, dir: 'right', dialogue: 'xq_scout' },
+      { id: 'xqmonk', name: '白衣的道人', sprite: 8, x: 12, y: 8, dir: 'down', dialogue: 'xq_monk' }
+    ],
+    objects: []
+  },
+  gzcity: {
+    name: '廣宗城內',
+    battleBg: 'grass',
+    home: { map: 'xiaquyang' },
+    encounter: { group: 'field6', rate: 0.05, minSteps: 6 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T..RRRRR......RRRRR....T',
+      'T..RRRRR......RRRRR....T',
+      'T..WWDWW......WWDWW....T',
+      'T......................T',
+      'T..........f...........T',
+      'T......................T',
+      'T......................T',
+      'T......................T',
+      'T......................T',
+      ',,,,,,,,,,,,,,,,,,,,,,,T',
+      'T......................T',
+      'T..RRRR........RRRR....T',
+      'T..RRRR........RRRR....T',
+      'T..WDWW........WWDW....T',
+      'T......................T',
+      'T......................T',
+      'T..f...........f.......T',
+      'T......................T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [
+      { once: 'gc_intro_done', dialogue: 'gc_intro' }
+    ],
+    warps: [
+      { x: 0, y: 10, to: 'xiaquyang', tx: 22, ty: 10, dir: 'left' }
+    ],
+    npcs: [
+      { id: 'zhangjiao', name: '張角', sprite: 23, x: 12, y: 5, dir: 'down', dialogue: 'boss_zhangjiao', hideIf: 'zhangjiao_down' },
+      { id: 'gcdisciple', name: '黃巾信徒', sprite: 8, x: 7, y: 8, dir: 'right', dialogue: 'gc_disciple' },
+      { id: 'gchuangfu', name: '皇甫嵩', sprite: 16, x: 8, y: 15, dir: 'right', dialogue: 'gc_huangfu' }
     ],
     objects: []
   },

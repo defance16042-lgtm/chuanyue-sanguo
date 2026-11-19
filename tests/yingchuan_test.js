@@ -24,7 +24,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // 地圖資料：每列等長、字元都在 legend、NPC／傳送點落在可走的格子、對話都存在
   const md = await page.evaluate(() => {
     const D = DATA, out = [];
-    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun', 'jizhou', 'guangzong'].forEach(id => {
+    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun', 'jizhou', 'guangzong', 'xiaquyang', 'gzcity'].forEach(id => {
       const m = D.maps[id], w = m.tiles[0].length;
       if (!m.tiles.every(r => r.length === w)) out.push(id + ' ragged');
       m.tiles.forEach((r, y) => [...r].forEach((ch, x) => { if (!(ch in D.legend)) out.push(id + ' bad tile ' + ch); }));
@@ -142,6 +142,24 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('zhangliang_down set', s.flags.zhangliang_down === true, s.flags);
   await face('guangzong', 6, 6, 'right'); await sleep(400); await talk(); await sleep(400); await talk(); s = await S();
   check('zuofeng scene: luzhi leaves the party', s.flags.zuofeng_done === true && !s.ids.includes('luzhi'), { f: s.flags.zuofeng_done, ids: s.ids });
+  // 冀州篇（下）：張寶・張角・三張合體
+  const winBattle = async () => { await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); }); for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z'); };
+  await go('guangzong', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('guangzong east exit leads to xiaquyang after zuofeng', (await S()).map === 'xiaquyang', (await S()).map);
+  await go('xiaquyang', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('xiaquyang east exit blocked until zhangbao', (await S()).map === 'xiaquyang', (await S()).map);
+  await face('xiaquyang', 18, 10, 'left'); await sleep(500);
+  check('zhangbao starts boss9', (await S()).scene === 'BattleScene');
+  await winBattle(); await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
+  check('zhangbao_down set and gear dropped', s.flags.zhangbao_down === true && s.gear.dikong_fan >= 1, { f: s.flags.zhangbao_down, g: s.gear });
+  await go('xiaquyang', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('xiaquyang east exit opens to gzcity', (await S()).map === 'gzcity', (await S()).map);
+  await face('gzcity', 12, 6, 'up'); await sleep(500);
+  check('zhangjiao starts boss10', (await S()).scene === 'BattleScene');
+  await winBattle(); await sleep(900); await talk(); await sleep(900);
+  check('after zhangjiao, the merged three start boss11', (await S()).scene === 'BattleScene' && (await page.evaluate(() => Engine.top().b.enemies[0].id)) === 'sanzhang');
+  await winBattle(); await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
+  check('sanzhang_down set, chapter 1 finished', s.flags.sanzhang_down === true && s.flags.zhangjiao_down === true, s.flags);
   check('no JS errors', errors.length === 0, errors);
   console.log(`${pass} passed, ${fail} failed`);
   await browser.close(); process.exit(fail ? 1 : 0);
