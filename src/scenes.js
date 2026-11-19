@@ -570,7 +570,15 @@
       this.steps = (this.steps || 0) + 1;
       if (this.steps < (enc.minSteps || 4) || Math.random() >= enc.rate) return;
       this.steps = 0;
-      const groups = D.battle.groups[enc.group], g = groups[Math.floor(Math.random() * groups.length)];
+      const groups = D.battle.groups[enc.group];
+      let g = groups[Math.floor(Math.random() * groups.length)].slice();
+      // 打倒過的頭目，有機會帶殘部再度出現（捲土重來）
+      const rm = D.battle.rematch || {}, done = Object.keys(rm).filter(function (f) { return G.flags[f] && D.battle.enemies[rm[f] + '_r']; });
+      if (done.length && Math.random() < (D.battle.rematchRate || 0)) {
+        const id = rm[done[Math.floor(Math.random() * done.length)]] + '_r';
+        g[0] = id;   // 取代隊伍裡的第一名雜兵
+        if (g.length > 4) g.pop();   // 殘部很壯，少一個雜兵
+      }
       this.startBattle(g, false);
     }
     startBattle(group, boss) {

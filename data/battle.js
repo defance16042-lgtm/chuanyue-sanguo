@@ -77,3 +77,21 @@ window.DATA.battle = {
   },
   encounterRate: 0.07   // 每走一步遇敵機率（野外）
 };
+
+// 「捲土重來」：打倒過的頭目，之後在野外遇敵時有機會帶著殘部再度出現（能力較弱的版本，戰利品與經驗也較少）。
+// rematch：旗標 → 敵人 id；rematchRate：每次遇敵時，有任一頭目被打倒的話，出現殘部的機率。
+(function () {
+  const B = window.DATA.battle;
+  B.rematch = { boss_down: 'chengyuanzhi', boss2_down: 'qushuai', bocai_down: 'bocai', pengtuo_down: 'pengtuo', zhaohong_down: 'zhaohong', hanzhong_down: 'hanzhong', busi_down: 'busi' };
+  B.rematchRate = 0.12;
+  Object.keys(B.rematch).forEach(function (f) {
+    const id = B.rematch[f], e = B.enemies[id];
+    if (!e) return;
+    const r = Object.assign({}, e, {
+      name: e.name + '（殘部）', hp: Math.round(e.hp * 0.22), atk: Math.round(e.atk * 0.85), def: Math.round(e.def * 0.9),
+      exp: Math.round(e.exp * 0.3), gold: Math.round(e.gold * 0.3), boss: false, ai: undefined, rematchOf: id,
+      desc: e.desc + '（這是打敗後捲土重來的殘部，不如全盛時期強。）'
+    });
+    B.enemies[id + '_r'] = r;
+  });
+})();

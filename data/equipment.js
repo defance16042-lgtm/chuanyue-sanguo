@@ -48,6 +48,7 @@ window.DATA.drops = {
   hanzhong: ['war_blade', 1.0],
   busi: ['bronze_armor', 1.0],
   veteran: ['leather', 0.12],
+  bocai_r: ['scale', 0.25], pengtuo_r: ['river_charm', 0.2], zhaohong_r: ['iron_helm2', 0.2], hanzhong_r: ['war_blade', 0.2], busi_r: ['bronze_armor', 0.2], chengyuanzhi_r: ['rebel_blade', 0.2], qushuai_r: ['yellow_scarf', 0.3],
   elite: ['leather', 0.1],
   qushuai: ['yellow_scarf', 1.0],
   archer: ['headband', 0.08],
