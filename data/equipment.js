@@ -34,6 +34,7 @@ window.DATA.equipment = {
   iron_helm2:  { name: '紫纓盔',   slot: 'helm', mods: { def: 4, lead: 2 }, price: 0, desc: '趙弘戴過的紫纓鐵盔' },
   war_blade:   { name: '赤紋刀',   slot: 'weapon', wtype: '刀', mods: { pow: 22 }, price: 0, desc: '韓忠的佩刀，刀背刻著赤紋' },
   bronze_armor: { name: '青銅甲', slot: 'armor', mods: { def: 9 }, price: 0, desc: '卜巳穿在身上的青銅重甲，很重，但很硬' },
+  renkong_sash: { name: '人公黃巾', slot: 'helm', mods: { lead: 4, int: 3, def: 3 }, price: 0, desc: '張梁頭上的黃巾，繡著「人公」二字' },
   // 專屬武器
   qinglong:    { name: '青龍偃月刀', slot: 'weapon', wtype: '刀', mods: { pow: 18, lead: 2 }, only: 'guanyu', price: 0, desc: '關羽專屬。刀光如青龍' },
   serpent:     { name: '丈八蛇矛', slot: 'weapon', wtype: '矛', mods: { pow: 18, grd: 2 }, only: 'zhangfei', price: 0, desc: '張飛專屬。一矛橫掃一片' },
@@ -47,6 +48,7 @@ window.DATA.drops = {
   zhaohong: ['iron_helm2', 1.0],
   hanzhong: ['war_blade', 1.0],
   busi: ['bronze_armor', 1.0],
+  zhangliang: ['renkong_sash', 1.0], zhangliang_r: ['renkong_sash', 0.2],
   veteran: ['leather', 0.12],
   bocai_r: ['scale', 0.25], pengtuo_r: ['river_charm', 0.2], zhaohong_r: ['iron_helm2', 0.2], hanzhong_r: ['war_blade', 0.2], busi_r: ['bronze_armor', 0.2], chengyuanzhi_r: ['rebel_blade', 0.2], qushuai_r: ['yellow_scarf', 0.3],
   elite: ['leather', 0.1],

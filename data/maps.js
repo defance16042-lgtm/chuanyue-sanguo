@@ -353,7 +353,7 @@ window.DATA.maps = {
       'T.........f............T',
       'T..................b...T',
       'T......YYY.............T',
-      ',,,,,,,,,,,,,,,,,,,,,,,T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
       'T......YYY.............T',
       'T......................T',
       'T...f.......~~~~.......T',
@@ -369,7 +369,8 @@ window.DATA.maps = {
       { once: 'dj_intro_done', dialogue: 'dj_intro' }
     ],
     warps: [
-      { x: 0, y: 10, to: 'wancheng', tx: 22, ty: 10, dir: 'left' }
+      { x: 0, y: 10, to: 'wancheng', tx: 22, ty: 10, dir: 'left' },
+      { x: 23, y: 10, to: 'jizhou', tx: 1, ty: 10, dir: 'right', need: 'busi_down', deny: 'path_blocked6' }
     ],
     npcs: [
       { id: 'busi', name: '卜巳', sprite: 12, x: 18, y: 10, dir: 'left', dialogue: 'boss_busi', hideIf: 'busi_down' },
@@ -377,6 +378,90 @@ window.DATA.maps = {
       { id: 'huangfu4', name: '皇甫嵩', sprite: 16, x: 8, y: 12, dir: 'right', dialogue: 'dj_end', showIf: 'busi_down' },
       { id: 'djsoldier', name: '運糧的民夫', sprite: 7, x: 5, y: 8, dir: 'down', dialogue: 'dj_porter' },
       { id: 'djscout', name: '探子', sprite: 9, x: 14, y: 7, dir: 'left', dialogue: 'dj_scout' }
+    ],
+    objects: []
+  },
+  jizhou: {
+    name: '冀州路',
+    battleBg: 'grass',
+    home: { map: 'dongjun' },
+    encounter: { group: 'field6', rate: 0.09, minSteps: 4 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T.MMMM.........YYYY....T',
+      'T.MMMM.........YYYY....T',
+      'T.MMM..................T',
+      'T......f...............T',
+      'T..........,,..........T',
+      'T..YYY.....,,....MMM...T',
+      'T..YYY.....,,....MMM...T',
+      'T..........,,..........T',
+      'T..........,,..........T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
+      'T..........,,..........T',
+      'T...f......,,....YYY...T',
+      'T..........,,....YYY...T',
+      'T..MM......,,..........T',
+      'T..MM......,,.......f..T',
+      'T..........,,..........T',
+      'T..YYYYY...............T',
+      'T..YYYYY...............T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [
+      { once: 'jz_intro_done', dialogue: 'jz_intro' }
+    ],
+    warps: [
+      { x: 0, y: 10, to: 'dongjun', tx: 22, ty: 10, dir: 'left' },
+      { x: 23, y: 10, to: 'guangzong', tx: 1, ty: 10, dir: 'right' }
+    ],
+    npcs: [
+      { id: 'jzrefugee', name: '逃難的老人', sprite: 7, x: 6, y: 9, dir: 'right', dialogue: 'jz_refugee' },
+      { id: 'jzscout', name: '盧植軍斥候', sprite: 9, x: 13, y: 12, dir: 'left', dialogue: 'jz_scout' }
+    ],
+    objects: []
+  },
+  guangzong: {
+    name: '廣宗',
+    battleBg: 'grass',
+    home: { map: 'jizhou' },
+    encounter: { group: 'field6', rate: 0.05, minSteps: 6 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T..RRRRR......RRRRR....T',
+      'T..RRRRR......RRRRR....T',
+      'T..WWDWW......WWDWW....T',
+      'T......................T',
+      'T......f...............T',
+      'T..................f...T',
+      'T......................T',
+      'T......................T',
+      'T......................T',
+      ',,,,,,,,,,,,,,,,,,,,,,,T',
+      'T......................T',
+      'T.....f................T',
+      'T..RRRR........RRRR....T',
+      'T..RRRR........RRRR....T',
+      'T..WDWW........WWDW....T',
+      'T......................T',
+      'T..YYYY................T',
+      'T..YYYY................T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [
+      { once: 'gz_intro_done', dialogue: 'gz_intro' }
+    ],
+    warps: [
+      { x: 0, y: 10, to: 'jizhou', tx: 22, ty: 10, dir: 'left' }
+    ],
+    npcs: [
+      { id: 'luzhi', name: '盧植', sprite: 19, x: 5, y: 6, dir: 'right', dialogue: 'gz_luzhi', hideIf: 'guest_luzhi' },
+      { id: 'zhangliang', name: '張梁', sprite: 21, x: 17, y: 10, dir: 'left', dialogue: 'boss_zhangliang', showIf: 'guest_luzhi', hideIf: 'zhangliang_down' },
+      { id: 'zuofeng', name: '左豐', sprite: 20, x: 7, y: 6, dir: 'left', dialogue: 'gz_zuofeng', showIf: 'zhangliang_down', hideIf: 'zuofeng_done' },
+      { id: 'gzsoldier', name: '守營士兵', sprite: 9, x: 9, y: 12, dir: 'up', dialogue: 'gz_soldier' },
+      { id: 'gzmedic', name: '軍醫', sprite: 10, x: 5, y: 16, dir: 'down', dialogue: 'gz_medic' }
     ],
     objects: []
   },

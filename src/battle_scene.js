@@ -6,7 +6,7 @@
 const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', '偵察'];
   const MSG_MS = 520, DMG_MS = 480;
   // 戰鬥小人（24×24，有武器與揮砍／施法動作）所在的列；沒有的人暫時用地圖小人
-  const BATTLE_ROW = { nyao: 0, liubei: 1, guanyu: 2, zhangfei: 3, caocao: 4 };
+  const BATTLE_ROW = { nyao: 0, liubei: 1, guanyu: 2, zhangfei: 3, caocao: 4, luzhi: 5 };
 
   class BattleScene {
     // group：敵人 id 陣列；opts：{ boss, canFlee, onEnd(result) }，result 為 'win'|'lose'|'flee'

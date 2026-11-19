@@ -24,7 +24,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // 地圖資料：每列等長、字元都在 legend、NPC／傳送點落在可走的格子、對話都存在
   const md = await page.evaluate(() => {
     const D = DATA, out = [];
-    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun'].forEach(id => {
+    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun', 'jizhou', 'guangzong'].forEach(id => {
       const m = D.maps[id], w = m.tiles[0].length;
       if (!m.tiles.every(r => r.length === w)) out.push(id + ' ragged');
       m.tiles.forEach((r, y) => [...r].forEach((ch, x) => { if (!(ch in D.legend)) out.push(id + ' bad tile ' + ch); }));
@@ -125,6 +125,23 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
   await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
   check('busi_down set, caocao leaves the party', s.flags.busi_down === true && !s.ids.includes('caocao'), { f: s.flags.busi_down, ids: s.ids, sc: s.scene, g: s.gold });
+  // 冀州篇（一）：廣宗・張梁・盧植
+  await go('dongjun', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('dongjun east exit leads to jizhou after busi', (await S()).map === 'jizhou', (await S()).map);
+  await go('jizhou', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('jizhou east exit leads to guangzong', (await S()).map === 'guangzong', (await S()).map);
+  await page.evaluate(() => { Game.party = Game.party.filter(m => m.id !== 'caocao'); Game.party = Game.party.slice(0, 4); });
+  await face('guangzong', 4, 6, 'right'); await sleep(400); await talk();
+  s = await S();
+  check('luzhi joins as a guest', s.ids.includes('luzhi') && s.flags.guest_luzhi === true, s.ids);
+  await face('guangzong', 16, 10, 'right'); await sleep(500);
+  check('zhangliang starts boss8', (await S()).scene === 'BattleScene');
+  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
+  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
+  check('zhangliang_down set', s.flags.zhangliang_down === true, s.flags);
+  await face('guangzong', 6, 6, 'right'); await sleep(400); await talk(); await sleep(400); await talk(); s = await S();
+  check('zuofeng scene: luzhi leaves the party', s.flags.zuofeng_done === true && !s.ids.includes('luzhi'), { f: s.flags.zuofeng_done, ids: s.ids });
   check('no JS errors', errors.length === 0, errors);
   console.log(`${pass} passed, ${fail} failed`);
   await browser.close(); process.exit(fail ? 1 : 0);

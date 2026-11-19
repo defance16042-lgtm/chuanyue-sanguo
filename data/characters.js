@@ -58,7 +58,15 @@ window.DATA.characters = {
     growth: { hp: 19, atk: 1.6, int: 1.8, spd: 0.4, lead: 1.4, luck: 0.6, grd: 0.8, tp: 0.7 },
     trait: { name: '亂世奸雄', desc: '統率 +3、運氣 +2', mods: { lead: 3, luck: 2 } },
     bio: '沛國譙人，奉詔以騎都尉之職南下討伐潁川黃巾。機智果斷，笑起來讓人不太放心。'
+  },
+  luzhi: {
+    id: 'luzhi', name: '盧植', sprite: 19, portrait: 15, zi: '子幹', title: '北中郎將', cls: '儒將', weapon: '劍', guest: true,
+    terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' },
+    hp: 190, tp: 12, atk: 18, int: 28, spd: 9, lead: 32, luck: 8, grd: 14,
+    growth: { hp: 22, atk: 1.5, int: 2.0, spd: 0.3, lead: 1.5, luck: 0.4, grd: 1.0, tp: 0.8 },
+    trait: { name: '海內大儒', desc: '統率 +4、智力 +3', mods: { lead: 4, int: 3 } },
+    bio: '涿郡涿縣人，劉備年輕時的老師，天下聞名的大儒，也是出色的將領。奉命北上討伐張角，築圍掘塹，把黃巾主力困在廣宗城裡。'
   }
 };
 // 非隊員的對話頭像（說話者名稱 → portraits.png 的編號）
-window.DATA.npcPortraits = { '皇甫嵩': 6, '波才': 7, '朱儁': 8, '孫堅': 9, '彭脫': 10, '趙弘': 11, '韓忠': 12, '孫夏': 13, '卜巳': 14 };
+window.DATA.npcPortraits = { '皇甫嵩': 6, '波才': 7, '朱儁': 8, '孫堅': 9, '彭脫': 10, '趙弘': 11, '韓忠': 12, '孫夏': 13, '卜巳': 14, '盧植': 15, '張梁': 16, '左豐': 17 };
