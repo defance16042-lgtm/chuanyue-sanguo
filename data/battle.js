@@ -83,7 +83,7 @@ window.DATA.battle = {
 (function () {
   const B = window.DATA.battle;
   B.rematch = { boss_down: 'chengyuanzhi', boss2_down: 'qushuai', bocai_down: 'bocai', pengtuo_down: 'pengtuo', zhaohong_down: 'zhaohong', hanzhong_down: 'hanzhong', busi_down: 'busi' };
-  B.rematchRate = 0.12;
+  B.rematchRate = 0.05;
   Object.keys(B.rematch).forEach(function (f) {
     const id = B.rematch[f], e = B.enemies[id];
     if (!e) return;
