@@ -157,7 +157,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await face('gzcity', 12, 6, 'up'); await sleep(500);
   check('zhangjiao starts boss10', (await S()).scene === 'BattleScene');
   await winBattle(); await sleep(900); await talk(); await sleep(900);
-  check('after zhangjiao, all three brothers fight at once (boss11)', (await S()).scene === 'BattleScene' && (await page.evaluate(() => Engine.top().b.enemies.slice(0, 3).map(e => e.id).join())) === 'zhangjiao_f,zhangbao_f,zhangliang_f');
+  check('after zhangjiao, all three brothers fight at once (boss11)', (await S()).scene === 'BattleScene' && (await page.evaluate(() => Engine.top().b.enemies.slice(0, 3).map(e => e.id).join())) === 'zhangjiao,zhangbao,zhangliang');
   await winBattle(); await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
   check('sanzhang_down set, chapter 1 finished', s.flags.sanzhang_down === true && s.flags.zhangjiao_down === true && s.gear.huangtian_banner >= 1, s.flags);
   check('no JS errors', errors.length === 0, errors);

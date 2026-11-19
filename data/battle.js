@@ -75,9 +75,9 @@ window.DATA.battle = {
     bocai: { name: '波才', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' }, int: 40, lead: 30, luck: 10, title: '潁川黃巾大帥', cls: '大帥', weapon: '刀', desc: '潁川黃巾的大帥，數萬之眾的統領。曾擊敗朱儁並圍困皇甫嵩，兵多而營草，最怕火。', hp: 5000, atk: 71, def: 32, spd: 13, exp: 360, gold: 320, sprite: 6, boss: true, ai: 'boss' },
     qushuai: { name: '黃巾渠帥', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' }, int: 28, lead: 22, luck: 10, title: '黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '廣陽黃巾的首領，兵力雄厚，會全體衝鋒與重斬。', hp: 2600, atk: 52, def: 26, spd: 12, exp: 200, gold: 200, sprite: 5, boss: true, ai: 'boss' },
     veteran: { name: '黃巾悍卒', terrain: { plain: 'B', forest: 'B', mountain: 'A', sea: 'C' }, int: 10, lead: 6, luck: 5, title: '黃巾悍卒', cls: '精兵', weapon: '刀', desc: '身經百戰的黃巾老卒，穿著鐵甲，打起來像一堵牆。', hp: 170, atk: 28, def: 16, spd: 10, exp: 40, gold: 40, sprite: 11 },
-    zhangliang: { name: '張梁', terrain: { plain: 'A', forest: 'B', mountain: 'A', sea: 'C' }, int: 44, lead: 34, luck: 10, title: '人公將軍', cls: '大帥', weapon: '刀', desc: '張角的三弟，自稱人公將軍，守在廣宗城外。黃巾軍中最有章法的一股，不會輕易亂陣。', hp: 12700, atk: 104, def: 48, spd: 12, exp: 760, gold: 640, sprite: 13, boss: true, ai: 'boss' },
-    zhangbao: { name: '張寶', terrain: { plain: 'B', forest: 'A', mountain: 'S', sea: 'B' }, int: 56, lead: 34, luck: 12, title: '地公將軍', cls: '大帥', weapon: '扇', desc: '張角的二弟，自稱地公將軍，據守下曲陽。精通妖術，在山地作戰特別強。', hp: 9800, atk: 96, def: 44, spd: 13, exp: 900, gold: 760, sprite: 14, boss: true, ai: 'boss' },
-    zhangjiao: { name: '張角', terrain: { plain: 'A', forest: 'A', mountain: 'A', sea: 'B' }, int: 64, lead: 40, luck: 14, title: '天公將軍・大賢良師', cls: '教主', weapon: '扇', desc: '太平道的教主，自稱天公將軍。以符水治病聚集百萬信徒，黃巾之亂的起點。', hp: 12500, atk: 102, def: 46, spd: 12, exp: 1100, gold: 900, sprite: 15, boss: true, ai: 'boss' },
+    zhangliang: { name: '張梁', terrain: { plain: 'A', forest: 'B', mountain: 'A', sea: 'C' }, int: 44, lead: 34, luck: 10, title: '人公將軍', cls: '大帥', weapon: '刀', desc: '張角的三弟，自稱人公將軍，守在廣宗城外。黃巾軍中最有章法的一股，不會輕易亂陣。', hp: 5300, atk: 88, def: 48, spd: 12, exp: 760, gold: 640, sprite: 13, boss: true, ai: 'boss' },
+    zhangbao: { name: '張寶', terrain: { plain: 'B', forest: 'A', mountain: 'S', sea: 'B' }, int: 56, lead: 34, luck: 12, title: '地公將軍', cls: '大帥', weapon: '扇', desc: '張角的二弟，自稱地公將軍，據守下曲陽。精通妖術，在山地作戰特別強。', hp: 4100, atk: 82, def: 44, spd: 13, exp: 900, gold: 760, sprite: 14, boss: true, ai: 'boss' },
+    zhangjiao: { name: '張角', terrain: { plain: 'A', forest: 'A', mountain: 'A', sea: 'B' }, int: 64, lead: 40, luck: 14, title: '天公將軍・大賢良師', cls: '教主', weapon: '扇', desc: '太平道的教主，自稱天公將軍。以符水治病聚集百萬信徒，黃巾之亂的起點。', hp: 5200, atk: 87, def: 46, spd: 12, exp: 1100, gold: 900, sprite: 15, boss: true, ai: 'boss' },
     busi: { name: '卜巳', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'B' }, int: 28, lead: 30, luck: 8, title: '東郡黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '東郡黃巾的首領，駐紮在倉亭，人多勢眾、力氣很大，但不太會用腦。', hp: 10200, atk: 95, def: 44, spd: 12, exp: 620, gold: 520, sprite: 12, boss: true, ai: 'boss' },
     pengtuo: { name: '彭脫', terrain: { plain: 'A', forest: 'S', mountain: 'B', sea: 'C' }, int: 34, lead: 26, luck: 9, title: '汝南黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '汝南黃巾的首領，熟悉山林水澤，在森林裡特別難纏。', hp: 6300, atk: 76, def: 35, spd: 13, exp: 440, gold: 380, sprite: 7, boss: true, ai: 'boss' },
     zhaohong: { name: '趙弘', terrain: { plain: 'B', forest: 'B', mountain: 'A', sea: 'C' }, int: 30, lead: 28, luck: 8, title: '宛城黃巾大帥', cls: '大帥', weapon: '槍', desc: '宛城黃巾的大帥，聚眾十餘萬，佔據宛城。', hp: 8000, atk: 86, def: 40, spd: 12, exp: 480, gold: 420, sprite: 8, boss: true, ai: 'boss' },
@@ -94,10 +94,10 @@ window.DATA.battle = {
     field4: [ ['veteran', 'elite', 'archer'], ['veteran', 'veteran', 'archer'], ['captain', 'veteran', 'elite', 'archer'], ['veteran', 'veteran', 'elite', 'archer', 'bandit'], ['captain', 'captain', 'veteran'] ],
     field5: [ ['veteran', 'veteran', 'elite', 'archer'], ['veteran', 'captain', 'archer', 'archer'], ['elite', 'elite', 'veteran', 'bandit', 'archer'], ['captain', 'veteran', 'veteran', 'veteran'] ],
     field6: [ ['veteran', 'veteran', 'elite', 'archer'], ['captain', 'veteran', 'archer', 'archer'], ['elite', 'elite', 'veteran', 'veteran', 'archer'], ['captain', 'captain', 'veteran', 'elite'] ],
-    boss8:  [ ['zhangliang', 'veteran', 'veteran', 'elite', 'elite', 'archer'] ],
-    boss9:  [ ['zhangbao', 'veteran', 'veteran', 'elite', 'elite', 'archer'] ],
-    boss10: [ ['zhangjiao', 'elite', 'elite', 'veteran', 'archer', 'archer'] ],
-    boss11: [ ['zhangjiao_f', 'zhangbao_f', 'zhangliang_f', 'elite', 'archer'] ],
+    boss8:  [ ['zhangliang', 'elite', 'elite', 'elite', 'elite', 'archer'] ],
+    boss9:  [ ['zhangbao', 'elite', 'elite', 'elite', 'elite', 'archer'] ],
+    boss10: [ ['zhangjiao', 'elite', 'elite', 'elite', 'archer', 'archer'] ],
+    boss11: [ ['zhangjiao', 'zhangbao', 'zhangliang', 'elite', 'archer'] ],
     boss4:  [ ['pengtuo', 'veteran', 'veteran', 'archer', 'archer'] ],
     boss5:  [ ['zhaohong', 'veteran', 'veteran', 'elite', 'archer'] ],
     boss7:  [ ['busi', 'veteran', 'veteran', 'elite', 'elite', 'archer'] ],
@@ -117,13 +117,5 @@ window.DATA.battle = {
     if (!e) return;
     const r = Object.assign({}, e, { rematchOf: id });   // 能力、經驗、金幣與原本的頭目完全相同
     B.enemies[id + '_r'] = r;
-  });
-})();
-
-// 最終戰：張角、張寶、張梁三兄弟同時出場。這三個是最終戰用的版本（血量打折，因為三個一起打），其餘能力與原本相同。
-(function () {
-  const B = window.DATA.battle, FINAL_HP = 0.42, FINAL_ATK = 0.85;
-  ['zhangjiao', 'zhangbao', 'zhangliang'].forEach(function (id) {
-    B.enemies[id + '_f'] = Object.assign({}, B.enemies[id], { hp: Math.round(B.enemies[id].hp * FINAL_HP / 100) * 100, atk: Math.round(B.enemies[id].atk * FINAL_ATK), exp: Math.round(B.enemies[id].exp * 0.8) });
   });
 })();
