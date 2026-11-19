@@ -88,9 +88,9 @@ window.DATA.battle = {
     const id = B.rematch[f], e = B.enemies[id];
     if (!e) return;
     const r = Object.assign({}, e, {
-      name: e.name + '（殘部）', hp: Math.round(e.hp * 0.22), atk: Math.round(e.atk * 0.85), def: Math.round(e.def * 0.9),
+      name: e.name, hp: Math.round(e.hp * 0.22), atk: Math.round(e.atk * 0.85), def: Math.round(e.def * 0.9),
       exp: Math.round(e.exp * 0.3), gold: Math.round(e.gold * 0.3), boss: false, ai: undefined, rematchOf: id,
-      desc: e.desc + '（這是打敗後捲土重來的殘部，不如全盛時期強。）'
+      desc: e.desc
     });
     B.enemies[id + '_r'] = r;
   });

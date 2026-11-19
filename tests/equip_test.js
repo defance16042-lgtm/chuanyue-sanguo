@@ -71,7 +71,7 @@ check('every party character has a portrait index within the sheet', ['nyao', 'l
 // 捲土重來：殘部資料存在、較弱、可正常開戰
 {
   const B = DATA.battle;
-  const okAll = Object.keys(B.rematch).every(f => { const id = B.rematch[f], r = B.enemies[id + '_r']; return r && r.hp < B.enemies[id].hp && !r.boss && /殘部/.test(r.name); });
+  const okAll = Object.keys(B.rematch).every(f => { const id = B.rematch[f], r = B.enemies[id + '_r']; return r && r.hp < B.enemies[id].hp && !r.boss && r.name === B.enemies[id].name; });
   check('rematch variants exist, weaker and non-boss', okAll);
   G.fresh(); const bb = BL.newBattle(G.party, ['busi_r', 'veteran', 'archer'], { rng: () => 0.5 });
   check('rematch enemy can start a battle', bb.enemies.length === 3 && bb.enemies[0].hp === B.enemies.busi_r.hp);
