@@ -24,7 +24,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // 地圖資料：每列等長、字元都在 legend、NPC／傳送點落在可走的格子、對話都存在
   const md = await page.evaluate(() => {
     const D = DATA, out = [];
-    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun', 'jizhou', 'guangzong', 'xiaquyang', 'gzcity', 'anxi', 'heishan'].forEach(id => {
+    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun', 'jizhou', 'guangzong', 'xiaquyang', 'gzcity', 'anxi', 'heishan', 'youbei', 'pingyuan', 'suanzao', 'sishui'].forEach(id => {
       const m = D.maps[id], w = m.tiles[0].length;
       if (!m.tiles.every(r => r.length === w)) out.push(id + ' ragged');
       m.tiles.forEach((r, y) => [...r].forEach((ch, x) => { if (!(ch in D.legend)) out.push(id + ' bad tile ' + ch); }));
@@ -180,6 +180,37 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const g0 = s.gold;
   await face('heishan', 5, 12, 'right'); await sleep(400); await talk(); s = await S();
   check('gongsunzan pays 3000 gold', s.gold >= g0 + 3000, [g0, s.gold]);
+  // 第二章（二）：幽州北境・平原・酸棗・汜水關
+  await go('heishan', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('heishan east exit leads to youbei after zhangyan', (await S()).map === 'youbei', (await S()).map);
+  await go('youbei', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('youbei east exit blocked until zhangchun', (await S()).map === 'youbei', (await S()).map);
+  await face('youbei', 18, 10, 'left'); await sleep(500);
+  check('zhangchun starts boss14', (await S()).scene === 'BattleScene');
+  await winBattle(); await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
+  check('zhangchun_down set', s.flags.zhangchun_down === true, s.flags);
+  await go('youbei', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('youbei east exit opens to pingyuan', (await S()).map === 'pingyuan', (await S()).map);
+  await go('pingyuan', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('pingyuan east exit blocked until messenger', (await S()).map === 'pingyuan', (await S()).map);
+  await face('pingyuan', 12, 9, 'up'); await sleep(300); await talk();
+  check('messenger sets py_news', (await S()).flags.py_news === true);
+  await go('pingyuan', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('pingyuan east exit opens to suanzao', (await S()).map === 'suanzao', (await S()).map);
+  await go('suanzao', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('suanzao east exit blocked until yuanshao', (await S()).map === 'suanzao', (await S()).map);
+  await face('suanzao', 12, 7, 'up'); await sleep(300); await talk();
+  check('yuanshao meeting done', (await S()).flags.sz_meeting === true);
+  await page.evaluate(() => { Game.party = Game.party.filter(m => m.id !== 'caocao'); });
+  await face('suanzao', 9, 8, 'left'); await sleep(300); await talk(); s = await S();
+  check('caocao rejoins as guest again', s.ids.includes('caocao') && s.flags.sz_cc_joined === true, s.ids);
+  await go('suanzao', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('suanzao east exit opens to sishui', (await S()).map === 'sishui', (await S()).map);
+  await face('sishui', 18, 10, 'left'); await sleep(500);
+  check('huaxiong starts boss15', (await S()).scene === 'BattleScene');
+  const g1 = (await S()).gold;
+  await winBattle(); await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
+  check('huaxiong_down set and 3500 gold paid', s.flags.huaxiong_down === true && s.gold >= g1 + 3500, [g1, s.gold]);
   check('no JS errors', errors.length === 0, errors);
   console.log(`${pass} passed, ${fail} failed`);
   await browser.close(); process.exit(fail ? 1 : 0);

@@ -35,6 +35,13 @@
     if (old) Game.equipInv[old] = (Game.equipInv[old] || 0) + 1;
     if (id) { Game.equipInv[id]--; m.equip[slot] = id; } else delete m.equip[slot];
   };
+  // ---- 戰術點（TP）：基本值 + 固定加成 + 智力加成 + 軍師加成 ----
+  // 軍師：隊伍裡指定一個人當軍師，全隊最大 TP 隨軍師的智力增加，軍師本人每回合多回 1 點 TP。
+  Game.advisor = null;
+  Game.advisorOf = function () { return Game.advisor ? (Game.party || []).filter(function (m) { return m.id === Game.advisor; })[0] || null : null; };
+  Game.tpBonusFromAdvisor = function () { const a = Game.advisorOf(); return a ? Math.floor(Game.eff(a, 'int') * 0.25) : 0; };
+  Game.tpMaxOf = function (m) { return (m.tpMax || 0) + 6 + Math.floor(Game.eff(m, 'int') / 6) + Game.tpBonusFromAdvisor(); };
+  Game.fullTp = function (m) { m.tp = Game.tpMaxOf(m); };
   Game.addGear = function (id, n) { Game.equipInv[id] = (Game.equipInv[id] || 0) + (n || 1); };
 
   Game.makeMember = function (id) {
@@ -58,12 +65,13 @@
     Game.gold = 50;
     Game.items = { herb: 3, tonic: 0, smoke: 0 };
     Game.equipInv = {};
+    Game.advisor = null;
   };
 
   Game.snapshot = function () {
     return JSON.parse(JSON.stringify({
       version: 1, mapId: Game.mapId, pos: Game.pos, flags: Game.flags,
-      party: Game.party, gold: Game.gold, items: Game.items, equipInv: Game.equipInv, playtime: Game.playtime, savedAt: Date.now()
+      party: Game.party, gold: Game.gold, items: Game.items, equipInv: Game.equipInv, advisor: Game.advisor, playtime: Game.playtime, savedAt: Date.now()
     }));
   };
 
@@ -90,6 +98,8 @@
         Game.recalc(m);
       });
       Game.equipInv = Object.assign({}, d.equipInv || {});
+      Game.advisor = d.advisor || null;
+      Game.party.forEach(function (m) { if (m.tp >= (m.tpMax || 0)) Game.fullTp(m); });
       Game.playtime = d.playtime || 0;
       Game.gold = typeof d.gold === 'number' ? d.gold : 0;
       Game.items = Object.assign({ herb: 0, tonic: 0, smoke: 0 }, d.items || {});

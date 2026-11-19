@@ -84,6 +84,10 @@ window.DATA.battle = {
     officer: { name: '官差', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' }, int: 8, lead: 8, luck: 4, title: '督郵的差役', cls: '差役', weapon: '槍', desc: '跟著督郵出巡的差役，拿著水火棍，欺負百姓很在行。', hp: 480, atk: 54, def: 28, spd: 10, exp: 70, gold: 50, sprite: 21 },
     duyou: { name: '督郵', terrain: { plain: 'A', forest: 'C', mountain: 'C', sea: 'C' }, int: 40, lead: 20, luck: 6, title: '郡督郵', cls: '官吏', weapon: '扇', desc: '郡裡派下來視察縣官的督郵。專門索賄，靠一張嘴與官印過日子，打起架來倒是虛的。', hp: 18000, atk: 112, def: 46, spd: 12, exp: 1300, gold: 700, sprite: 17, boss: true, ai: 'boss' },
     zhangyan: { name: '張燕', terrain: { plain: 'B', forest: 'A', mountain: 'S', sea: 'C' }, int: 44, lead: 38, luck: 14, title: '黑山軍首領「飛燕」', cls: '大帥', weapon: '刀', desc: '黑山軍的首領，本名褚燕，因行動輕捷如飛燕得名。聚眾百萬，朝廷奈何不得。', hp: 23000, atk: 128, def: 60, spd: 20, exp: 1800, gold: 1200, sprite: 18, boss: true, ai: 'boss' },
+    wuhuan: { name: '烏桓騎兵', terrain: { plain: 'S', forest: 'C', mountain: 'B', sea: 'C' }, int: 8, lead: 10, luck: 6, title: '烏桓騎兵', cls: '騎兵', weapon: '槍', desc: '北方烏桓的騎兵，在平地上衝鋒起來沒人擋得住。', hp: 620, atk: 66, def: 30, spd: 16, exp: 130, gold: 90, sprite: 23 },
+    xiliang: { name: '西涼兵', terrain: { plain: 'A', forest: 'B', mountain: 'A', sea: 'C' }, int: 8, lead: 10, luck: 5, title: '董卓的西涼兵', cls: '精兵', weapon: '槍', desc: '董卓麾下的西涼精兵，在邊疆打慣了仗，下手很重。', hp: 720, atk: 72, def: 33, spd: 12, exp: 150, gold: 110, sprite: 25 },
+    zhangchun: { name: '張純', terrain: { plain: 'S', forest: 'B', mountain: 'B', sea: 'C' }, int: 48, lead: 36, luck: 10, title: '叛將・彌天將軍', cls: '叛將', weapon: '刀', desc: '前漢中山太守，因不滿朝廷勾結烏桓叛亂，自號彌天將軍。', hp: 21000, atk: 126, def: 60, spd: 13, exp: 2400, gold: 1600, sprite: 22, boss: true, ai: 'boss' },
+    huaxiong: { name: '華雄', terrain: { plain: 'A', forest: 'B', mountain: 'A', sea: 'C' }, int: 20, lead: 42, luck: 8, title: '西涼大將・都督', cls: '猛將', weapon: '矛', desc: '董卓麾下的第一猛將，守汜水關，力大無窮，連續斬殺聯軍數員將領。', hp: 29000, atk: 142, def: 67, spd: 16, exp: 3200, gold: 2200, sprite: 24, boss: true, ai: 'boss' },
     busi: { name: '卜巳', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'B' }, int: 28, lead: 30, luck: 8, title: '東郡黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '東郡黃巾的首領，駐紮在倉亭，人多勢眾、力氣很大，但不太會用腦。', hp: 10200, atk: 95, def: 44, spd: 12, exp: 620, gold: 520, sprite: 12, boss: true, ai: 'boss' },
     pengtuo: { name: '彭脫', terrain: { plain: 'A', forest: 'S', mountain: 'B', sea: 'C' }, int: 34, lead: 26, luck: 9, title: '汝南黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '汝南黃巾的首領，熟悉山林水澤，在森林裡特別難纏。', hp: 6300, atk: 76, def: 35, spd: 13, exp: 440, gold: 380, sprite: 7, boss: true, ai: 'boss' },
     zhaohong: { name: '趙弘', terrain: { plain: 'B', forest: 'B', mountain: 'A', sea: 'C' }, int: 30, lead: 28, luck: 8, title: '宛城黃巾大帥', cls: '大帥', weapon: '槍', desc: '宛城黃巾的大帥，聚眾十餘萬，佔據宛城。', hp: 8000, atk: 86, def: 40, spd: 12, exp: 480, gold: 420, sprite: 8, boss: true, ai: 'boss' },
@@ -107,6 +111,10 @@ window.DATA.battle = {
     field7: [ ['heishan_b', 'heishan_b', 'heishan_a', 'heishan_a'], ['heishan_b', 'heishan_a', 'heishan_a', 'officer'], ['heishan_b', 'heishan_b', 'heishan_b', 'heishan_a', 'heishan_a'], ['officer', 'officer', 'heishan_b', 'heishan_a', 'heishan_a'] ],
     boss12: [ ['duyou', 'officer', 'officer', 'officer', 'officer'] ],
     boss13: [ ['zhangyan', 'heishan_b', 'heishan_b', 'heishan_a', 'heishan_a', 'heishan_a'] ],
+    field8: [ ['wuhuan', 'wuhuan', 'heishan_a', 'heishan_a'], ['wuhuan', 'wuhuan', 'wuhuan', 'heishan_a'], ['wuhuan', 'heishan_b', 'heishan_a', 'heishan_a', 'officer'], ['wuhuan', 'wuhuan', 'heishan_b', 'heishan_b'] ],
+    field9: [ ['xiliang', 'xiliang', 'heishan_a', 'heishan_a'], ['xiliang', 'xiliang', 'xiliang', 'heishan_a'], ['xiliang', 'wuhuan', 'wuhuan', 'heishan_a', 'heishan_a'], ['xiliang', 'xiliang', 'wuhuan', 'wuhuan'] ],
+    boss14: [ ['zhangchun', 'wuhuan', 'wuhuan', 'wuhuan', 'heishan_a', 'heishan_a'] ],
+    boss15: [ ['huaxiong', 'xiliang', 'xiliang', 'xiliang', 'heishan_a', 'heishan_a'] ],
     boss4:  [ ['pengtuo', 'veteran', 'veteran', 'archer', 'archer'] ],
     boss5:  [ ['zhaohong', 'veteran', 'veteran', 'elite', 'archer'] ],
     boss7:  [ ['busi', 'veteran', 'veteran', 'elite', 'elite', 'archer'] ],
@@ -119,7 +127,7 @@ window.DATA.battle = {
 // rematch：旗標 → 敵人 id；rematchRate：每次遇敵時，有任一頭目被打倒的話，出現殘部的機率。
 (function () {
   const B = window.DATA.battle;
-  B.rematch = { boss_down: 'chengyuanzhi', boss2_down: 'qushuai', bocai_down: 'bocai', pengtuo_down: 'pengtuo', zhaohong_down: 'zhaohong', hanzhong_down: 'hanzhong', busi_down: 'busi', zhangliang_down: 'zhangliang', zhangbao_down: 'zhangbao', zhangjiao_down: 'zhangjiao', duyou_down: 'duyou', zhangyan_down: 'zhangyan' };
+  B.rematch = { boss_down: 'chengyuanzhi', boss2_down: 'qushuai', bocai_down: 'bocai', pengtuo_down: 'pengtuo', zhaohong_down: 'zhaohong', hanzhong_down: 'hanzhong', busi_down: 'busi', zhangliang_down: 'zhangliang', zhangbao_down: 'zhangbao', zhangjiao_down: 'zhangjiao', duyou_down: 'duyou', zhangyan_down: 'zhangyan', zhangchun_down: 'zhangchun', huaxiong_down: 'huaxiong' };
   B.rematchRate = 0.05;
   Object.keys(B.rematch).forEach(function (f) {
     const id = B.rematch[f], e = B.enemies[id];

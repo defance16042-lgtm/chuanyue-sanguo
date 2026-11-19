@@ -50,7 +50,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       else if (ev.type === 'act') { ev.actor.anim = { kind: ev.kind, t: 0 }; this.wait = 0; }
       else if (ev.type === 'fx') {
         const p = this.unitPos(ev.target), h = ev.target.ch || 32;
-        const dur = { fire: 620 + ev.level * 70, bolt: 520, heal: 560, slash: 230, aura: 520, star: 520, shock: 400 }[ev.fx] || 400;
+        const dur = { fire: 620 + ev.level * 70, bolt: 520, heal: 560, slash: 230, chop: 280, thrust: 230, axe: 300, arrow: 260, wave: 320, aura: 520, star: 520, shock: 400 }[ev.fx] || 400;
         this.fxs.push({ fx: ev.fx, x: p.x, y: p.y + (ev.target.ch ? ev.target.ch * 0.5 : 14), level: ev.level, t: 0, dur: dur, seed: Math.random() * 1000 });
         this.wait = 0;
       }
@@ -367,8 +367,9 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }
       if (an && an.kind === 'cast' && !dead) {   // 施法光圈
         const r = 4 + an.t / 60;
-        wc.strokeStyle = 'rgba(255,255,160,' + Math.max(0, 1 - an.t / 560) + ')'; wc.lineWidth = 1.5;
-        wc.beginPath(); wc.arc(u.x + 12 + off, u.y + 8, r, 0, Math.PI * 2); wc.stroke();
+        wc.fillStyle = 'rgba(255,255,160,' + Math.max(0, 1 - an.t / 560) + ')';
+        const n = Math.max(12, Math.round(r * 5));
+        for (let i = 0; i < n; i++) { const a = i / n * 6.2832; wc.fillRect(Math.round(u.x + 12 + off + Math.cos(a) * r), Math.round(u.y + 8 + Math.sin(a) * r), 1, 1); }
       }
     }
 
@@ -392,8 +393,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         E.text(c, String(self.H(u)), 8, y + 16, { size: 10, color: dead ? GREY : (low ? RED : '#fff') });
         self.bar(c, 40, y + 19, 60, self.H(u) / u.hpMax, '#f0a030');
         const bf = [];
-        if (u.buffs.atk) bf.push(u.buffs.atk.mult > 1 ? '攻↑' : '攻↓');
-        if (u.buffs.def) bf.push('守↑');
+        if (u.buffs.atk) bf.push(u.buffs.atk.mult > 1 ? '攻+' : '攻-');
+        if (u.buffs.def) bf.push('守+');
         if (u.confused > 0) bf.push('亂');
         if (u.defending) bf.push('守');
         if (bf.length) E.text(c, bf.join(''), 103, y + 17, { size: 8, color: GOLD });
@@ -407,7 +408,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         self.bar(c, 156, y + 19, 60, self.H(e) / e.hpMax, '#a050d0');
         const bf = [];
         if (e.confused > 0) bf.push('亂');
-        if (e.buffs.atk) bf.push('攻↓');
+        if (e.buffs.atk) bf.push('攻-');
         if (bf.length) E.text(c, bf.join(''), 153, y + 17, { size: 8, color: GOLD, align: 'right' });
       });
       // 目標游標
@@ -498,6 +499,10 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       const FLB = [  // 大火苗
         ['.....2.....', '....22.....', '....232..2.', '...2332.22.', '.2.23332232', '.22233432332', '.2233343432.', '2223344432.2', '22334454432.', '2233445544322', '.233445544332', '..2334444332.', '...23344332..', '....222222...'].map(r => r.slice(0, 11)),
         ['......2....', '.....22....', '.2...232...', '.22.2332.2.', '.2322333222', '.2333343322', '2233344432.2', '2233445443322', '.233445544332', '22334455443.2', '.233445544332', '..2334444332.', '...23344332..', '....222222...'].map(r => r.slice(0, 11))];
+      const ring = function (cx, cy, rx, ry, col) {   // 像素點組成的圓環（不用向量曲線，保持像素風）
+        const n = Math.max(12, Math.round((rx + ry) * 3)); c.fillStyle = col;
+        for (let i = 0; i < n; i++) { const a = i / n * 6.2832; c.fillRect(Math.round(cx + Math.cos(a) * rx), Math.round(cy + Math.sin(a) * ry), 1, 1); }
+      };
       c.save();
       if (f.fx === 'fire') {
         const fade = k > 0.8 ? (1 - k) / 0.2 : 1, n = 1 + L, big = L >= 3, rows = big ? FLB : FL, w = rows[0][0].length, hgt = rows[0].length, sc = 1 + (L >= 5 ? 1 : 0) * (big ? 0 : 1);
@@ -533,13 +538,35 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
           const px = x + Math.round((rnd(i + 20) - 0.5) * 20), py = y + 10 - Math.round(t2 * 26);
           R('#fff', px, py, 1, 3); R('#fff', px - 1, py + 1, 3, 1); R('#40e070', px, py + 1, 1, 1);
         }
+      } else if (f.fx === 'chop') {   // 刀：粗重的弧形斬，帶橘色刀光與火花
+        const w = Math.min(1, k * 2.2); c.globalAlpha = k < 0.7 ? 1 : (1 - k) / 0.3;
+        for (let i = 0; i < Math.round(18 * w); i++) {
+          const t = i / 18, px = x - 10 + i, py = y - 12 + Math.round(Math.sin(t * 2.2) * 14 + t * 6);
+          R('#ffe0a0', px, py, 2, 3); R('#fff', px, py + 1, 1, 1);
+        }
+        if (k > 0.35) for (let i = 0; i < 5; i++) R(i % 2 ? '#ffd060' : '#ff8030', x + (rnd(i) - 0.5) * 18, y + (rnd(i + 9) - 0.5) * 16, 1, 1);
+      } else if (f.fx === 'thrust') {   // 矛／槍：由左向右的直刺，命中處爆出十字星
+        const w = Math.min(1, k * 2.6); c.globalAlpha = k < 0.75 ? 1 : (1 - k) / 0.25;
+        const len = Math.round(26 * w);
+        R('#c8c8d8', x - 16, y, len, 1); R('#fff', x - 16, y - 1, len, 1); R('#8890a8', x - 16, y + 1, len, 1);
+        if (w >= 1) { R('#fff', x + 10, y - 3, 1, 7); R('#fff', x + 7, y, 7, 1); R('#ffe070', x + 9, y - 1, 3, 3); }
+      } else if (f.fx === 'axe') {   // 斧：由上劈下，落地震出粉塵
+        const w = Math.min(1, k * 2.2); c.globalAlpha = k < 0.7 ? 1 : (1 - k) / 0.3;
+        for (let i = 0; i < Math.round(20 * w); i++) { R('#fff', x - 2 + Math.round(i * 0.25), y - 16 + i, 3, 1); R('#c07040', x - 3 + Math.round(i * 0.25), y - 16 + i, 1, 1); }
+        if (k > 0.45) for (let i = 0; i < 6; i++) R('#d8c8a0', x - 8 + i * 3, y + 6 + ((i * 7) % 3), 2, 1);
+      } else if (f.fx === 'arrow') {   // 弓：一支箭由遠處飛來
+        const px = x - 40 + Math.round(Math.min(1, k * 1.8) * 38); c.globalAlpha = k < 0.8 ? 1 : (1 - k) / 0.2;
+        R('#a07040', px - 8, y, 9, 1); R('#fff', px + 1, y - 1, 2, 3); R('#e0e0e8', px + 3, y, 2, 1); R('#d03030', px - 8, y - 1, 2, 1); R('#d03030', px - 8, y + 1, 2, 1);
+        if (k > 0.55) { R('#fff', x - 1, y - 2, 1, 5); R('#fff', x - 3, y, 5, 1); }
+      } else if (f.fx === 'wave') {   // 扇：青綠氣波，擴散成環
+        c.globalAlpha = 1 - k; ring(x, y, 4 + k * 14, 4 + k * 14, '#80ffd0'); ring(x, y, 2 + k * 8, 2 + k * 8, '#ffffff');
+        for (let i = 0; i < 4; i++) { const a = k * 4 + i * 1.57; R('#c8fff0', x + Math.cos(a) * (6 + k * 8), y + Math.sin(a) * (6 + k * 8), 1, 1); }
       } else if (f.fx === 'slash') {
         const w = Math.min(1, k * 2.2); c.globalAlpha = k < 0.7 ? 1 : (1 - k) / 0.3;
         for (let i = 0; i < Math.round(14 * w); i++) { R('#fff', x - 8 + i, y - 8 + i, 1 + (i % 3 === 1 ? 1 : 0), 1); R('#c8c8ff', x - 7 + i, y - 8 + i, 1, 1); }
       } else if (f.fx === 'shock' || f.fx === 'aura' || f.fx === 'star') {
         const col = f.fx === 'shock' ? '#f0e070' : f.fx === 'aura' ? '#ffd060' : '#e090ff';
-        c.globalAlpha = 1 - k; c.strokeStyle = col; c.lineWidth = 1;
-        c.beginPath(); c.ellipse(x, y + 8, 5 + k * 12, 2 + k * 5, 0, 0, 7); c.stroke();
+        c.globalAlpha = 1 - k; ring(x, y + 8, 5 + k * 12, 2 + k * 5, col);
         if (f.fx === 'star') for (let i = 0; i < 4; i++) { const a = f.t / 150 + i * 1.57; R('#fff', x + Math.cos(a) * 9, y - 12 + Math.sin(a) * 3, 2, 2); }
         if (f.fx === 'aura') for (let i = 0; i < 5; i++) { const t2 = (k + i / 5) % 1; R(col, x + (rnd(i) - 0.5) * 16, y + 10 - t2 * 22, 1, 2); }
       }
@@ -549,8 +576,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     skillDesc(s) {
       if (s.choice) return s.kind === 'heal' ? '回復　可選單體/全體' : '計謀　可選單體/全體';
       if (s.kind === 'heal') return '回復兵力';
-      if (s.kind === 'buff') return s.stat === 'atk' ? '全隊武力↑' : '全隊防禦↑';
-      if (s.kind === 'debuff') return '全敵攻擊↓';
+      if (s.kind === 'buff') return s.stat === 'atk' ? '全隊武力提升' : '全隊防禦提升';
+      if (s.kind === 'debuff') return '全敵攻擊下降';
       if (s.kind === 'confuse') return '使敵混亂';
       if (s.target === 'all') return '攻擊全體';
       if (s.hits > 1) return '連續攻擊';

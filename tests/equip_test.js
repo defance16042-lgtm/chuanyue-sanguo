@@ -88,4 +88,27 @@ check('every party character has a portrait index within the sheet', ['nyao', 'l
   G.fresh(); const mm = G.makeMember('nyao'); mm.level = 3;
   const ups = BL.gainExp(mm, 100000); check('gainExp still works with many levels', ups.length > 5);
 }
+// TP 加成、軍師、武器特效
+{
+  G.fresh(); const m = G.makeMember('liubei'); G.party = [G.makeMember('nyao'), m];
+  const base = G.tpMaxOf(m);
+  check('TP max is above the old base value', base > m.tpMax, [m.tpMax, base]);
+  G.advisor = 'liubei'; const withAdv = G.tpMaxOf(G.party[0]);
+  G.advisor = null; const noAdv = G.tpMaxOf(G.party[0]);
+  check('advisor raises the whole party max TP', withAdv > noAdv, [noAdv, withAdv]);
+  G.advisor = 'nyao'; const bb = BL.newBattle(G.party, ['turban'], { rng: () => 0.5 });
+  bb.party.forEach(u => { u.tp = 0; });
+  BL.endRound ? BL.endRound(bb) : null;
+  G.advisor = null;
+  check('weapon fx mapping', BL.weaponFx('劍') === 'slash' && BL.weaponFx('刀') === 'chop' && BL.weaponFx('矛') === 'thrust' && BL.weaponFx('槍') === 'thrust' && BL.weaponFx('扇') === 'wave' && BL.weaponFx('弓') === 'arrow' && BL.weaponFx('斧') === 'axe');
+  G.fresh(); G.party = [G.makeMember('guanyu')]; const wb = BL.newBattle(G.party, ['turban'], { rng: () => 0.5 });
+  const ev = BL.perform(wb, wb.party[0], { type: 'attack', target: wb.enemies[0] });
+  check('guan yu attack uses the blade effect', ev.some(e => e.type === 'fx' && e.fx === 'chop'), ev.map(e => e.type + ':' + (e.fx || '')).join());
+  G.fresh(); G.party = [G.makeMember('zhangfei')]; const sb = BL.newBattle(G.party, ['turban'], { rng: () => 0.5 });
+  check('zhang fei attack uses the thrust effect', BL.perform(sb, sb.party[0], { type: 'attack', target: sb.enemies[0] }).some(e => e.fx === 'thrust'));
+  // 存檔保存軍師
+  G.fresh(); G.advisor = 'nyao'; const saved = JSON.parse(JSON.stringify({ version: 1, mapId: G.mapId, pos: G.pos, flags: G.flags, party: G.party, gold: G.gold, items: G.items, equipInv: G.equipInv, advisor: G.advisor, playtime: 0 }));
+  G.advisor = null; G.restore(saved); check('advisor survives save/load', G.advisor === 'nyao');
+  G.advisor = null;
+}
 console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

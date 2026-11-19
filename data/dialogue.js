@@ -548,6 +548,128 @@ window.DATA.dialogue = {
     { speaker: '', text: '（獲得金 3000。）' },
     { speaker: '', text: '【第二章（一）　安喜・黑山　完】（平原、董卓進京、反董卓聯軍、虎牢關，製作中）' }
   ],
+  path_blocked11: [
+    { speaker: '', text: '往東是幽州北境，但黑山的張燕還沒有解決。（先擊敗他。）' }
+  ],
+  path_blocked12: [
+    { speaker: '', text: '往東是平原，但幽州北境的叛軍張純還擋在路上。（先擊敗他。）' }
+  ],
+  path_blocked13: [
+    { speaker: '', text: '往東是酸棗，但還沒收到傳令兵的消息。（先去問問縣衙前的傳令兵。）' }
+  ],
+  path_blocked14: [
+    { speaker: '', text: '往東是汜水關，但還沒向盟主袁紹報到。（先去見袁紹。）' }
+  ],
+  yb_intro: [
+    { speaker: '', text: '幽州北境，草原與丘陵交界。遠處，黑壓壓的騎兵揚起滾滾沙塵。' },
+    { speaker: '簡雍', text: '公孫將軍說，前中山太守張純勾結烏桓，自號「彌天將軍」，在北境作亂。這是咱們的第一仗。', set: { yb_intro_done: true } },
+    { speaker: '關羽', text: '烏桓騎兵最擅平原衝鋒，別在平地上與他們硬碰。' },
+    { speaker: '張飛', text: '怕什麼！騎馬的，俺一矛挑下來！' }
+  ],
+  yb_scout: [
+    { speaker: '斥候', text: '公孫將軍領白馬義從，白馬一出，烏桓人就嚇得不敢靠近。但張純的主力還沒動。' }
+  ],
+  yb_shepherd: [
+    { speaker: '牧羊人', text: '羊都被烏桓人搶走了。唉，這些人，想搶就搶，朝廷也不管。' }
+  ],
+  boss_zhangchun: [
+    { speaker: '張純', text: '你們是公孫瓚的人？替朝廷賣命，你們圖什麼？' },
+    { speaker: '劉備', text: '我不圖什麼。只想讓北境的百姓，能安穩過日子。' },
+    { speaker: '張純', text: '天下已亂。我張純自號彌天將軍，要開創一個新的天地！' },
+    { speaker: '諸葛貓妖', text: '……新的天地？聽起來，和之前的天公將軍說的差不多。' },
+    { speaker: '張純', text: '少廢話！烏桓兄弟們，上！', act: { battle: 'boss14', flag: 'zhangchun_down', after: 'zhangchun_after' } }
+  ],
+  zhangchun_after: [
+    { speaker: '', text: '張純兵敗，帶著殘部逃向塞外。後來，他被自己的門客所殺，首級送到了幽州。' },
+    { speaker: '', text: '公孫瓚上表稱劉備有功，任命他為平原令。' },
+    { speaker: '劉備', text: '平原令……雖然官小，但好歹有一片地方，能養活身邊的人。' },
+    { speaker: '', text: '（獲得彌天盔。往東走，前往平原。）' }
+  ],
+  py_intro: [
+    { speaker: '', text: '平原縣。劉備任平原令，後來又升為平原相。縣裡百姓慢慢聚攏過來，街上有了生氣。' },
+    { speaker: '簡雍', text: '玄德，這縣裡的事，我來管文書。你專心做你的事。', set: { py_intro_done: true } },
+    { speaker: '劉備', text: '憲和，有你在，我就放心了。' }
+  ],
+  py_jianyong: [
+    { speaker: '簡雍', text: '朝廷那邊亂得很。靈帝駕崩，何進被殺，十常侍被屠。董卓進了洛陽，把少帝廢了，另立劉協。……天下要變了。' },
+    { speaker: '劉備', text: '董卓……西涼來的軍閥，進京就廢立，這是篡權的路子。' }
+  ],
+  py_messenger: [
+    { speaker: '傳令兵', text: '劉平原！東郡太守橋瑁、曹操曹孟德，傳出檄文，號召天下諸侯，共討董卓！盟主是渤海太守袁紹，在酸棗會盟！公孫將軍讓您帶兵前往！' },
+    { speaker: '劉備', text: '曹孟德……舊識。好，我隨伯珪兄去。', set: { py_news: true } },
+    { speaker: '關羽', text: '大哥，這一仗，是天下人的仗。' },
+    { speaker: '', text: '（往東走，前往酸棗聯軍大營。）' }
+  ],
+  py_villager: [
+    { speaker: '縣民', text: '劉平原來了以後，我們縣裡的稅輕了，賊也少了。大家都說，這個縣令，不太像官。' }
+  ],
+  py_elder: [
+    { speaker: '老人', text: '董卓進京的消息，傳到了咱們這兒。天下，怕是又要亂一回了。' }
+  ],
+  sz_intro: [
+    { speaker: '', text: '酸棗。十八路諸侯的營帳連綿十餘里，旌旗遮天，馬嘶人沸。這是漢室崩壞以來，第一次天下大會盟。' },
+    { speaker: '簡雍', text: '好家夥，來了這麼多人。……可惜人是多，卻不見得一條心。', set: { sz_intro_done: true } },
+    { speaker: '諸葛貓妖', text: '十八路諸侯，各自有各自的小算盤。……這句話，我連穿越前都聽過。' }
+  ],
+  sz_yuanshao: [
+    { speaker: '袁紹', text: '來者何人？……哦，公孫瓚的別部，平原令劉玄德？你是中山靖王之後？' },
+    { speaker: '劉備', text: '正是。' },
+    { speaker: '袁紹', text: '嗯，皇室血脈，自然是好的。今日，我袁本初為盟主，請諸位歃血為盟，共誅國賊董卓！' },
+    { speaker: '', text: '眾人歃血為盟。袁紹分派各路諸侯：孫堅為先鋒，曹操、劉備等人從旁策應。', set: { sz_meeting: true } },
+    { speaker: '袁紹', text: '先鋒孫堅，已經往汜水關去了。你們隨後，補給與增援，交給你們。' },
+    { speaker: '', text: '（去見營中的曹操，然後往東去汜水關。）' }
+  ],
+  sz_yuanshao2: [
+    { speaker: '袁紹', text: '汜水關的華雄，是董卓麾下第一猛將。孫文臺吃了虧，你們去助他一臂之力。' }
+  ],
+  sz_caocao: [
+    { speaker: '曹操', text: '劉備兄！長社、倉亭一別，又見面了。這回，不再是討黃巾，是討董卓。' },
+    { speaker: '劉備', text: '孟德兄的檄文，傳遍天下。我們都被你喚來了。' },
+    { speaker: '曹操', text: '喚得來人，喚不來人心。袁紹是盟主，我是奮武將軍，可各路諸侯，誰肯出頭？' },
+    { speaker: '曹操', text: '我與你們同去汜水關，看看這董卓的西涼軍，到底有幾分斤兩。', set: { sz_cc_joined: true }, act: { guest: 'caocao', again: true } },
+    { speaker: '', text: '（曹操再度助戰入隊。往東走，前往汜水關。）' }
+  ],
+  sz_sunjian: [
+    { speaker: '孫堅', text: '袁盟主叫我做先鋒，我就去。華雄那個人，我早晚要親手收拾他。' },
+    { speaker: '孫堅', text: '你們若願意，咱們聯手。他在關上，我們從關下打。' }
+  ],
+  sz_gongsun: [
+    { speaker: '公孫瓚', text: '玄德，我的白馬義從也到了。你放心，有我在，沒人敢輕看你。' },
+    { speaker: '公孫瓚', text: '倒是袁本初，坐在盟主的位子上，只想著看別人去打頭陣。' }
+  ],
+  sz_soldier: [
+    { speaker: '聯軍士兵', text: '十八路人馬，每人每天要吃的糧，是個天文數字。再不打，糧就要先吃光了。' }
+  ],
+  ss_intro: [
+    { speaker: '', text: '汜水關。關城高大，城門緊閉，城頭上西涼軍的旗幟密密麻麻。' },
+    { speaker: '', text: '據說，華雄出關挑戰，連斬聯軍數員將領，聯軍士氣低落，各路諸侯沉默不語。', set: { ss_intro_done: true } },
+    { speaker: '曹操', text: '華雄之勇，聯軍中罕有對手。……有誰敢去？' },
+    { speaker: '關羽', text: '我去。' },
+    { speaker: '張飛', text: '二哥！這回俺不跟你搶，你先去！' }
+  ],
+  ss_scout: [
+    { speaker: '斥候', text: '華雄就在關前，他的長戟，已經挑落了聯軍好幾個將領。孫將軍的先鋒營被他打垮過一次。' }
+  ],
+  ss_caocao: [
+    { speaker: '曹操', text: '雲長，我斟了一杯熱酒，你喝了再去。' }
+  ],
+  boss_huaxiong: [
+    { speaker: '華雄', text: '來啊！十八路諸侯，沒一個有種的？我華雄在此，等你們多時了！' },
+    { speaker: '曹操', text: '雲長，這杯酒，先為你斟上。' },
+    { speaker: '關羽', text: '酒且斟下，某去便來。' },
+    { speaker: '華雄', text: '又來一個送死的？報上名來！' },
+    { speaker: '關羽', text: '關雲長。' },
+    { speaker: '華雄', text: '哈！沒聽過！吃我一戟！', act: { battle: 'boss15', flag: 'huaxiong_down', after: 'huaxiong_after' } }
+  ],
+  huaxiong_after: [
+    { speaker: '', text: '華雄一聲慘叫，被關羽一刀斬於馬下。西涼兵見主將已死，一哄而散。' },
+    { speaker: '', text: '關羽提著華雄的首級，回到營中，曹操遞過的那杯酒，還是溫的。' },
+    { speaker: '曹操', text: '……酒尚溫。雲長，好刀法。' },
+    { speaker: '張飛', text: '二哥！這下天下人都知道你了！' },
+    { speaker: '關羽', text: '只是一點小事。' },
+    { speaker: '', text: '（獲得西涼長戟、金 3500。）', act: { gold: 3500 } },
+    { speaker: '', text: '【第二章（二）　平原・酸棗・汜水關　完】（虎牢關、呂布、董卓焚洛陽，製作中）' }
+  ],
   gz_soldier: [
     { speaker: '守營士兵', text: '盧將軍愛兵如子。上個月我生病，他把自己的米湯分了我一半。' }
   ],

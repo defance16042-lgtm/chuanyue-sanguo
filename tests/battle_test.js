@@ -14,7 +14,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const tap = async (k, hold = 70, after = 170) => { await page.keyboard.down(k); await sleep(hold); await page.keyboard.up(k); await sleep(after); };
   const shot = n => page.screenshot({ path: `${OUT}/b_${n}.png` });
   const S = () => page.evaluate(() => { const t = Engine.top(); return { scene: t.constructor.name, state: t.state, map: Game.mapId, pos: Game.pos, gold: Game.gold, items: Game.items, flags: Game.flags,
-    party: Game.party.map(m => ({ n: m.name, lv: m.level, hp: m.hp, hpMax: m.hpMax, tp: m.tp, tpMax: m.tpMax, exp: m.exp, atk: m.atk, int: m.int, })) }; });
+    party: Game.party.map(m => ({ n: m.name, lv: m.level, hp: m.hp, hpMax: m.hpMax, tp: m.tp, tpMax: Game.tpMaxOf(m), exp: m.exp, atk: m.atk, int: m.int, })) }; });
 
 
   async function talk(choiceIdx = 0) {   // 把目前的對話用真按鍵讀完；遇到選項就選第 choiceIdx 個
@@ -100,7 +100,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // 回復道具：先讓某人受傷，從選單用傷藥
   await page.evaluate(() => { Game.party[1].hp = 10; });
-  await tap('Escape'); await tap('ArrowDown'); await tap('ArrowDown'); await tap('Enter');
+  await tap('Escape'); await tap('ArrowDown'); await tap('ArrowDown'); await tap('ArrowDown'); await tap('Enter');
   s = await S(); check('item screen opens', s.scene === 'ItemScene', s.scene);
   await tap('z'); await tap('ArrowDown'); await tap('z'); await shot('item_use');
   s = await S();

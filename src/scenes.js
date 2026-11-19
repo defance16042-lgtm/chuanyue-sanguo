@@ -263,25 +263,78 @@
   class MenuScene {
     constructor() { this.sel = 0; }
     update() {
-      const items = 6;
+      const items = 7;
       if (E.hit.up) this.sel = (this.sel + items - 1) % items;
       if (E.hit.down) this.sel = (this.sel + 1) % items;
       if (E.hit.cancel) { E.pop(); return; }
       if (E.hit.ok) {
         if (this.sel === 0) E.push(new StatusScene());
-        else if (this.sel === 1) E.push(new EquipScene());
-        else if (this.sel === 2) E.push(new ItemScene());
-        else if (this.sel === 3) E.push(new SaveScene('load'));
-        else if (this.sel === 4) E.replaceAll(new TitleScene());
+        else if (this.sel === 1) E.push(new FormationScene());
+        else if (this.sel === 2) E.push(new EquipScene());
+        else if (this.sel === 3) E.push(new ItemScene());
+        else if (this.sel === 4) E.push(new SaveScene('load'));
+        else if (this.sel === 5) E.replaceAll(new TitleScene());
         else E.pop();
       }
     }
     drawUI(c) {
-      E.panel(c, 168, 8, 80, 140);
-      E.menuList(c, ['角色資料', '裝備', '道具', '讀取', '回標題', '關閉'], this.sel, 178, 18, 16);
-      E.text(c, '金 ' + (G.gold || 0), 178, 118, { size: 9, color: GOLD });
-      E.text(c, '存檔請到', 178, 114, { size: 7, color: GREY });
-      E.text(c, '藍色水晶旁', 178, 122, { size: 7, color: GREY });
+      E.panel(c, 168, 8, 80, 150);
+      E.menuList(c, ['角色資料', '隊伍編成', '裝備', '道具', '讀取', '回標題', '關閉'], this.sel, 178, 18, 14);
+      E.text(c, '金 ' + (G.gold || 0), 178, 120, { size: 9, color: GOLD });
+      E.text(c, '存檔請到', 178, 134, { size: 7, color: GREY });
+      E.text(c, '藍色水晶旁', 178, 142, { size: 7, color: GREY });
+    }
+  }
+
+  // ------------------------------------------------------------ 隊伍編成：排列順序、指定軍師
+  class FormationScene {
+    constructor() { this.sel = 0; this.mode = 'browse'; this.sub = 0; this.msg = ''; }
+    subItems() {
+      const m = G.party[this.sel], isAdv = G.advisor === m.id;
+      return [{ k: 'move', t: '移動順序' }, isAdv ? { k: 'unadv', t: '解除軍師' } : { k: 'adv', t: '任命軍師' }, { k: 'cancel', t: '取消' }];
+    }
+    update() {
+      const n = G.party.length;
+      if (this.mode === 'browse') {
+        if (E.hit.up) this.sel = (this.sel + n - 1) % n;
+        if (E.hit.down) this.sel = (this.sel + 1) % n;
+        if (E.hit.cancel) { E.pop(); return; }
+        if (E.hit.ok) { this.mode = 'menu'; this.sub = 0; this.msg = ''; }
+      } else if (this.mode === 'menu') {
+        const it = this.subItems();
+        if (E.hit.up) this.sub = (this.sub + it.length - 1) % it.length;
+        if (E.hit.down) this.sub = (this.sub + 1) % it.length;
+        if (E.hit.cancel) { this.mode = 'browse'; return; }
+        if (E.hit.ok) {
+          const k = it[this.sub].k, m = G.party[this.sel];
+          if (k === 'move') { this.mode = 'move'; }
+          else if (k === 'adv') { G.advisor = m.id; this.msg = m.name + '成為軍師：全隊最大 TP 增加，本人每回合多回 1 TP'; this.mode = 'browse'; G.party.forEach(function (x) { x.tp = Math.min(x.tp, G.tpMaxOf(x)); }); }
+          else if (k === 'unadv') { G.advisor = null; this.msg = '已解除軍師'; this.mode = 'browse'; G.party.forEach(function (x) { x.tp = Math.min(x.tp, G.tpMaxOf(x)); }); }
+          else this.mode = 'browse';
+        }
+      } else {   // move：上下移動這個人的位置
+        if (E.hit.up && this.sel > 0) { const t = G.party[this.sel]; G.party[this.sel] = G.party[this.sel - 1]; G.party[this.sel - 1] = t; this.sel--; }
+        if (E.hit.down && this.sel < n - 1) { const t = G.party[this.sel]; G.party[this.sel] = G.party[this.sel + 1]; G.party[this.sel + 1] = t; this.sel++; }
+        if (E.hit.ok || E.hit.cancel) { this.mode = 'browse'; this.msg = '隊伍順序已調整（戰鬥中依這個順序排列）'; }
+      }
+    }
+    drawUI(c) {
+      c.fillStyle = '#0c1030'; c.fillRect(16, 16, 224, 192);
+      E.panel(c, 16, 16, 224, 192);
+      E.text(c, '隊伍編成', 28, 24, { size: 11, color: GOLD });
+      G.party.forEach(function (m, i) {
+        const y = 46 + i * 20, sel = i === this.sel, moving = sel && this.mode === 'move';
+        E.text(c, (moving ? '＞ ' : sel ? '▶ ' : '　') + (i + 1) + '. ' + m.name, 28, y, { color: moving ? '#80e0ff' : sel ? GOLD : '#f4f4ff' });
+        E.text(c, 'Lv' + m.level + '　計 ' + m.tp + '/' + G.tpMaxOf(m), 108, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
+        if (G.advisor === m.id) E.text(c, '【軍師】', 200, y + 1, { size: 8, color: '#ffd24a' });
+      }, this);
+      const adv = G.advisorOf();
+      E.text(c, adv ? '軍師：' + adv.name + '（全隊 TP +' + G.tpBonusFromAdvisor() + '）' : '尚未指定軍師（智力高的角色很適合）', 28, 150, { size: 8, color: adv ? '#ffd24a' : GREY });
+      if (this.mode === 'menu') {
+        E.panel(c, 150, 100, 80, 52);
+        this.subItems().forEach(function (it, i) { E.text(c, (i === this.sub ? '▶ ' : '　') + it.t, 156, 108 + i * 13, { size: 9, color: i === this.sub ? GOLD : '#f4f4ff' }); }, this);
+      }
+      E.text(c, this.msg || (this.mode === 'move' ? '上下鍵移動位置　Z 確定' : 'Z 選擇　X 返回'), 28, 194, { size: 8, color: this.msg ? GOLD : GREY });
     }
   }
 
@@ -306,7 +359,7 @@
         if (E.hit.ok) {
           const k = list[this.sel], it = D.battle.items[k], m = G.party[this.target];
           if (it.hp && m.hp > 0 && m.hp < m.hpMax) { m.hp = Math.min(m.hpMax, m.hp + it.hp); G.items[k]--; this.msg = m.name + '回復了兵力'; }
-          else if (it.tp && m.tp < m.tpMax) { m.tp = Math.min(m.tpMax, m.tp + it.tp); G.items[k]--; this.msg = m.name + '回復了戰術點'; }
+          else if (it.tp && m.tp < G.tpMaxOf(m)) { m.tp = Math.min(G.tpMaxOf(m), m.tp + it.tp); G.items[k]--; this.msg = m.name + '回復了戰術點'; }
           else this.msg = '沒有效果';
           if (!(G.items[k] > 0)) this.target = -1;
         }
@@ -328,7 +381,7 @@
         G.party.forEach(function (m, i) {
           const y = 120 + i * 18, sel = i === this.target;
           E.text(c, (sel ? '▶ ' : '　') + m.name, 32, y, { color: sel ? GOLD : '#f4f4ff' });
-          E.text(c, '兵 ' + m.hp + '/' + m.hpMax + '　計 ' + m.tp + '/' + m.tpMax, 100, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
+          E.text(c, '兵 ' + m.hp + '/' + m.hpMax + '　計 ' + m.tp + '/' + G.tpMaxOf(m), 100, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
         }, this);
       }
       E.text(c, this.msg || '金 ' + (G.gold || 0) + '　Z 選擇　X 返回', 32, 194, { size: 8, color: this.msg ? GOLD : GREY });
@@ -365,7 +418,7 @@
       E.text(c, (ch.zi ? '字' + ch.zi + '　' : '') + (ch.title || ''), 20, 32, { size: 8, color: GREY });
       E.text(c, '職類 ' + (ch.cls || '－') + '　武器種類 ' + (ch.weapon || '－'), 20, 44, { size: 8 });
       E.text(c, 'Lv ' + m.level + '　經驗 ' + m.exp + ' / 下一級 ' + window.BattleLogic.expFor(m.level + 1), 20, 58, { size: 8 });
-      E.text(c, '兵力 ' + m.hp + ' / ' + m.hpMax + '　戰術點 ' + m.tp + ' / ' + m.tpMax, 20, 70, { size: 8 });
+      E.text(c, '兵力 ' + m.hp + ' / ' + m.hpMax + '　戰術點 ' + m.tp + ' / ' + G.tpMaxOf(m), 20, 70, { size: 8 });
       STAT_ROWS.forEach(function (r, i) { statCell(c, m, r[0], r[1], 20 + (i % 2) * 96, 82 + Math.floor(i / 2) * 12); });
       if (ch.trait) E.text(c, '特性：' + ch.trait.name + '（' + ch.trait.desc + '）', 20, 141, { size: 8, color: GOLD });
       const sk = window.BattleLogic.skillsFor(m, G.flags).map(function (x) { return x.name; });
@@ -589,7 +642,7 @@
     afterBattle(r, boss) {
       if (r === 'lose') {
         G.gold = Math.floor((G.gold || 0) / 2);
-        G.party.forEach(function (m) { m.hp = m.hpMax; m.tp = m.tpMax; });
+        G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); });
         const home = this.map.home || { map: 'zhuoxian' };
         this.loadMap(home.map, D.maps[home.map].start);
         E.push(new DialogScene(D.dialogue.lose_after));
@@ -609,14 +662,14 @@
         const m = G.makeMember(a.recruit), lv = G.party[0].level;
         if (G.party.length >= 5) { this.say('隊伍已滿（最多 5 人）。'); return; }
         if (lv > 1) window.BattleLogic.gainExp(m, window.BattleLogic.expFor(lv));
-        m.hp = m.hpMax; m.tp = m.tpMax;
+        m.hp = m.hpMax; G.fullTp(m);
         G.party.push(m); G.flags['recruited_' + a.recruit] = true;
         this.say(m.name + '加入了隊伍！');
       } else if (a.guest) {
-        if (G.flags['guest_' + a.guest] || G.party.length >= 5) return;
+        if ((G.flags['guest_' + a.guest] && !a.again) || G.party.length >= 5 || G.party.some(function (m) { return m.id === a.guest; })) return;
         const m = G.makeMember(a.guest), lv = G.party[0].level;
         if (lv > 1) window.BattleLogic.gainExp(m, window.BattleLogic.expFor(lv));
-        m.hp = m.hpMax; m.tp = m.tpMax;
+        m.hp = m.hpMax; G.fullTp(m);
         G.party.push(m); G.flags['guest_' + a.guest] = true;
         this.say(m.name + '助戰，暫時加入了隊伍！（劇情結束就會離隊）');
       } else if (a.leave) {
@@ -636,7 +689,7 @@
         const price = D.battle.restPrice;
         if ((G.gold || 0) < price) { this.say('金錢不足（需要 ' + price + ' 金）'); return; }
         G.gold -= price;
-        G.party.forEach(function (m) { m.hp = m.hpMax; m.tp = m.tpMax; });
+        G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); });
         this.say('好好睡了一覺，兵力與戰術點全部恢復了。（-' + price + '金）');
       } else if (a.buy) {
         const it = D.battle.items[a.buy];
@@ -700,5 +753,5 @@
   }
 
   window.Updater = Update;
-  window.Scenes = { Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene };
+  window.Scenes = { Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene };
 })();

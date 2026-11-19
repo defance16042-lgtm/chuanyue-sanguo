@@ -23,13 +23,18 @@
 
   function unitFromMember(m, i) {
     const G = root.Game, e = function (k) { return G && G.eff ? G.eff(m, k) : (m[k] || 0); };
-    return { side: 'party', idx: i, ref: m, id: m.id, name: m.name, hp: m.hp, hpMax: m.hpMax, tp: m.tp, tpMax: m.tpMax,
+    return { side: 'party', idx: i, ref: m, id: m.id, name: m.name, hp: m.hp, hpMax: m.hpMax, tp: Math.min(m.tp, G && G.tpMaxOf ? G.tpMaxOf(m) : m.tpMax), tpMax: G && G.tpMaxOf ? G.tpMaxOf(m) : m.tpMax, wtype: BL.weaponTypeOf(m), isAdvisor: !!(G && G.advisor && G.advisor === m.id),
       terr: (root.DATA.characters[m.id] || {}).terrain || {}, atk: e('atk'), pow: G && G.bonus ? G.bonus(m, 'pow') : 0, int: e('int'), def: e('def'), spd: e('spd'), lead: e('lead'), luck: e('luck'), cha: e('lead'), buffs: {}, confused: 0, defending: false, escaped: false };
   }
+  // 武器種類：優先看身上裝備的武器，沒有就用角色本來的武器類別
+  BL.weaponTypeOf = function (m) {
+    const eq = m.equip && m.equip.weapon, w = eq && root.DATA.equipment && root.DATA.equipment[eq];
+    return (w && w.wtype) || (root.DATA.characters[m.id] || {}).weapon || '劍';
+  };
   function unitFromEnemy(id, i) {
     const e = B.enemies[id];
     return { side: 'enemy', idx: i, id: id, name: e.name, hp: e.hp, hpMax: e.hp, tp: 0, tpMax: 0,
-      terr: e.terrain || {}, atk: e.atk, pow: 0, int: e.int != null ? e.int : e.atk, def: e.def, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
+      terr: e.terrain || {}, atk: e.atk, pow: 0, int: e.int != null ? e.int : e.atk, def: e.def, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, wtype: e.weapon || '刀', title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
       buffs: {}, confused: 0, defending: false };
   }
 
@@ -73,7 +78,7 @@
       if (u.confused > 0) u.confused--;
     });
     // 每回合回復 1 點戰術點
-    b.party.forEach(function (u) { if (u.hp > 0) u.tp = Math.min(u.tpMax, u.tp + 1); });
+    b.party.forEach(function (u) { if (u.hp > 0) u.tp = Math.min(u.tpMax, u.tp + 1 + (u.isAdvisor ? 1 : 0)); });
   };
 
   BL.outcome = function (b) {
@@ -187,7 +192,8 @@
 
     const kind = skill ? skill.kind : 'phys';
     const power0 = skill ? (allMode && skill.allPower ? skill.allPower : skill.power) : 1;
-    const fxName = skill ? (skill.fx || (kind === 'tact' ? 'bolt' : kind === 'heal' ? 'heal' : 'slash')) : 'slash';
+    let fxName = skill ? (skill.fx || (kind === 'tact' ? 'bolt' : kind === 'heal' ? 'heal' : 'slash')) : 'slash';
+    if (fxName === 'slash') fxName = BL.weaponFx(a.wtype);
     // 特效等級：計謀／回復看「智力×威力」，越高越強（火焰越高）；物理看威力
     const level = kind === 'tact' ? clamp(1 + Math.floor(a.int * power0 / 22), 1, 5)
       : kind === 'heal' ? clamp(1 + Math.floor(a.int * power0 / 40), 1, 4)
@@ -223,7 +229,9 @@
     return ev;
   };
 
-  BL.FX_MS = { fire: 620, bolt: 520, heal: 560, slash: 230, aura: 520, star: 520, shock: 400 };
+  BL.FX_MS = { fire: 620, bolt: 520, heal: 560, slash: 230, chop: 280, thrust: 230, axe: 300, arrow: 260, wave: 320, aura: 520, star: 520, shock: 400 };
+  // 武器種類 → 命中特效：劍＝細長斬、刀＝粗重弧斬、矛／槍＝直刺、斧＝劈砍、弓＝箭矢、扇＝氣波
+  BL.weaponFx = function (w) { return { '劍': 'slash', '刀': 'chop', '矛': 'thrust', '槍': 'thrust', '斧': 'axe', '弓': 'arrow', '扇': 'wave' }[w] || 'slash'; };
 
   // 敵方行動決策
   BL.planEnemy = function (b, u) {
