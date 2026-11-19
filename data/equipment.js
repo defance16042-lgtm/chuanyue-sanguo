@@ -38,6 +38,8 @@ window.DATA.equipment = {
   dikong_fan:  { name: '地公羽扇', slot: 'weapon', wtype: '扇', mods: { pow: 28, int: 4 }, price: 0, desc: '張寶使過的妖術羽扇，扇骨裡嵌著細小的符紙' },
   taiping_book: { name: '太平要術', slot: 'charm', mods: { int: 8, lead: 4 }, price: 0, desc: '張角的太平道經書。寫的是符水與天下大勢，兩種都不太好懂' },
   huangtian_banner: { name: '黃天令旗', slot: 'charm', mods: { lead: 6, luck: 5, def: 4 }, price: 0, desc: '三兄弟並肩戰到最後留下的黃色令旗，旗面上寫著「蒼天已死」四個字，已經褪色' },
+  duyou_seal:  { name: '督郵官印', slot: 'charm', mods: { int: 4, luck: 4 }, price: 0, desc: '督郵的銅印，上面刻著「督」字。拿著它去敲門，沒人敢不開（只有在劇情裡有效）' },
+  swallow_blade: { name: '飛燕刀', slot: 'weapon', wtype: '刀', mods: { pow: 36, spd: 3 }, price: 0, desc: '張燕的佩刀，刀身輕薄，揮起來像燕子掠過水面' },
   // 專屬武器
   qinglong:    { name: '青龍偃月刀', slot: 'weapon', wtype: '刀', mods: { pow: 18, lead: 2 }, only: 'guanyu', price: 0, desc: '關羽專屬。刀光如青龍' },
   serpent:     { name: '丈八蛇矛', slot: 'weapon', wtype: '矛', mods: { pow: 18, grd: 2 }, only: 'zhangfei', price: 0, desc: '張飛專屬。一矛橫掃一片' },
@@ -52,6 +54,8 @@ window.DATA.drops = {
   hanzhong: ['war_blade', 1.0],
   busi: ['bronze_armor', 1.0],
   zhangbao: ['dikong_fan', 1.0], zhangbao_r: ['dikong_fan', 0.2], zhangjiao: ['taiping_book', 1.0], zhangjiao_r: ['taiping_book', 0.2],
+  duyou: ['duyou_seal', 1.0], duyou_r: ['duyou_seal', 0.2], zhangyan: ['swallow_blade', 1.0], zhangyan_r: ['swallow_blade', 0.2],
+  heishan_b: ['leather', 0.1], officer: ['leather', 0.1],
   zhangliang: ['renkong_sash', 1.0], zhangliang_r: ['renkong_sash', 0.2],
   veteran: ['leather', 0.12],
   bocai_r: ['scale', 0.25], pengtuo_r: ['river_charm', 0.2], zhaohong_r: ['iron_helm2', 0.2], hanzhong_r: ['war_blade', 0.2], busi_r: ['bronze_armor', 0.2], chengyuanzhi_r: ['rebel_blade', 0.2], qushuai_r: ['yellow_scarf', 0.3],

@@ -24,7 +24,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // 地圖資料：每列等長、字元都在 legend、NPC／傳送點落在可走的格子、對話都存在
   const md = await page.evaluate(() => {
     const D = DATA, out = [];
-    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun', 'jizhou', 'guangzong', 'xiaquyang', 'gzcity'].forEach(id => {
+    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun', 'jizhou', 'guangzong', 'xiaquyang', 'gzcity', 'anxi', 'heishan'].forEach(id => {
       const m = D.maps[id], w = m.tiles[0].length;
       if (!m.tiles.every(r => r.length === w)) out.push(id + ' ragged');
       m.tiles.forEach((r, y) => [...r].forEach((ch, x) => { if (!(ch in D.legend)) out.push(id + ' bad tile ' + ch); }));
@@ -160,6 +160,26 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('after zhangjiao, all three brothers fight at once (boss11)', (await S()).scene === 'BattleScene' && (await page.evaluate(() => Engine.top().b.enemies.slice(0, 3).map(e => e.id).join())) === 'zhangjiao,zhangbao,zhangliang');
   await winBattle(); await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
   check('sanzhang_down set, chapter 1 finished', s.flags.sanzhang_down === true && s.flags.zhangjiao_down === true && s.gear.huangtian_banner >= 1, s.flags);
+  // 第二章（一）：安喜縣・督郵・太行山道・張燕・公孫瓚
+  await go('gzcity', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('gzcity east exit leads to anxi after sanzhang', (await S()).map === 'anxi', (await S()).map);
+  await go('anxi', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('anxi east exit blocked until duyou', (await S()).map === 'anxi', (await S()).map);
+  await face('anxi', 12, 7, 'up'); await sleep(300); await talk();
+  check('jianyong brings the duyou', (await S()).flags.an_duyou_come === true);
+  await face('anxi', 12, 5, 'up'); await sleep(500);
+  check('duyou starts boss12', (await S()).scene === 'BattleScene');
+  await winBattle(); await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
+  check('duyou_down set', s.flags.duyou_down === true && s.gear.duyou_seal >= 1, { f: s.flags.duyou_down, g: s.gear });
+  await go('anxi', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('anxi east exit opens to heishan', (await S()).map === 'heishan', (await S()).map);
+  await face('heishan', 18, 10, 'left'); await sleep(500);
+  check('zhangyan starts boss13', (await S()).scene === 'BattleScene');
+  await winBattle(); await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
+  check('zhangyan_down set', s.flags.zhangyan_down === true, s.flags);
+  const g0 = s.gold;
+  await face('heishan', 5, 12, 'right'); await sleep(400); await talk(); s = await S();
+  check('gongsunzan pays 3000 gold', s.gold >= g0 + 3000, [g0, s.gold]);
   check('no JS errors', errors.length === 0, errors);
   console.log(`${pass} passed, ${fail} failed`);
   await browser.close(); process.exit(fail ? 1 : 0);

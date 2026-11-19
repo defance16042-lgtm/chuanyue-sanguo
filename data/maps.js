@@ -525,7 +525,7 @@ window.DATA.maps = {
       'T......................T',
       'T......................T',
       'T......................T',
-      ',,,,,,,,,,,,,,,,,,,,,,,T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
       'T......................T',
       'T..RRRR........RRRR....T',
       'T..RRRR........RRRR....T',
@@ -541,12 +541,99 @@ window.DATA.maps = {
       { once: 'gc_intro_done', dialogue: 'gc_intro' }
     ],
     warps: [
-      { x: 0, y: 10, to: 'xiaquyang', tx: 22, ty: 10, dir: 'left' }
+      { x: 0, y: 10, to: 'xiaquyang', tx: 22, ty: 10, dir: 'left' },
+      { x: 23, y: 10, to: 'anxi', tx: 1, ty: 10, dir: 'right', need: 'sanzhang_down', deny: 'path_blocked9' }
     ],
     npcs: [
       { id: 'zhangjiao', name: '張角', sprite: 23, x: 12, y: 5, dir: 'down', dialogue: 'boss_zhangjiao', hideIf: 'zhangjiao_down' },
       { id: 'gcdisciple', name: '黃巾信徒', sprite: 8, x: 7, y: 8, dir: 'right', dialogue: 'gc_disciple' },
       { id: 'gchuangfu', name: '皇甫嵩', sprite: 16, x: 8, y: 15, dir: 'right', dialogue: 'gc_huangfu' }
+    ],
+    objects: []
+  },
+  anxi: {
+    name: '安喜縣',
+    battleBg: 'grass',
+    home: { map: 'anxi' },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T......RRRRRRRRRR......T',
+      'T......RRRRRRRRRR......T',
+      'T......WWWWDDWWWW......T',
+      'T......................T',
+      'T...f..................T',
+      'T......................T',
+      'T..RRRR..........RRRR..T',
+      'T..RRRR..........RRRR..T',
+      'T..WDWW..........WWDW..T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
+      'T......................T',
+      'T..RRRR..........RRRR..T',
+      'T..RRRR..........RRRR..T',
+      'T..WWDW..........WDWW..T',
+      'T......................T',
+      'T...f..........~~~.....T',
+      'T..............~~~.....T',
+      'T......................T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [
+      { once: 'an_intro_done', dialogue: 'an_intro' }
+    ],
+    warps: [
+      { x: 0, y: 10, to: 'gzcity', tx: 22, ty: 10, dir: 'left' },
+      { x: 23, y: 10, to: 'heishan', tx: 1, ty: 10, dir: 'right', need: 'duyou_down', deny: 'path_blocked10' }
+    ],
+    npcs: [
+      { id: 'jianyong', name: '簡雍', sprite: 27, x: 12, y: 6, dir: 'down', dialogue: 'an_jianyong', alt: { flag: 'duyou_down', dialogue: 'an_jianyong2' } },
+      { id: 'duyou', name: '督郵', sprite: 25, x: 12, y: 4, dir: 'down', dialogue: 'boss_duyou', showIf: 'an_duyou_come', hideIf: 'duyou_down' },
+      { id: 'anvillager', name: '縣民', sprite: 4, x: 6, y: 11, dir: 'right', dialogue: 'an_villager' },
+      { id: 'anwoman', name: '提著菜籃的婦人', sprite: 7, x: 14, y: 15, dir: 'left', dialogue: 'an_woman' },
+      { id: 'anelder', name: '縣裡的老人', sprite: 8, x: 8, y: 15, dir: 'up', dialogue: 'an_elder' },
+      { id: 'anguard', name: '縣衙差役', sprite: 21, x: 9, y: 4, dir: 'down', dialogue: 'an_guard' }
+    ],
+    objects: []
+  },
+  heishan: {
+    name: '太行山道',
+    battleBg: 'grass',
+    home: { map: 'anxi' },
+    encounter: { group: 'field7', rate: 0.09, minSteps: 4 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T.MMMMMMMMMMMMMMMMMMM..T',
+      'T.MMMMMMMMMMMMMMMMMMM..T',
+      'T.MMM..............MM..T',
+      'T.MMM....MMMM......MM..T',
+      'T........MMMM..........T',
+      'T..YYY.................T',
+      'T..YYY.......f.........T',
+      'T......................T',
+      'T......................T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
+      'T......................T',
+      'T..MM..............YYY.T',
+      'T..MM..............YYY.T',
+      'T......f...............T',
+      'T..............MMMM....T',
+      'T..YYYYY.......MMMM....T',
+      'T..YYYYY...............T',
+      'T......................T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [
+      { once: 'hs_intro_done', dialogue: 'hs_intro' }
+    ],
+    warps: [
+      { x: 0, y: 10, to: 'anxi', tx: 22, ty: 10, dir: 'left' }
+    ],
+    npcs: [
+      { id: 'zhangyan', name: '張燕', sprite: 26, x: 17, y: 10, dir: 'left', dialogue: 'boss_zhangyan', hideIf: 'zhangyan_down' },
+      { id: 'gongsunzan', name: '公孫瓚', sprite: 28, x: 6, y: 12, dir: 'right', dialogue: 'hs_gongsun', showIf: 'zhangyan_down' },
+      { id: 'hsrefugee', name: '逃難的商人', sprite: 4, x: 8, y: 8, dir: 'right', dialogue: 'hs_merchant' },
+      { id: 'hsscout', name: '公孫瓚軍斥候', sprite: 9, x: 12, y: 12, dir: 'left', dialogue: 'hs_scout' }
     ],
     objects: []
   },

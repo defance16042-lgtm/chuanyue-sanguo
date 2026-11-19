@@ -145,6 +145,12 @@ ENEMIES = [
     (dict(BA.CHARACTERS[22][1]), "fan"),
     (dict(BA.CHARACTERS[23][1]), "fan"),
     (dict(BA.CHARACTERS[24][1]), "sabre"),
+    # 督郵（row17）、張燕（row18）、黑山賊（row19）、黑山弓手（row20）、官差（row21）
+    (dict(BA.CHARACTERS[25][1]), "fan"),
+    (dict(BA.CHARACTERS[26][1]), "sabre"),
+    (dict(pal=((216, 166, 126), (30, 24, 24), (60, 60, 70), (170, 40, 40), (50, 36, 30)), beard="short", hat=(30, 30, 36)), "sabre"),
+    (dict(pal=((216, 166, 126), (170, 40, 40), (70, 80, 70), (50, 50, 50), (50, 36, 30))), "bow"),
+    (dict(pal=((240, 205, 170), (24, 24, 28), (70, 110, 150), (200, 200, 210), (60, 40, 40)), hat=(24, 24, 28)), "spear"),
 ]
 
 
