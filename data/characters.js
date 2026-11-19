@@ -61,4 +61,4 @@ window.DATA.characters = {
   }
 };
 // 非隊員的對話頭像（說話者名稱 → portraits.png 的編號）
-window.DATA.npcPortraits = { '皇甫嵩': 6, '波才': 7 };
+window.DATA.npcPortraits = { '皇甫嵩': 6, '波才': 7, '朱儁': 8, '孫堅': 9, '彭脫': 10, '趙弘': 11, '韓忠': 12, '孫夏': 13 };

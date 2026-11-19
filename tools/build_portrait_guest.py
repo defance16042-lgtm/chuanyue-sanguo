@@ -1,4 +1,4 @@
-"""助戰角色的大頭像（自創像素畫）：接在 assets/portraits.png 後面，第 5 格（編號 4）＝鄒靖，編號 5＝曹操，6＝皇甫嵩，7＝波才。
+"""助戰角色的大頭像（自創像素畫）：接在 assets/portraits.png 後面，第 5 格（編號 4）＝鄒靖，編號 5＝曹操，6＝皇甫嵩，7＝波才，8朱儁 9孫堅 10彭脫 11趙弘 12韓忠 13孫夏。
 先跑 build_from_sheet.py 產生前 4 格，再跑這支。python3 tools/build_portrait_guest.py"""
 from PIL import Image, ImageDraw
 import os
@@ -100,9 +100,16 @@ caocao = face((70, 40, 52), ((120, 70, 120), (74, 46, 84), (44, 28, 54)), (190, 
 huang = face((66, 76, 96), ((190, 196, 214), (110, 124, 156), (66, 76, 104)), (150, 60, 60), (228, 186, 152), (236, 236, 240), helm=((176, 186, 210), (110, 120, 150)), plume=(190, 60, 60), beard='long', brow=2, wrinkles=True)
 bocai = face((104, 84, 30), ((246, 214, 88), (214, 170, 46), (150, 110, 36)), (170, 60, 40), (220, 168, 124), (40, 30, 26), helm=((240, 206, 72), (190, 150, 40)), plume=(190, 56, 40), beard='long', wild=True, brow=2)
 
-sheet = Image.new('RGBA', (48 * 8, 48))
+zhujun = face((60, 70, 60), ((170, 190, 170), (96, 120, 100), (56, 76, 64)), (60, 90, 120), (226, 184, 150), (50, 40, 36), helm=((150, 170, 160), (90, 110, 100)), plume=(60, 100, 160), beard='mustache', brow=2, wrinkles=True)
+sunjian = face((100, 44, 44), ((220, 120, 90), (170, 70, 56), (110, 44, 40)), (230, 190, 70), (222, 170, 130), (36, 26, 24), cap=(176, 36, 40), beard='short', brow=2)
+pengtuo = face((44, 70, 110), ((120, 170, 230), (70, 110, 190), (44, 70, 130)), (250, 240, 120), (226, 176, 136), (40, 28, 28), helm=((70, 130, 200), (46, 90, 150)), plume=(250, 240, 120), beard='short', wild=True, brow=2)
+zhaohong = face((70, 40, 84), ((230, 190, 70), (196, 150, 46), (130, 90, 40)), (130, 60, 160), (226, 176, 136), (30, 22, 24), helm=((150, 80, 180), (100, 50, 130)), plume=(220, 60, 60), beard='long', brow=2)
+hanzhong = face((84, 44, 36), ((130, 130, 144), (84, 84, 96), (50, 50, 60)), (200, 70, 50), (220, 170, 130), (30, 22, 24), helm=((210, 80, 56), (150, 50, 40)), plume=(240, 200, 64), beard='short', brow=2, wrinkles=True)
+sunxia = face((50, 84, 60), ((140, 200, 150), (80, 140, 90), (50, 96, 64)), (240, 240, 240), (250, 214, 176), (60, 40, 30), cap=(240, 240, 244), beard='mustache', brow=1)
+
+sheet = Image.new('RGBA', (48 * 14, 48))
 sheet.paste(base, (0, 0))
-for i, im in enumerate([zoujing(), caocao, huang, bocai]):
+for i, im in enumerate([zoujing(), caocao, huang, bocai, zhujun, sunjian, pengtuo, zhaohong, hanzhong, sunxia]):
     sheet.paste(im, (48 * (4 + i), 0))
 sheet.save(P)
 print('ok', sheet.size)
