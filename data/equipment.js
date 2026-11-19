@@ -30,6 +30,9 @@ window.DATA.equipment = {
   // 戰利品（敵人掉落）
   yellow_scarf:{ name: '黃巾',     slot: 'helm', mods: { def: 2, luck: 1 }, price: 0, desc: '黃巾賊的頭巾，洗乾淨還能戴' },
   rebel_blade: { name: '賊將大刀', slot: 'weapon', wtype: '刀', mods: { pow: 14 }, price: 0, desc: '程遠志用過的大刀' },
+  river_charm: { name: '水澤符', slot: 'charm', mods: { grd: 5, luck: 2 }, price: 0, desc: '彭脫身上的護符，據說能避開水災' },
+  iron_helm2:  { name: '紫纓盔',   slot: 'helm', mods: { def: 4, lead: 2 }, price: 0, desc: '趙弘戴過的紫纓鐵盔' },
+  war_blade:   { name: '赤紋刀',   slot: 'weapon', wtype: '刀', mods: { pow: 22 }, price: 0, desc: '韓忠的佩刀，刀背刻著赤紋' },
   // 專屬武器
   qinglong:    { name: '青龍偃月刀', slot: 'weapon', wtype: '刀', mods: { pow: 18, lead: 2 }, only: 'guanyu', price: 0, desc: '關羽專屬。刀光如青龍' },
   serpent:     { name: '丈八蛇矛', slot: 'weapon', wtype: '矛', mods: { pow: 18, grd: 2 }, only: 'zhangfei', price: 0, desc: '張飛專屬。一矛橫掃一片' },
@@ -39,6 +42,10 @@ window.DATA.equipment = {
 window.DATA.drops = {
   chengyuanzhi: ['rebel_blade', 1.0],
   bocai: ['scale', 1.0],
+  pengtuo: ['river_charm', 1.0],
+  zhaohong: ['iron_helm2', 1.0],
+  hanzhong: ['war_blade', 1.0],
+  veteran: ['leather', 0.12],
   elite: ['leather', 0.1],
   qushuai: ['yellow_scarf', 1.0],
   archer: ['headband', 0.08],

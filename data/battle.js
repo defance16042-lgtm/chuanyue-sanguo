@@ -53,7 +53,12 @@ window.DATA.battle = {
     chengyuanzhi: { name: '程遠志', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' }, int: 16, lead: 15, luck: 8, title: '黃巾將領', cls: '將領', weapon: '刀', desc: '涿郡黃巾的首領，會全體衝鋒與重斬。', hp: 1100, atk: 30, def: 14, spd: 10, exp: 80, gold: 120, sprite: 4, boss: true, ai: 'boss' },
     elite:    { name: '黃巾精兵', terrain: { plain: 'B', forest: 'B', mountain: 'B', sea: 'C' }, int: 10, lead: 4, luck: 5, title: '黃巾精兵', cls: '精兵', weapon: '刀', desc: '波才麾下的老兵，穿著搶來的官軍皮甲，比雜兵難纏得多。', hp: 120, atk: 22, def: 12, spd: 10, exp: 30, gold: 30, sprite: 3 },
     bocai: { name: '波才', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' }, int: 40, lead: 30, luck: 10, title: '潁川黃巾大帥', cls: '大帥', weapon: '刀', desc: '潁川黃巾的大帥，數萬之眾的統領。曾擊敗朱儁並圍困皇甫嵩，兵多而營草，最怕火。', hp: 5000, atk: 71, def: 32, spd: 13, exp: 360, gold: 320, sprite: 6, boss: true, ai: 'boss' },
-    qushuai: { name: '黃巾渠帥', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' }, int: 28, lead: 22, luck: 10, title: '黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '廣陽黃巾的首領，兵力雄厚，會全體衝鋒與重斬。', hp: 2600, atk: 52, def: 26, spd: 12, exp: 200, gold: 200, sprite: 5, boss: true, ai: 'boss' }
+    qushuai: { name: '黃巾渠帥', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' }, int: 28, lead: 22, luck: 10, title: '黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '廣陽黃巾的首領，兵力雄厚，會全體衝鋒與重斬。', hp: 2600, atk: 52, def: 26, spd: 12, exp: 200, gold: 200, sprite: 5, boss: true, ai: 'boss' },
+    veteran: { name: '黃巾悍卒', terrain: { plain: 'B', forest: 'B', mountain: 'A', sea: 'C' }, int: 10, lead: 6, luck: 5, title: '黃巾悍卒', cls: '精兵', weapon: '刀', desc: '身經百戰的黃巾老卒，穿著鐵甲，打起來像一堵牆。', hp: 170, atk: 28, def: 16, spd: 10, exp: 40, gold: 40, sprite: 11 },
+    pengtuo: { name: '彭脫', terrain: { plain: 'A', forest: 'S', mountain: 'B', sea: 'C' }, int: 34, lead: 26, luck: 9, title: '汝南黃巾渠帥', cls: '渠帥', weapon: '刀', desc: '汝南黃巾的首領，熟悉山林水澤，在森林裡特別難纏。', hp: 5800, atk: 76, def: 35, spd: 13, exp: 440, gold: 380, sprite: 7, boss: true, ai: 'boss' },
+    zhaohong: { name: '趙弘', terrain: { plain: 'B', forest: 'B', mountain: 'A', sea: 'C' }, int: 30, lead: 28, luck: 8, title: '宛城黃巾大帥', cls: '大帥', weapon: '槍', desc: '宛城黃巾的大帥，聚眾十餘萬，佔據宛城。', hp: 7400, atk: 86, def: 40, spd: 12, exp: 480, gold: 420, sprite: 8, boss: true, ai: 'boss' },
+    hanzhong: { name: '韓忠', terrain: { plain: 'A', forest: 'B', mountain: 'B', sea: 'C' }, int: 36, lead: 30, luck: 9, title: '宛城黃巾新帥', cls: '大帥', weapon: '刀', desc: '趙弘戰死後接下宛城的大帥。守城很頑強，打不贏就會求降。', hp: 6600, atk: 82, def: 38, spd: 12, exp: 540, gold: 460, sprite: 9, boss: true, ai: 'boss' },
+    sunxia: { name: '孫夏', terrain: { plain: 'B', forest: 'A', mountain: 'B', sea: 'C' }, int: 30, lead: 20, luck: 10, title: '黃巾渠帥', cls: '渠帥', weapon: '弓', desc: '韓忠的副手，在宛城一同死守。', hp: 2600, atk: 58, def: 24, spd: 15, exp: 300, gold: 240, sprite: 10, boss: true, ai: 'boss' }
   },
   groups: {
     field1: [ ['turban', 'turban'], ['turban', 'archer'], ['archer', 'turban', 'turban'], ['bandit', 'turban'] ],
@@ -61,7 +66,11 @@ window.DATA.battle = {
     boss:   [ ['chengyuanzhi', 'captain', 'archer', 'archer'] ],
     field3: [ ['turban', 'elite', 'archer'], ['elite', 'elite', 'archer'], ['captain', 'elite', 'turban', 'archer'], ['elite', 'elite', 'archer', 'archer', 'bandit'], ['captain', 'captain', 'elite'] ],
     boss2:  [ ['qushuai', 'captain', 'captain', 'archer', 'archer'] ],
-    boss3:  [ ['bocai', 'elite', 'elite', 'archer', 'archer'] ]
+    boss3:  [ ['bocai', 'elite', 'elite', 'archer', 'archer'] ],
+    field4: [ ['veteran', 'elite', 'archer'], ['veteran', 'veteran', 'archer'], ['captain', 'veteran', 'elite', 'archer'], ['veteran', 'veteran', 'elite', 'archer', 'bandit'], ['captain', 'captain', 'veteran'] ],
+    boss4:  [ ['pengtuo', 'veteran', 'veteran', 'archer', 'archer'] ],
+    boss5:  [ ['zhaohong', 'veteran', 'veteran', 'elite', 'archer'] ],
+    boss6:  [ ['hanzhong', 'sunxia', 'veteran', 'veteran', 'archer'] ]
   },
   encounterRate: 0.07   // 每走一步遇敵機率（野外）
 };

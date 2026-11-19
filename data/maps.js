@@ -172,7 +172,7 @@ window.DATA.maps = {
       'T.........f..,,............T',
       'T..TRRRRR...,,,.~~......b..T',
       'T...WWWWW....,,.~~...b.....T',
-      'T...WWWWW....,,......T.T...T',
+      'T...WWWWW....,,......T.T....',
       'T...WWDWW....,,............T',
       'T............,,....YYYYYYYYT',
       'T.MMMMMMM...,,,....YYYYYYYYT',
@@ -196,7 +196,8 @@ window.DATA.maps = {
       { x: 13, y: 0, to: 'guangyang', tx: 11, ty: 18, dir: 'up' },
       { x: 14, y: 0, to: 'guangyang', tx: 12, ty: 18, dir: 'up' },
       { x: 13, y: 23, to: 'changshe', tx: 11, ty: 1, dir: 'down' },
-      { x: 14, y: 23, to: 'changshe', tx: 12, ty: 1, dir: 'down' }
+      { x: 14, y: 23, to: 'changshe', tx: 12, ty: 1, dir: 'down' },
+      { x: 27, y: 12, to: 'runan', tx: 1, ty: 10, dir: 'right', need: 'bocai_down', deny: 'path_blocked3' }
     ],
     npcs: [
       { id: 'kuibing', name: '朱儁軍潰兵', sprite: 9, x: 12, y: 7, dir: 'right', dialogue: 'yc_kuibing' },
@@ -245,6 +246,93 @@ window.DATA.maps = {
       { id: 'quarter', name: '軍需官', sprite: 10, x: 4, y: 11, dir: 'down', dialogue: 'cs_quarter' },
       { id: 'csvillager', name: '城裡的百姓', sprite: 7, x: 19, y: 11, dir: 'left', dialogue: 'cs_villager' },
       { id: 'cschild', name: '孩子', sprite: 8, x: 10, y: 12, dir: 'up', dialogue: 'cs_child' }
+    ],
+    objects: []
+  },
+  runan: {
+    name: '汝南',
+    battleBg: 'grass',
+    home: { map: 'changshe' },
+    encounter: { group: 'field4', rate: 0.09, minSteps: 4 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T......YYYYYYYY........T',
+      'T......YYYYYYYY....f...T',
+      'T..b...YYYYYYYY........T',
+      'T.......f..,,....b.....T',
+      'T..........,,..........T',
+      'T.~~~......,,......YYY.T',
+      'T.~~~......,,......YYY.T',
+      'T..........,,..........T',
+      'T..YYYY....,,..........T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
+      'T..YYYY....,,..........T',
+      'T..........,,....~~~...T',
+      'T......f...,,....~~~...T',
+      'T..........,,..........T',
+      'T.YYYYYY...,,....f.....T',
+      'T.YYYYYY...,,..........T',
+      'T..........,,..........T',
+      'T..........,,..........T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [
+      { once: 'rn_intro_done', dialogue: 'rn_intro' }
+    ],
+    warps: [
+      { x: 0, y: 10, to: 'yingchuan', tx: 26, ty: 12, dir: 'left' },
+      { x: 23, y: 10, to: 'wancheng', tx: 1, ty: 10, dir: 'right', need: 'pengtuo_down', deny: 'path_blocked4' }
+    ],
+    npcs: [
+      { id: 'pengtuo', name: '彭脫', sprite: 12, x: 18, y: 10, dir: 'left', dialogue: 'boss_pengtuo', hideIf: 'pengtuo_down' },
+      { id: 'rnfisher', name: '蹲在河邊的漁夫', sprite: 11, x: 4, y: 8, dir: 'down', dialogue: 'rn_fisher' },
+      { id: 'rnscout', name: '朱儁軍斥候', sprite: 9, x: 9, y: 12, dir: 'right', dialogue: 'rn_scout' },
+      { id: 'rnwoman', name: '背著米袋的婦人', sprite: 7, x: 14, y: 14, dir: 'left', dialogue: 'rn_woman' }
+    ],
+    objects: []
+  },
+  wancheng: {
+    name: '宛城',
+    battleBg: 'grass',
+    home: { map: 'runan' },
+    encounter: { group: 'field4', rate: 0.07, minSteps: 5 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T..RRRRR......RRRRR....T',
+      'T..RRRRR......RRRRR....T',
+      'T..WWDWW......WWDWW....T',
+      'T......,,,,,,,,,,,,....T',
+      'T......,.........,.....T',
+      'T..b...,....f....,..b..T',
+      'T......,.........,.....T',
+      'T......,.........,.....T',
+      'T......,.........,.....T',
+      ',,,,,,,,,,,,,,,,,,,,,,,T',
+      'T......,.........,.....T',
+      'T..RRRR,.........,.RRRRT',
+      'T..RRRR,..~~.....,.RRRRT',
+      'T..WDWW,..~~.....,.WWDWT',
+      'T......,,,,,,,,,,,,....T',
+      'T..f...........b.......T',
+      'T......................T',
+      'T..........f...........T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [
+      { once: 'wc_intro_done', dialogue: 'wc_intro' }
+    ],
+    warps: [
+      { x: 0, y: 10, to: 'runan', tx: 22, ty: 10, dir: 'left' }
+    ],
+    npcs: [
+      { id: 'zhaohong', name: '趙弘', sprite: 12, x: 12, y: 5, dir: 'down', dialogue: 'boss_zhaohong', hideIf: 'zhaohong_down' },
+      { id: 'hanzhong', name: '韓忠', sprite: 12, x: 12, y: 5, dir: 'down', dialogue: 'boss_hanzhong', showIf: 'zhaohong_down', hideIf: 'hanzhong_down' },
+      { id: 'zhujun', name: '朱儁', sprite: 16, x: 5, y: 15, dir: 'right', dialogue: 'wc_zhujun' },
+      { id: 'sunjian', name: '孫堅', sprite: 9, x: 6, y: 8, dir: 'right', dialogue: 'wc_sunjian' },
+      { id: 'wcmedic', name: '軍醫', sprite: 10, x: 4, y: 16, dir: 'down', dialogue: 'wc_medic' },
+      { id: 'wcsoldier', name: '攻城的士兵', sprite: 9, x: 8, y: 5, dir: 'up', dialogue: 'wc_soldier' }
     ],
     objects: []
   },

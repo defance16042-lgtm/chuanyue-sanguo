@@ -24,7 +24,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // 地圖資料：每列等長、字元都在 legend、NPC／傳送點落在可走的格子、對話都存在
   const md = await page.evaluate(() => {
     const D = DATA, out = [];
-    ['yingchuan', 'changshe'].forEach(id => {
+    ['yingchuan', 'changshe', 'runan', 'wancheng'].forEach(id => {
       const m = D.maps[id], w = m.tiles[0].length;
       if (!m.tiles.every(r => r.length === w)) out.push(id + ' ragged');
       m.tiles.forEach((r, y) => [...r].forEach((ch, x) => { if (!(ch in D.legend)) out.push(id + ' bad tile ' + ch); }));
@@ -85,6 +85,36 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(500); await talk(); s = await S();
   check('winning sets bocai_down, pays 400 gold and gives the book', s.flags.bocai_down === true && s.gear.bamboo_book === 1 && s.gold >= 400, { f: s.flags.bocai_down, g: s.gold, gear: s.gear });
   await face('changshe', 5, 7, 'up');
+  // 中原篇（二）：汝南／宛城流程
+  await page.evaluate(() => { Game.flags.bocai_down = true; });
+  let r = await page.evaluate(() => { const g = DATA.battle.groups; return ['boss4', 'boss5', 'boss6', 'field4'].every(k => g[k] && g[k].every(grp => grp.every(id => DATA.battle.enemies[id] && DATA.battle.enemies[id].sprite < 12))); });
+  check('new battle groups reference real enemies with sprites', r);
+  await go('yingchuan', 26, 12, 'right'); await sleep(200); await tap('ArrowRight'); await sleep(500);
+  s = await S(); check('east exit of yingchuan leads to runan once bocai is down', s.map === 'runan', s.map);
+  await talk();
+  await go('runan', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk(); s = await S();
+  check('runan east gate blocked until pengtuo is down', s.map === 'runan', s.map);
+  await go('runan', 19, 10, 'left'); await sleep(150); await tap('z'); await sleep(300); await talk(); await sleep(600);
+  check('talking to pengtuo starts boss4', (await S()).scene === 'BattleScene');
+  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
+  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await sleep(500); await talk(); s = await S();
+  check('pengtuo_down set and gold paid', s.flags.pengtuo_down === true && s.gold >= 300, { f: s.flags.pengtuo_down, g: s.gold });
+  await go('runan', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('runan east gate opens after pengtuo', (await S()).map === 'wancheng', (await S()).map);
+  await face('wancheng', 12, 4, 'down');
+  await sleep(500);
+  check('zhaohong starts boss5', (await S()).scene === 'BattleScene');
+  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
+  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await sleep(500); await talk(); s = await S();
+  check('zhaohong_down set', s.flags.zhaohong_down === true, s.flags);
+  await face('wancheng', 12, 4, 'down'); await sleep(500);
+  check('hanzhong replaces zhaohong and starts boss6', (await S()).scene === 'BattleScene');
+  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
+  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await sleep(500); await talk(); s = await S();
+  check('hanzhong_down set, chapter text shown', s.flags.hanzhong_down === true, s.flags);
   check('no JS errors', errors.length === 0, errors);
   console.log(`${pass} passed, ${fail} failed`);
   await browser.close(); process.exit(fail ? 1 : 0);
