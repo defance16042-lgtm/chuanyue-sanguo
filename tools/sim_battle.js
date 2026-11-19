@@ -107,10 +107,10 @@ for (let t = 0; t < TRIALS; t++) {
   if (r3.o !== 'win') continue;
   // 第四段：汝南／宛城（field4 × N4 再打彭脫；之後各 2 場打趙弘、韓忠＋孫夏）
   const N4 = process.argv[6] === undefined ? 5 : +process.argv[6];
-  const stage = (n, boss, key) => {
+  const stage = (n, boss, key, fg) => {
     heal(party);
     for (let i = 0; i < n; i++) {
-      const gs = B.groups.field4; const rr = fight(party, gs[Math.floor(rng() * gs.length)], flags, rng, false);
+      const gs = B.groups[fg || 'field4']; const rr = fight(party, gs[Math.floor(rng() * gs.length)], flags, rng, false);
       if (rr.o === 'lose') return false;
       if (i % 3 === 2) heal(party);
     }
@@ -120,9 +120,9 @@ for (let t = 0; t < TRIALS; t++) {
     stat.w4[key] = (stat.w4[key] || 0) + (rb.o === 'win' ? 1 : 0); stat.n4[key] = (stat.n4[key] || 0) + 1;
     return rb.o === 'win';
   };
-  if (stage(N4, 'boss4', 'b4') && stage(2, 'boss5', 'b5')) stage(2, 'boss6', 'b6');
+  if (stage(N4, 'boss4', 'b4') && stage(2, 'boss5', 'b5') && stage(2, 'boss6', 'b6')) stage(3, 'boss7', 'b7', 'field5');
 }
 console.log(`route=${route} fights=${N}: field losses ${stat.lossField}/${TRIALS}; boss win ${stat.winBoss}/${stat.n}; avg nyao Lv ${(stat.avgLv/stat.n).toFixed(1)}; avg boss rounds ${(stat.avgRounds/stat.n).toFixed(1)}`);
 console.log(`stage2 fights=${N2}: boss2 win ${stat.win2}/${stat.n2}; avg nyao Lv ${(stat.lv2/Math.max(1,stat.n2)).toFixed(1)}`);
-console.log('stage4 (N4=' + (process.argv[6] === undefined ? 5 : +process.argv[6]) + ') ' + ['b4','b5','b6'].map(k => k + ' ' + (stat.w4[k]||0) + '/' + (stat.n4[k]||0) + ' Lv' + ((stat.lv4[k]||0)/Math.max(1,stat.n4[k]||0)).toFixed(1)).join('; '));
+console.log('stage4 (N4=' + (process.argv[6] === undefined ? 5 : +process.argv[6]) + ') ' + ['b4','b5','b6','b7'].map(k => k + ' ' + (stat.w4[k]||0) + '/' + (stat.n4[k]||0) + ' Lv' + ((stat.lv4[k]||0)/Math.max(1,stat.n4[k]||0)).toFixed(1)).join('; '));
 console.log(`stage3 fights=${process.argv[5] === undefined ? 5 : +process.argv[5]}: boss3 win ${stat.win3}/${stat.n3}; avg nyao Lv ${(stat.lv3/Math.max(1,stat.n3)).toFixed(1)}`);

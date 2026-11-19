@@ -308,7 +308,7 @@ window.DATA.maps = {
       'T......,.........,.....T',
       'T......,.........,.....T',
       'T......,.........,.....T',
-      ',,,,,,,,,,,,,,,,,,,,,,,T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
       'T......,.........,.....T',
       'T..RRRR,.........,.RRRRT',
       'T..RRRR,..~~.....,.RRRRT',
@@ -324,7 +324,8 @@ window.DATA.maps = {
       { once: 'wc_intro_done', dialogue: 'wc_intro' }
     ],
     warps: [
-      { x: 0, y: 10, to: 'runan', tx: 22, ty: 10, dir: 'left' }
+      { x: 0, y: 10, to: 'runan', tx: 22, ty: 10, dir: 'left' },
+      { x: 23, y: 10, to: 'dongjun', tx: 1, ty: 10, dir: 'right', need: 'hanzhong_down', deny: 'path_blocked5' }
     ],
     npcs: [
       { id: 'zhaohong', name: '趙弘', sprite: 12, x: 12, y: 5, dir: 'down', dialogue: 'boss_zhaohong', hideIf: 'zhaohong_down' },
@@ -333,6 +334,49 @@ window.DATA.maps = {
       { id: 'sunjian', name: '孫堅', sprite: 9, x: 6, y: 8, dir: 'right', dialogue: 'wc_sunjian' },
       { id: 'wcmedic', name: '軍醫', sprite: 10, x: 4, y: 16, dir: 'down', dialogue: 'wc_medic' },
       { id: 'wcsoldier', name: '攻城的士兵', sprite: 9, x: 8, y: 5, dir: 'up', dialogue: 'wc_soldier' }
+    ],
+    objects: []
+  },
+  dongjun: {
+    name: '東郡・倉亭',
+    battleBg: 'grass',
+    home: { map: 'wancheng' },
+    encounter: { group: 'field5', rate: 0.09, minSteps: 4 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T..~~~~~~~~~~~~~~~~~~..T',
+      'T..~~~~~~~~~~~~~~~~~~..T',
+      'T......................T',
+      'T..RRRRR......YYYY.....T',
+      'T..RRRRR......YYYY.....T',
+      'T..WWDWW...............T',
+      'T.........f............T',
+      'T..................b...T',
+      'T......YYY.............T',
+      ',,,,,,,,,,,,,,,,,,,,,,,T',
+      'T......YYY.............T',
+      'T......................T',
+      'T...f.......~~~~.......T',
+      'T...........~~~~...RRRRT',
+      'T...........~~~~...WDWWT',
+      'T......................T',
+      'T..YYYYY...........f...T',
+      'T..YYYYY...............T',
+      'TTTTTTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [
+      { once: 'dj_intro_done', dialogue: 'dj_intro' }
+    ],
+    warps: [
+      { x: 0, y: 10, to: 'wancheng', tx: 22, ty: 10, dir: 'left' }
+    ],
+    npcs: [
+      { id: 'busi', name: '卜巳', sprite: 12, x: 18, y: 10, dir: 'left', dialogue: 'boss_busi', hideIf: 'busi_down' },
+      { id: 'huangfu3', name: '皇甫嵩', sprite: 16, x: 8, y: 12, dir: 'right', dialogue: 'dj_huangfu', hideIf: 'busi_down' },
+      { id: 'huangfu4', name: '皇甫嵩', sprite: 16, x: 8, y: 12, dir: 'right', dialogue: 'dj_end', showIf: 'busi_down' },
+      { id: 'djsoldier', name: '運糧的民夫', sprite: 7, x: 5, y: 8, dir: 'down', dialogue: 'dj_porter' },
+      { id: 'djscout', name: '探子', sprite: 9, x: 14, y: 7, dir: 'left', dialogue: 'dj_scout' }
     ],
     objects: []
   },

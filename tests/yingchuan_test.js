@@ -24,7 +24,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // 地圖資料：每列等長、字元都在 legend、NPC／傳送點落在可走的格子、對話都存在
   const md = await page.evaluate(() => {
     const D = DATA, out = [];
-    ['yingchuan', 'changshe', 'runan', 'wancheng'].forEach(id => {
+    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun'].forEach(id => {
       const m = D.maps[id], w = m.tiles[0].length;
       if (!m.tiles.every(r => r.length === w)) out.push(id + ' ragged');
       m.tiles.forEach((r, y) => [...r].forEach((ch, x) => { if (!(ch in D.legend)) out.push(id + ' bad tile ' + ch); }));
@@ -115,6 +115,16 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
   await sleep(500); await talk(); s = await S();
   check('hanzhong_down set, chapter text shown', s.flags.hanzhong_down === true, s.flags);
+  // 東郡倉亭：卜巳
+  await go('wancheng', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
+  check('wancheng east exit leads to dongjun after hanzhong', (await S()).map === 'dongjun', (await S()).map);
+  await page.evaluate(() => { if (!Game.party.some(m => m.id === 'caocao')) Game.party.push(Game.makeMember('caocao')); });
+  await face('dongjun', 19, 10, 'left'); await sleep(500);
+  check('busi starts boss7', (await S()).scene === 'BattleScene');
+  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
+  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
+  check('busi_down set, caocao leaves the party', s.flags.busi_down === true && !s.ids.includes('caocao'), { f: s.flags.busi_down, ids: s.ids, sc: s.scene, g: s.gold });
   check('no JS errors', errors.length === 0, errors);
   console.log(`${pass} passed, ${fail} failed`);
   await browser.close(); process.exit(fail ? 1 : 0);

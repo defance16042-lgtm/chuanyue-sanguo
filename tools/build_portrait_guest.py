@@ -107,9 +107,11 @@ zhaohong = face((70, 40, 84), ((230, 190, 70), (196, 150, 46), (130, 90, 40)), (
 hanzhong = face((84, 44, 36), ((130, 130, 144), (84, 84, 96), (50, 50, 60)), (200, 70, 50), (220, 170, 130), (30, 22, 24), helm=((210, 80, 56), (150, 50, 40)), plume=(240, 200, 64), beard='short', brow=2, wrinkles=True)
 sunxia = face((50, 84, 60), ((140, 200, 150), (80, 140, 90), (50, 96, 64)), (240, 240, 240), (250, 214, 176), (60, 40, 30), cap=(240, 240, 244), beard='mustache', brow=1)
 
-sheet = Image.new('RGBA', (48 * 14, 48))
+busi = face((74, 40, 40), ((220, 90, 70), (170, 50, 44), (110, 34, 34)), (60, 60, 70), (220, 170, 130), (30, 22, 24), helm=((100, 100, 112), (60, 60, 70)), plume=(230, 200, 60), beard='long', wild=True, brow=3)
+
+sheet = Image.new('RGBA', (48 * 15, 48))
 sheet.paste(base, (0, 0))
-for i, im in enumerate([zoujing(), caocao, huang, bocai, zhujun, sunjian, pengtuo, zhaohong, hanzhong, sunxia]):
+for i, im in enumerate([zoujing(), caocao, huang, bocai, zhujun, sunjian, pengtuo, zhaohong, hanzhong, sunxia, busi]):
     sheet.paste(im, (48 * (4 + i), 0))
 sheet.save(P)
 print('ok', sheet.size)
