@@ -132,11 +132,16 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         BL.drops(b).forEach(function (id) { G.addGear(id); self.lines.push('撿到裝備：' + D.equipment[id].name); });
         b.party.forEach(function (u) {
           if (u.ref.hp <= 0) u.ref.hp = 1;
-          else BL.gainExp(u.ref, v.share).forEach(function (g) {
+          else {
+            const before = BL.skillsFor(u.ref, G.flags).map(function (k) { return k.id; });
+            const ups = BL.gainExp(u.ref, v.share);
+            ups.forEach(function (g) {
             let s = g.name + '升到 Lv' + g.level + '！兵力+' + g.hp;
             [['atk', '武力'], ['int', '智力'], ['spd', '速度'], ['lead', '統率'], ['luck', '運氣'], ['grd', '守備'], ['tp', '戰術點']].forEach(function (p) { if (g[p[0]]) s += '、' + p[1] + '+' + g[p[0]]; });
             self.lines.push(s);
-          });
+            });
+            BL.skillsFor(u.ref, G.flags).forEach(function (k) { if (before.indexOf(k.id) < 0) self.lines.push(u.ref.name + '習得計謀「' + k.name + '」！'); });
+          }
         });
       } else if (outcome === 'lose') {
         this.lines.push('全軍覆沒……');

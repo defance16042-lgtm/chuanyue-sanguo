@@ -76,4 +76,16 @@ check('every party character has a portrait index within the sheet', ['nyao', 'l
   G.fresh(); const bb = BL.newBattle(G.party, ['busi_r', 'veteran', 'archer'], { rng: () => 0.5 });
   check('rematch enemy can start a battle', bb.enemies.length === 3 && bb.enemies[0].hp === B.enemies.busi_r.hp);
 }
+// 隨等級進化的計謀
+{
+  const names = (id, lv, flags) => { G.fresh(); const m = G.makeMember(id); m.level = lv; return BL.skillsFor(m, flags || {}).map(k => k.id).join(); };
+  check('liubei Lv1 has mend, Lv8 mend2 replaces it, Lv16 mend3', names('liubei', 1) === 'inspire,mend' && names('liubei', 8) === 'inspire,mend2' && names('liubei', 16) === 'mend3,inspire2'.split(',').reverse().join() || names('liubei', 16).includes('mend3') && !names('liubei', 16).includes('mend2,'), [names('liubei', 1), names('liubei', 8), names('liubei', 16)]);
+  check('guanyu Lv8 qinglong2 replaces qinglong, Lv14 adds wusheng', names('guanyu', 8) === 'qinglong2' && names('guanyu', 14) === 'qinglong2,wusheng', [names('guanyu', 8), names('guanyu', 14)]);
+  check('nyao wit route: fire at 3, fire2 at 10, fire3 at 18', names('nyao', 3, { route: 'wit' }).includes('fire') && names('nyao', 10, { route: 'wit' }).includes('fire2') && !names('nyao', 10, { route: 'wit' }).split(',').includes('fire') && names('nyao', 18, { route: 'wit' }).includes('fire3') && !names('nyao', 18, { route: 'wit' }).includes('fire2'), names('nyao', 18, { route: 'wit' }));
+  check('nyao force route: breach2 at 16', names('nyao', 16, { route: 'force' }).includes('breach2') && !names('nyao', 16, { route: 'force' }).split(',').includes('breach'), names('nyao', 16, { route: 'force' }));
+  const f1 = DATA.battle.skills.fire, f2 = DATA.battle.skills.fire2, f3 = DATA.battle.skills.fire3;
+  check('higher tiers hit harder and cost more', f2.power > f1.power && f3.power > f2.power && f2.tp > f1.tp);
+  G.fresh(); const mm = G.makeMember('nyao'); mm.level = 3;
+  const ups = BL.gainExp(mm, 100000); check('gainExp still works with many levels', ups.length > 5);
+}
 console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

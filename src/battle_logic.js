@@ -9,11 +9,16 @@
 
   // 隊員目前可用的技能清單（含路線解鎖）
   BL.skillsFor = function (member, flags) {
-    const ids = (B.charSkills[member.id] || []).slice();
-    if (member.id === 'nyao' && flags && flags.route && B.routeSkills[flags.route]) {
-      B.routeSkills[flags.route].forEach(function (e) { if (member.level >= e[0]) ids.push(e[1]); });
-    }
-    return ids.map(function (id) { return Object.assign({ id: id }, B.skills[id]); });
+    const ids = [];
+    const add = function (e) {
+      const lv = Array.isArray(e) ? e[0] : 1, id = Array.isArray(e) ? e[1] : e;
+      if ((member.level || 1) >= lv && ids.indexOf(id) < 0) ids.push(id);
+    };
+    (B.charSkills[member.id] || []).forEach(add);
+    if (member.id === 'nyao' && flags && flags.route && B.routeSkills[flags.route]) B.routeSkills[flags.route].forEach(add);
+    const gone = {};   // 高階技能取代低階技能
+    ids.forEach(function (id) { let r = B.skills[id] && B.skills[id].replaces; while (r && !gone[r]) { gone[r] = 1; r = B.skills[r] && B.skills[r].replaces; } });
+    return ids.filter(function (id) { return !gone[id]; }).map(function (id) { return Object.assign({ id: id }, B.skills[id]); });
   };
 
   function unitFromMember(m, i) {
