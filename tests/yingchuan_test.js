@@ -142,7 +142,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('zhangliang_down set', s.flags.zhangliang_down === true, s.flags);
   await face('guangzong', 6, 6, 'right'); await sleep(400); await talk(); await sleep(400); await talk(); s = await S();
   check('zuofeng scene: luzhi leaves the party', s.flags.zuofeng_done === true && !s.ids.includes('luzhi'), { f: s.flags.zuofeng_done, ids: s.ids });
-  // 冀州篇（下）：張寶・張角・三張合體
+  // 冀州篇（下）：張寶・張角・三兄弟同時出戰
   const winBattle = async () => { await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); }); for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z'); };
   await go('guangzong', 22, 10, 'right'); await sleep(150); await tap('ArrowRight'); await sleep(500); await talk();
   check('guangzong east exit leads to xiaquyang after zuofeng', (await S()).map === 'xiaquyang', (await S()).map);
@@ -157,9 +157,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await face('gzcity', 12, 6, 'up'); await sleep(500);
   check('zhangjiao starts boss10', (await S()).scene === 'BattleScene');
   await winBattle(); await sleep(900); await talk(); await sleep(900);
-  check('after zhangjiao, the merged three start boss11', (await S()).scene === 'BattleScene' && (await page.evaluate(() => Engine.top().b.enemies[0].id)) === 'sanzhang');
+  check('after zhangjiao, all three brothers fight at once (boss11)', (await S()).scene === 'BattleScene' && (await page.evaluate(() => Engine.top().b.enemies.slice(0, 3).map(e => e.id).join())) === 'zhangjiao_f,zhangbao_f,zhangliang_f');
   await winBattle(); await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
-  check('sanzhang_down set, chapter 1 finished', s.flags.sanzhang_down === true && s.flags.zhangjiao_down === true, s.flags);
+  check('sanzhang_down set, chapter 1 finished', s.flags.sanzhang_down === true && s.flags.zhangjiao_down === true && s.gear.huangtian_banner >= 1, s.flags);
   check('no JS errors', errors.length === 0, errors);
   console.log(`${pass} passed, ${fail} failed`);
   await browser.close(); process.exit(fail ? 1 : 0);

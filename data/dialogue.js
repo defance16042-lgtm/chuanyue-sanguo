@@ -435,19 +435,24 @@ window.DATA.dialogue = {
   zhangjiao_after: [
     { speaker: '', text: '張角被擊倒在高臺前，手裡的九節杖落地。他望向遠處，嘴角竟浮出一絲笑意。' },
     { speaker: '張角', text: '……好。官軍之中，有你們這樣的人。也算……值得。' },
-    { speaker: '張角', text: '可是，我的弟弟們，還沒有放棄。他們以太平要術的最後一點力量，要與我合一。' },
-    { speaker: '', text: '高臺轟然震動。張寶、張梁的身影從地下升起，三人身上的黃光匯聚，化為一個巨大的身影。' },
-    { speaker: '三張', text: '蒼天已死！黃天當立！我們三人合而為一，這天，今日就要換過！', act: { battle: 'boss11', flag: 'sanzhang_down', after: 'sanzhang_after' } }
+    { speaker: '', text: '——就在這時，高臺兩側傳來腳步聲。兩個渾身是傷的人，一左一右，扶住了張角。' },
+    { speaker: '張寶', text: '大哥，不要說這種話。要死，我們兄弟一起。' },
+    { speaker: '張梁', text: '我們三個，從鉅鹿起兵的那天起，就說好了。要打，一起打。' },
+    { speaker: '張角', text: '……你們兩個，傻子。' },
+    { speaker: '劉備', text: '你們……傷成這樣，還要戰？' },
+    { speaker: '張角', text: '蒼天已死，黃天當立。我們三兄弟，最後一次，為這句話而戰！' },
+    { speaker: '張飛', text: '好！三個一起上，這才叫痛快！', act: { battle: 'boss11', flag: 'sanzhang_down', after: 'sanzhang_after' } }
   ],
   sanzhang_after: [
-    { speaker: '', text: '黃光散去。三張的身影，像三堆落下的灰，悄悄地被風吹遠了。' },
+    { speaker: '', text: '三兄弟並肩倒在高臺之前。張角握著兩個弟弟的手，不再說話。' },
+    { speaker: '張角', text: '……弟弟們。這條路，我們走完了。' },
     { speaker: '', text: '數月之後，黃巾主力被皇甫嵩徹底擊潰，轟轟烈烈的黃巾之亂，至此落幕。' },
     { speaker: '皇甫嵩', text: '各位功勞，我一定上報朝廷。' },
     { speaker: '劉備', text: '我們什麼都不要。只想，讓天下人安穩一些。' },
     { speaker: '關羽', text: '大哥，咱們結義那時候說的是：上報國家，下安黎庶。' },
     { speaker: '張飛', text: '哈！那麼，俺老張就先去喝一碗酒！' },
     { speaker: '諸葛貓妖', text: '……我還在想一件事。我是怎麼穿越來的？為什麼是這個時候？' },
-    { speaker: '', text: '朝廷論功行賞，劉備因功授任安喜縣尉。亂世，才剛剛開始。', act: { gold: 2000 } },
+    { speaker: '', text: '朝廷論功行賞，劉備因功授任安喜縣尉。亂世，才剛剛開始。', act: { gold: 2000, gear: ['huangtian_banner'] } },
     { speaker: '', text: '（獲得黃天令旗、金 2000。）' },
     { speaker: '', text: '【第一章　黃巾之亂篇　完】' },
     { speaker: '', text: '（第二章製作中，敬請期待。）' }
