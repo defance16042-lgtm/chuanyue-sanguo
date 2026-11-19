@@ -78,7 +78,7 @@ window.DATA.battle = {
   encounterRate: 0.07   // 每走一步遇敵機率（野外）
 };
 
-// 「捲土重來」：打倒過的頭目，之後在野外遇敵時有機會帶著殘部再度出現（能力較弱的版本，戰利品與經驗也較少）。
+// 「捲土重來」：打倒過的頭目，之後在野外遇敵時有機會帶著殘部再度出現（能力與原本完全相同）。
 // rematch：旗標 → 敵人 id；rematchRate：每次遇敵時，有任一頭目被打倒的話，出現殘部的機率。
 (function () {
   const B = window.DATA.battle;
@@ -87,11 +87,7 @@ window.DATA.battle = {
   Object.keys(B.rematch).forEach(function (f) {
     const id = B.rematch[f], e = B.enemies[id];
     if (!e) return;
-    const r = Object.assign({}, e, {
-      name: e.name, hp: Math.round(e.hp * 0.22), atk: Math.round(e.atk * 0.85), def: Math.round(e.def * 0.9),
-      exp: Math.round(e.exp * 0.3), gold: Math.round(e.gold * 0.3), boss: false, ai: undefined, rematchOf: id,
-      desc: e.desc
-    });
+    const r = Object.assign({}, e, { rematchOf: id });   // 能力、經驗、金幣與原本的頭目完全相同
     B.enemies[id + '_r'] = r;
   });
 })();
