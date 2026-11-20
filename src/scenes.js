@@ -843,7 +843,19 @@
           wc.drawImage(E.images.tiles, tid * 16, 0, 16, 16, sx, sy, 16, 16);
         }
       }
-      if (this.map.world) this.drawBanners(wc, cam);
+      if (this.map.world) {
+        // 涿縣使用完整自創城堡圖，取代原本容易破碎的 3x3 小圖塊外觀
+        const town = D.worldTowns && D.worldTowns.zhuoxian;
+        if (town && E.images.castle) {
+          const castleX = Math.round(town.x * T + 8 - 48 - cam.x);
+          const castleY = Math.round((town.y + 2) * T - 57 - cam.y);
+          wc.save();
+          wc.imageSmoothingEnabled = true;
+          wc.drawImage(E.images.castle, castleX, castleY, 96, 57);
+          wc.restore();
+        }
+        this.drawBanners(wc, cam);
+      }
       const items = [];
       this.npcs.forEach(function (n) {
         if (!self.visible(n)) return;
