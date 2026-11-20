@@ -668,7 +668,7 @@ window.DATA.dialogue = {
     { speaker: '張飛', text: '二哥！這下天下人都知道你了！' },
     { speaker: '關羽', text: '只是一點小事。' },
     { speaker: '', text: '（獲得西涼長戟、金 3500。）', act: { gold: 3500 } },
-    { speaker: '', text: '【第二章（二）　平原・酸棗・汜水關　完】（虎牢關、呂布、董卓焚洛陽，製作中）' }
+    { speaker: '', text: '【第二章（二）　平原・酸棗・汜水關　完】　聯軍乘勝向虎牢關進發。' }
   ],
   gz_soldier: [
     { speaker: '守營士兵', text: '盧將軍愛兵如子。上個月我生病，他把自己的米湯分了我一半。' }

@@ -6,21 +6,21 @@ TOWNS = {  # id: (x, y) 城門圖塊（C）的位置
  'youbei': (70, 6), 'zhuoxian': (38, 10), 'guangyang': (54, 12), 'anxi': (30, 22), 'heishan': (12, 22),
  'pingyuan': (82, 26), 'jizhou': (52, 26), 'guangzong': (64, 35), 'xiaquyang': (32, 36), 'gzcity': (48, 39),
  'dongjun': (84, 52), 'suanzao': (56, 55), 'sishui': (20, 55), 'yingchuan': (40, 62), 'changshe': (60, 67),
- 'runan': (80, 66), 'wancheng': (14, 67)}
+ 'runan': (80, 66), 'wancheng': (14, 67), 'hulao': (6, 50), 'luoyang': (34, 51)}
 # 依故事被敵軍佔據的城：打倒該旗標的頭目之前，城頭插敵旗（顏色：黃巾黃、官僚紫、黑山黑、叛軍藍、董卓暗紅）
 GARRISON = {'guangyang': ('boss2_down', 'yellow'), 'changshe': ('bocai_down', 'yellow'), 'runan': ('pengtuo_down', 'yellow'),
  'wancheng': ('hanzhong_down', 'yellow'), 'dongjun': ('busi_down', 'yellow'), 'guangzong': ('zhangliang_down', 'yellow'),
  'xiaquyang': ('zhangbao_down', 'yellow'), 'gzcity': ('zhangjiao_down', 'yellow'), 'anxi': ('duyou_down', 'purple'),
- 'heishan': ('zhangyan_down', 'black'), 'youbei': ('zhangchun_down', 'blue'), 'sishui': ('huaxiong_down', 'darkred')}
+ 'heishan': ('zhangyan_down', 'black'), 'youbei': ('zhangchun_down', 'blue'), 'sishui': ('huaxiong_down', 'darkred'), 'hulao': ('lubu_down', 'darkred'), 'luoyang': ('xurong_down', 'darkred')}
 TIER = {'zhuoxian':1,'guangyang':2,'yingchuan':3,'changshe':3,'runan':4,'wancheng':5,'dongjun':6,'jizhou':6,'guangzong':6,
-        'xiaquyang':6,'gzcity':6,'anxi':6,'heishan':7,'youbei':8,'pingyuan':8,'suanzao':9,'sishui':9}
+        'xiaquyang':6,'gzcity':6,'anxi':6,'heishan':7,'youbei':8,'pingyuan':8,'suanzao':9,'sishui':9,'hulao':10,'luoyang':10}
 CAVES = {'cave1': (24, 8), 'cave2': (5, 36), 'cave3': (62, 4), 'cave4': (74, 44)}
 CAVE_TIER = {'cave1': 3, 'cave2': 7, 'cave3': 8, 'cave4': 6}
 ROADS = [('zhuoxian','youbei'),('zhuoxian','guangyang'),('zhuoxian','anxi'),('anxi','heishan'),('anxi','jizhou'),
  ('guangyang','pingyuan'),('pingyuan','jizhou'),('jizhou','guangzong'),('jizhou','xiaquyang'),('guangzong','gzcity'),
  ('xiaquyang','gzcity'),('guangzong','dongjun'),('pingyuan','dongjun'),('gzcity','suanzao'),('dongjun','suanzao'),
  ('suanzao','sishui'),('suanzao','yingchuan'),('yingchuan','changshe'),('changshe','runan'),('yingchuan','wancheng'),
- ('sishui','wancheng'),('runan','dongjun')]
+ ('sishui','wancheng'), ('sishui','hulao'), ('hulao','luoyang'), ('luoyang','suanzao'), ('luoyang','yingchuan'),('runan','dongjun')]
 g = [['.'] * W for _ in range(H)]
 def blob(ch, cx, cy, rx, ry, n=1.0):
     for y in range(max(1, cy - ry - 1), min(H - 1, cy + ry + 2)):

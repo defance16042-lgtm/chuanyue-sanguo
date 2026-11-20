@@ -793,6 +793,93 @@ window.DATA.maps = {
     ],
     objects: []
   },
+  hulao: {
+    name: '虎牢關',
+    battleBg: 'grass',
+    home: { map: 'sishui' },
+    encounter: { group: 'field10', rate: 0.09, minSteps: 4 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T.MMMMMMMMMMMMMMMMMMMM.T',
+      'T.MMMMMM########MMMMMM.T',
+      'T.MMMMMM#......#MMMMMM.T',
+      'T.......#......#.......T',
+      'T.......###..###.......T',
+      'T......................T',
+      'T....f.................T',
+      'T......................T',
+      'T......................T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
+      'T......................T',
+      'T......................T',
+      'T..YYY.............YYY.T',
+      'T..YYY.............YYY.T',
+      'T......................T',
+      'T....f.................T',
+      'T......................T',
+      'T......................T',
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [ { once: 'hl_intro_done', dialogue: 'hl_intro' } ],
+    warps: [
+      { x: 2, y: 19, to: 'world', tx: 6, ty: 51, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 6, ty: 51, dir: 'down' },
+      { x: 0, y: 10, to: 'world', tx: 6, ty: 51, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 6, ty: 51, dir: 'down' }
+    ],
+    npcs: [
+      { id: 'lubu', name: '呂布', sprite: 33, x: 11, y: 3, dir: 'down', dialogue: 'boss_lubu', hideIf: 'lubu_down' },
+      { id: 'hlsunjian', name: '孫堅', sprite: 30, x: 17, y: 8, dir: 'left', dialogue: 'hl_sunjian' },
+      { id: 'hlgongsun', name: '公孫瓚', sprite: 28, x: 6, y: 8, dir: 'right', dialogue: 'hl_gongsun' },
+      { id: 'hlscout', name: '聯軍斥候', sprite: 9, x: 9, y: 12, dir: 'up', dialogue: 'hl_scout' }
+    ],
+    objects: []
+  },
+  luoyang: {
+    name: '洛陽廢墟',
+    battleBg: 'grass',
+    home: { map: 'hulao' },
+    encounter: { group: 'field10', rate: 0.07, minSteps: 5 },
+    tiles: [
+      'TTTTTTTTTTTTTTTTTTTTTTTT',
+      'T......................T',
+      'T.####..####..####..##.T',
+      'T.#..X..X..#..#..X..#..T',
+      'T.#.....X..#..#.....#..T',
+      'T.####..####..####..##.T',
+      'T......................T',
+      'T.X........f.........X.T',
+      'T......................T',
+      'T..........XX..........T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
+      'T......................T',
+      'T.....X................T',
+      'T..TT............X..TT.T',
+      'T..TT...............TT.T',
+      'T......................T',
+      'T.X..............X.....T',
+      'T......................T',
+      'T......................T',
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
+    ],
+    start: { x: 1, y: 10, dir: 'right' },
+    events: [ { once: 'ly_intro_done', dialogue: 'ly_intro' } ],
+    warps: [
+      { x: 2, y: 19, to: 'world', tx: 34, ty: 52, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 34, ty: 52, dir: 'down' },
+      { x: 0, y: 10, to: 'world', tx: 34, ty: 52, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 34, ty: 52, dir: 'down' }
+    ],
+    npcs: [
+      { id: 'lysunjian', name: '孫堅', sprite: 30, x: 8, y: 12, dir: 'down', dialogue: 'ly_sunjian' },
+      { id: 'lycaocao', name: '曹操', sprite: 17, x: 15, y: 9, dir: 'down', dialogue: 'ly_caocao', hideIf: 'xurong_down' },
+      { id: 'xurong', name: '徐榮', sprite: 34, x: 21, y: 10, dir: 'left', dialogue: 'boss_xurong', hideIf: 'xurong_down', showIf: 'ly_caocao_go' },
+      { id: 'lyrefugee', name: '難民', sprite: 7, x: 4, y: 8, dir: 'right', dialogue: 'ly_refugee' },
+      { id: 'lyold', name: '老宮人', sprite: 6, x: 18, y: 14, dir: 'up', dialogue: 'ly_old' }
+    ],
+    objects: []
+  },
   sishui: {
     name: '汜水關',
     battleBg: 'grass',
@@ -809,7 +896,7 @@ window.DATA.maps = {
       'T..........f...........T',
       'T......................T',
       'T......................T',
-      ',,,,,,,,,,,,,,,,,,,,,,,T',
+      ',,,,,,,,,,,,,,,,,,,,,,,,',
       'T......................T',
       'T......................T',
       'T..YYY.............YYY.T',
@@ -825,7 +912,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 20, ty: 56, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 20, ty: 56, dir: 'down' },
-      { x: 0, y: 10, to: 'world', tx: 20, ty: 56, dir: 'down' }
+      { x: 0, y: 10, to: 'world', tx: 20, ty: 56, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 20, ty: 56, dir: 'down' }
     ],
     npcs: [
       { id: 'huaxiong', name: '華雄', sprite: 31, x: 17, y: 10, dir: 'left', dialogue: 'boss_huaxiong', hideIf: 'huaxiong_down' },
