@@ -529,6 +529,16 @@
   }
 
   // ------------------------------------------------------------ 地圖
+  // 寶箱：用方塊畫的像素寶箱（關著／打開）
+  function drawChest(c, x, y, open) {
+    const r = function (col, a, b, w, h) { c.fillStyle = col; c.fillRect(x + a, y + b, w, h); };
+    r('#1a1220', 2, 5, 12, 10);
+    r(open ? '#4a3626' : '#a8702c', 3, 6, 10, 8);
+    r(open ? '#2a2018' : '#c88c3c', 3, open ? 3 : 6, 10, open ? 3 : 3);
+    r('#5a3a14', 3, 10, 10, 1);
+    r('#f0d060', 7, 8, 2, 3);
+    if (open) r('#f0d060', 5, 7, 6, 2);
+  }
   class MapScene {
     constructor(mapId, spawn) { this.fade = null; this.loadMap(mapId, spawn); }
     loadMap(mapId, spawn) {
@@ -539,6 +549,12 @@
       this.p = { x: spawn.x, y: spawn.y, dir: spawn.dir || 'down', moving: false, t: 0, tx: 0, ty: 0, step: 0 };
       this.banner = 2000; this.evCheck = true;
       G.mapId = mapId; this.syncPos();
+      if (D.townIds && D.townIds.indexOf(mapId) >= 0) { G.flags['seen_' + mapId] = true; G.flags.lastTown = mapId; }
+      if (mapId === 'world' && !G.flags.world_init) {   // 舊存檔：已經走過的城，大地圖上也進得去
+        G.flags.world_init = true;
+        const bf = D.worldBackfill || {};
+        Object.keys(bf).forEach(function (t) { if (G.flags[bf[t]]) G.flags['seen_' + t] = true; });
+      }
     }
     syncPos() { G.pos = { x: this.p.x, y: this.p.y, dir: this.p.dir }; }
     tileAt(x, y) {
@@ -558,14 +574,27 @@
       const npc = this.npcAt(tx, ty), obj = this.objAt(tx, ty);
       if (npc) {
         npc.dir = OPP[p.dir];
-        const key = npc.alt && G.flags[npc.alt.flag] ? npc.alt.dialogue : npc.dialogue;
+        let key = npc.alt && G.flags[npc.alt.flag] ? npc.alt.dialogue : npc.dialogue;
+        const hit = (npc.alts || []).find(function (a) { return G.flags[a.flag]; });   // alts：由進度最前面的往後找，第一個成立的
+        if (hit) key = hit.dialogue;
         E.push(new DialogScene(D.dialogue[key]));
       }
       else if (obj && obj.type === 'save') E.push(new SaveScene('save'));
+      else if (obj && obj.type === 'chest') this.openChest(obj);
       else {
         const sign = (this.map.signs || []).find(function (k) { return k.x === tx && k.y === ty; });
         if (sign) E.push(new DialogScene(D.dialogue[sign.dialogue]));
       }
+    }
+    openChest(o) {
+      const key = 'chest_' + o.id;
+      if (G.flags[key]) { this.say('箱子已經空了。'); return; }
+      G.flags[key] = true; if (o.flag) G.flags[o.flag] = true;
+      const got = [];
+      if (o.gold) { G.gold = (G.gold || 0) + o.gold; got.push(o.gold + '金'); }
+      (o.gear || []).forEach(function (id) { G.addGear(id); got.push(D.equipment[id].name); });
+      Object.keys(o.item || {}).forEach(function (id) { G.items[id] = (G.items[id] || 0) + o.item[id]; got.push(D.battle.items[id].name + '×' + o.item[id]); });
+      this.say(o.msg ? o.msg + (got.length ? '（得到：' + got.join('、') + '）' : '') : '打開了寶箱！得到：' + got.join('、') + '。');
     }
     arrive() {
       const p = this.p;
@@ -619,7 +648,12 @@
     }
     // ---- 遇敵與劇情動作 ----
     stepEncounter() {
-      const enc = this.map.encounter;
+      let enc = this.map.encounter;
+      if (this.map.zoneGrid) {   // 大地圖：依所在區域（離哪座城最近）決定遇到誰
+        const row = this.map.zoneGrid[Math.floor(this.p.y / 4)] || '', ch = row[Math.floor(this.p.x / 4)] || '0';
+        const tier = this.map.zoneTiers[parseInt(ch, 16)] || 1;
+        enc = Object.assign({}, enc, { group: 'field' + tier });
+      }
       this.steps = (this.steps || 0) + 1;
       if (this.steps < (enc.minSteps || 4) || Math.random() >= enc.rate) return;
       this.steps = 0;
@@ -643,7 +677,7 @@
       if (r === 'lose') {
         G.gold = Math.floor((G.gold || 0) / 2);
         G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); });
-        const home = this.map.home || { map: 'zhuoxian' };
+        const lt = G.flags.lastTown, home = this.map.home || { map: D.maps[lt] ? lt : 'zhuoxian' };
         this.loadMap(home.map, D.maps[home.map].start);
         E.push(new DialogScene(D.dialogue.lose_after));
       } else if (r === 'win' && boss) {
@@ -654,9 +688,16 @@
     }
     say(text) { E.push(new DialogScene([{ speaker: '', text: text }])); }
     runAct(a) {
+      // once：這個動作只會做一次（旗標名）。pay：要先付的金錢（不夠就不做、也不算用掉）
+      if (a.pay && (G.gold || 0) < a.pay) { this.say('金錢不足（需要 ' + a.pay + ' 金）。'); return; }
+      if (a.once) { if (G.flags[a.once]) return; G.flags[a.once] = true; }
+      if (a.pay) G.gold -= a.pay;
       // 獎勵類動作可以和其他動作寫在同一個 act 裡
-      if (a.gold) G.gold = (G.gold || 0) + a.gold;
-      if (a.gear) a.gear.forEach(function (id) { G.addGear(id); });
+      const got = [];
+      if (a.gold) { G.gold = (G.gold || 0) + a.gold; got.push(a.gold + '金'); }
+      if (a.gear) a.gear.forEach(function (id) { G.addGear(id); got.push(D.equipment[id].name); });
+      if (a.give) Object.keys(a.give).forEach(function (id) { G.items[id] = (G.items[id] || 0) + a.give[id]; got.push(D.battle.items[id].name + '×' + a.give[id]); });
+      if (got.length) this.say((a.pay ? '付出 ' + a.pay + ' 金。' : '') + '獲得：' + got.join('、') + '。');
       if (a.recruit) {
         if (G.flags['recruited_' + a.recruit]) return;
         const m = G.makeMember(a.recruit), lv = G.party[0].level;
@@ -680,8 +721,6 @@
           this.say(m.name + '離隊了。（身上的裝備已放回背包）');
         }
       } else if (a.item) {
-        if (a.once && G.flags[a.once]) return;
-        if (a.once) G.flags[a.once] = true;
         G.items[a.item] = (G.items[a.item] || 0) + (a.n || 1);
       } else if (a.shop) {
         E.push(new ShopScene(a.shop));
@@ -712,6 +751,27 @@
         px: px, py: py
       };
     }
+    // 大地圖上，依故事被敵軍佔據的城：城頭插敵旗；打倒頭目後換成我方的旗
+    groundFor(x, y) {
+      const o = [[-2, 0], [2, 0], [0, 2], [0, -2], [-2, -1], [2, -1], [-2, 1], [2, 1]];
+      for (let i = 0; i < o.length; i++) { const t = this.tileAt(x + o[i][0], y + o[i][1]); if (t === 31 || t === 33 || t === 32) return t; }
+      return 31;
+    }
+    drawBanners(c, cam) {
+      const gar = D.worldGarrison || {}, cols = { yellow: '#f0d020', purple: '#9a40c8', black: '#303038', blue: '#3a6ad8', darkred: '#8a1820', own: '#38b860' };
+      Object.keys(gar).forEach(function (t) {
+        const pos = D.worldTowns[t], held = !G.flags[gar[t].flag];
+        if (!held && !G.flags['seen_' + t]) return;
+        const x = pos.x * T - cam.x + 8, y = (pos.y - 2) * T - cam.y - 8;
+        if (x < -16 || y < -20 || x > W + 16 || y > H + 16) return;
+        const col = held ? cols[gar[t].banner] : cols.own;
+        c.fillStyle = '#1a1220'; c.fillRect(x - 1, y - 1, 2, 12);
+        c.fillStyle = '#1a1220'; c.fillRect(x + 1, y - 1, 9, 7);
+        c.fillStyle = col; c.fillRect(x + 1, y, 8, 5);
+        if (held) { c.fillStyle = '#1a1220'; c.fillRect(x + 4, y + 1, 2, 3); }
+        else { c.fillStyle = '#e8fff0'; c.fillRect(x + 3, y + 1, 4, 1); c.fillRect(x + 4, y + 2, 2, 2); }
+      });
+    }
     draw(wc) {
       const cam = this.camera(), self = this;
       if (this.hidden) return;
@@ -719,15 +779,19 @@
         for (let x = 0; x < this.w; x++) {
           const sx = x * T - cam.x, sy = y * T - cam.y;
           if (sx < -T || sy < -T || sx > W || sy > H) continue;
-          wc.drawImage(E.images.tiles, this.tileAt(x, y) * 16, 0, 16, 16, sx, sy, 16, 16);
+          const tid = this.tileAt(x, y);
+          if (tid >= 26 && tid <= 30 || tid === 22 || tid >= 37 && tid <= 39) wc.drawImage(E.images.tiles, this.groundFor(x, y) * 16, 0, 16, 16, sx, sy, 16, 16);   // 城堡圖塊底下先鋪地面
+          wc.drawImage(E.images.tiles, tid * 16, 0, 16, 16, sx, sy, 16, 16);
         }
       }
+      if (this.map.world) this.drawBanners(wc, cam);
       const items = [];
       this.npcs.forEach(function (n) {
         if (!self.visible(n)) return;
         items.push({ y: n.y * T, draw: function () { drawSprite(wc, n.sprite, n.dir, 0, n.x * T - cam.x, n.y * T - cam.y); } });
       });
       this.map.objects.forEach(function (o) {
+        if (o.type === 'chest') { items.push({ y: o.y * T, draw: function () { drawChest(wc, o.x * T - cam.x, o.y * T - cam.y, !!G.flags['chest_' + o.id]); } }); return; }
         items.push({ y: o.y * T, draw: function () {
           wc.drawImage(E.images.objects, (Math.floor(E.time / 450) % 2) * 16, 0, 16, 16, o.x * T - cam.x, o.y * T - cam.y, 16, 16);
         } });
@@ -739,6 +803,17 @@
     }
     drawUI(c) {
       if (this.hidden) return;
+      if (this.map.labels) {   // 大地圖上的城名
+        const cam = this.camera(), self = this;
+        this.map.labels.forEach(function (l) {
+          const sx = l.x * T - cam.x + 8, sy = (l.y - 2) * T - cam.y - 9;
+          if (sx < -30 || sy < -10 || sx > W + 30 || sy > H) return;
+          const seen = G.flags['seen_' + l.name], gr = (D.worldGarrison || {})[l.name], held = gr && !G.flags[gr.flag];
+          const nm = seen ? D.maps[l.name].name : '？？？';
+          E.text(c, nm, sx + 1, sy + 1, { size: 7, align: 'center', color: '#101018' });
+          E.text(c, nm, sx, sy, { size: 7, align: 'center', color: held ? '#ffb4a0' : (seen ? '#fff6c8' : '#b0b0c0') });
+        });
+      }
       if (this.banner > 0) {
         const w = E.measure(c, this.map.name, 10) + 24;
         E.panel(c, Math.round((W - w) / 2), 6, w, 20);

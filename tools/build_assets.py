@@ -447,34 +447,79 @@ def build_sprites():
     return sheet
 
 
+def _wrap_put(im, x, y, c):
+    im.putpixel((x % 16, y % 16), c)
+
+
+def tile_wgrass():
+    # 大地圖的草地：草綠底，深淺草叢（八字形小筆觸）與零星亮點。四邊可無縫相接
+    base = (92, 156, 74, 255); dk = (66, 126, 58, 255); lt = (122, 180, 92, 255); fl = (226, 214, 120, 255)
+    im = Image.new("RGBA", (16, 16), base)
+    for (x, y) in ((1, 2), (9, 1), (5, 7), (13, 6), (2, 12), (10, 11), (14, 14), (6, 15)):
+        _wrap_put(im, x, y, dk); _wrap_put(im, x + 1, y - 1, dk); _wrap_put(im, x - 1, y - 1, dk)
+        _wrap_put(im, x, y - 1, lt)
+    for (x, y) in ((3, 4), (12, 3), (7, 10), (0, 8), (15, 12)):
+        _wrap_put(im, x, y, lt)
+    for (x, y) in ((6, 3), (14, 9), (3, 14)):
+        _wrap_put(im, x, y, fl)
+    return im
+
+
 def tile_forest():
-    # 森林：一整片樹冠（可以走進去）
-    im = noise_tile((40, 110, 56), [(30, 92, 48), (52, 128, 66), (24, 80, 42)], 11, 60)
-    for cx, cy in ((4, 4), (11, 5), (7, 11), (13, 12), (2, 12)):
-        for y in range(16):
-            for x in range(16):
-                d = (x - cx) ** 2 + (y - cy) ** 2
-                if d <= 7:
-                    im.putpixel((x, y), ((28, 90, 46) if (x + y) % 3 else (44, 120, 60)) + (255,))
-                elif d <= 9:
-                    im.putpixel((x, y), (20, 60, 34, 255))
+    # 森林：一叢叢圓樹冠，深綠描邊、三層明暗、露出短樹幹。四邊可無縫相接
+    ground = (58, 112, 54, 255); ol = (18, 52, 34, 255); d = (30, 88, 46, 255); m = (50, 128, 60, 255); l = (84, 164, 82, 255); tr = (86, 56, 36, 255)
+    im = Image.new("RGBA", (16, 16), ground)
+    for (x, y) in ((0, 1), (7, 5), (12, 13), (3, 9), (9, 15)):
+        _wrap_put(im, x, y, d)
+    def tree(cx, cy):
+        pts = {}
+        for dy in range(-4, 4):
+            for dx in range(-4, 4):
+                dist = (dx + 0.5) ** 2 + (dy + 0.5) ** 2
+                if dist <= 14: pts[(dx, dy)] = d
+        for (dx, dy) in list(pts):
+            if (dx + 0.5) ** 2 + (dy + 0.5) ** 2 <= 9 and dx + dy < 1: pts[(dx, dy)] = m
+            if (dx + 0.5) ** 2 + (dy + 0.5) ** 2 <= 3.5 and dx + dy < 0: pts[(dx, dy)] = l
+        edge = [k for k in pts if any((k[0] + a, k[1] + b) not in pts for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1)))]
+        for k in edge:
+            _wrap_put(im, cx + k[0], cy + k[1], ol)
+        for k, c in pts.items():
+            if k not in edge: _wrap_put(im, cx + k[0], cy + k[1], c)
+        for yy in (4, 5):
+            _wrap_put(im, cx, cy + yy, tr); _wrap_put(im, cx - 1, cy + yy, ol if yy == 5 else tr)
+    tree(4, 3); tree(12, 4); tree(8, 11); tree(1, 12) if False else None
+    for (cx, cy) in ((15, 11),):
+        tree(cx, cy)
     return im
 
 
 def tile_mountain():
-    # 山：灰褐色山峰，頂上有一點雪（可以走過去）
-    im = noise_tile((150, 130, 100), [(136, 116, 88), (164, 144, 112), (120, 102, 78)], 12, 40)
-    for cx, h in ((4, 9), (11, 12)):
-        for y in range(16 - h, 16):
-            half = (y - (16 - h)) * 0.55 + 0.5
-            for x in range(16):
-                if abs(x - cx) <= half:
-                    c = (110, 94, 76) if x <= cx else (138, 120, 96)
-                    if y - (16 - h) <= 2:
-                        c = (236, 236, 244)
-                    im.putpixel((x, y), c + (255,))
-                elif abs(x - cx) <= half + 0.8:
-                    im.putpixel((x, y), OUTLINE)
+    # 山：褐色岩山，左亮右暗、山脊用鋸齒、深色描邊、山腳有碎石與陰影（沒有白色雪頂）
+    grass = tile_wgrass()
+    im = grass.copy()
+    ol = (36, 24, 22, 255); lt = (196, 154, 104, 255); md = (158, 114, 72, 255); dk = (112, 78, 52, 255); sh = (74, 56, 44, 255); gs = (60, 110, 54, 255)
+    def peak(cx, top, base, hw):
+        h = base - top
+        for y in range(top, base + 1):
+            t = (y - top) / max(1, h)
+            half = int(round(hw * t + 0.4))
+            for x in range(cx - half, cx + half + 1):
+                if not (0 <= x < 16): continue
+                jag = ((x * 3 + y * 5) % 7 == 0)
+                if x < cx - 0 and not jag: c = lt if (x + y) % 5 else md
+                elif x < cx: c = md
+                else: c = dk if (x + y) % 4 else sh
+                if x == cx and y > top + 1: c = md if y % 2 else dk      # 山脊線
+                im.putpixel((x, y), c)
+            for x in (cx - half - 1, cx + half + 1):
+                if 0 <= x < 16 and y > top: im.putpixel((x, y), ol)
+        im.putpixel((cx, top - 1) if top > 0 else (cx, top), ol)
+        for x in range(cx - hw - 1, cx + hw + 2):                       # 山腳陰影
+            if 0 <= x < 16 and base + 1 < 16: im.putpixel((x, base + 1), gs if x % 2 else sh)
+    peak(11, 7, 13, 4)
+    peak(5, 2, 13, 5)
+    for (x, y) in ((1, 14), (8, 14), (13, 15), (3, 15)):
+        im.putpixel((x, y), md); im.putpixel((x + 1, y), dk)
     return im
 
 
@@ -492,9 +537,182 @@ def tile_sea():
     return im
 
 
+def castle_big():
+    # 大地圖上的城：3x3 格（48x48），像素手繪。磚牆有砌縫與明暗，左右城樓與中央主樓是中式歇山屋頂，
+    # 城門有石拱、木門與鐵釘。光從左上來，右側較暗。透明底（遊戲依周圍地面補底）
+    im = Image.new("RGBA", (48, 48), (0, 0, 0, 0))
+    OL = (30, 22, 26, 255)
+    def px(x, y, c):
+        if 0 <= x < 48 and 0 <= y < 48: im.putpixel((x, y), c)
+    def rect(x0, y0, x1, y1, c):
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1): px(x, y, c)
+    def outline(x0, y0, x1, y1):
+        for x in range(x0 - 1, x1 + 2): px(x, y0 - 1, OL); px(x, y1 + 1, OL)
+        for y in range(y0 - 1, y1 + 2): px(x0 - 1, y, OL); px(x1 + 1, y, OL)
+    def brick(x0, y0, x1, y1, base, mortar, hi, lo):
+        rect(x0, y0, x1, y1, base)
+        for y in range(y0, y1 + 1):
+            row = (y - y0) // 4
+            if (y - y0) % 4 == 3:
+                for x in range(x0, x1 + 1): px(x, y, mortar)
+            else:
+                off = 4 if row % 2 else 0
+                for x in range(x0, x1 + 1):
+                    if (x - x0 + off) % 8 == 7: px(x, y, mortar)
+        for y in range(y0, y1 + 1):                      # 受光面與背光面
+            px(x0, y, hi)
+            px(x1, y, lo); px(x1 - 1, y, lo) if x1 - x0 > 5 else None
+        for x in range(x0, x1 + 1): px(x, y0, hi)
+    stone = (178, 172, 180, 255); mortar = (128, 122, 138, 255); hi = (214, 210, 214, 255); lo = (104, 100, 118, 255)
+    stone2 = (190, 184, 188, 255)
+    red = (176, 56, 46, 255); red_d = (122, 38, 36, 255); red_l = (214, 92, 66, 255); gold = (240, 196, 64, 255); wood = (122, 82, 50, 255); wood_d = (84, 54, 36, 255)
+    # ---- 地面陰影
+    for x in range(1, 47):
+        px(x, 47, (20, 20, 30, 120))
+    # ---- 城牆（下方一長條）與垛口
+    outline(2, 33, 45, 46)
+    brick(2, 33, 45, 46, stone, mortar, hi, lo)
+    for x in range(2, 46, 5):                          # 垛口
+        outline(x, 29, x + 2, 32) if False else None
+        rect(x, 29, x + 2, 32, stone2)
+        for y in range(29, 33): px(x, y, hi); px(x + 2, y, lo)
+        for xx in range(x - 1, x + 4): px(xx, 28, OL)
+        px(x - 1, 29, OL); px(x + 3, 29, OL); px(x - 1, 30, OL); px(x + 3, 30, OL)
+    rect(2, 33, 45, 33, hi)
+    # ---- 左右城樓
+    for tx0 in (3, 33):
+        outline(tx0, 16, tx0 + 11, 46)
+        brick(tx0, 16, tx0 + 11, 46, stone, mortar, hi, lo)
+        for y in (22, 23, 24): px(tx0 + 5, y, OL); px(tx0 + 6, y, OL)           # 箭孔
+        for y in (36, 37, 38): px(tx0 + 5, y, OL); px(tx0 + 6, y, OL)
+        # 屋簷下的木梁
+        rect(tx0 - 1, 15, tx0 + 12, 16, wood_d)
+        # 屋頂：兩層歇山，簷角上翹
+        for i, (yy, half) in enumerate(((14, 8), (12, 7), (10, 6), (8, 5), (6, 4), (4, 3))):
+            c = red_l if i == 5 else (red if i % 2 == 0 else red_d)
+            cx = tx0 + 5.5
+            for x in range(int(cx - half), int(cx + half) + 1):
+                px(x, yy, c)
+                px(x, yy + 1, red_d if i % 2 == 0 else red)
+            px(int(cx - half) - 1, yy, OL); px(int(cx + half) + 1, yy, OL)
+        px(tx0 - 3, 13, red_d); px(tx0 - 2, 14, red_d); px(tx0 - 3, 12, OL); px(tx0 - 4, 12, red_d)             # 翹角
+        px(tx0 + 14, 13, red_d); px(tx0 + 13, 14, red_d); px(tx0 + 14, 12, OL); px(tx0 + 15, 12, red_d)
+        for x in range(tx0 - 3, tx0 + 15): px(x, 15, OL) if False else None
+        px(int(tx0 + 5.5), 3, gold); px(int(tx0 + 5.5), 2, gold)          # 寶頂
+    # ---- 中央主樓
+    outline(15, 20, 32, 33)
+    brick(15, 20, 32, 33, stone2, mortar, hi, lo)
+    rect(15, 25, 32, 26, wood_d); rect(15, 25, 32, 25, wood)                  # 腰簷木梁
+    for wx in (18, 28):                                                       # 窗
+        rect(wx, 21, wx + 2, 23, (40, 30, 44, 255)); px(wx + 1, 21, (200, 170, 90, 255)); px(wx + 1, 23, wood_d)
+    for wx in (18, 22, 26, 30):
+        pass
+    # 下層屋簷
+    for i, (yy, half) in enumerate(((19, 13), (17, 12), (15, 10))):
+        c = red if i % 2 == 0 else red_d
+        for x in range(int(23.5 - half), int(23.5 + half) + 1):
+            px(x, yy, c); px(x, yy + 1, red_d if i % 2 == 0 else red)
+        px(int(23.5 - half) - 1, yy, OL); px(int(23.5 + half) + 1, yy, OL)
+    px(9, 18, red_d); px(10, 19, red_d); px(8, 17, red_d); px(7, 17, OL)
+    px(38, 18, red_d); px(37, 19, red_d); px(39, 17, red_d); px(40, 17, OL)
+    # 上層屋頂
+    for i, (yy, half) in enumerate(((13, 7), (11, 6), (9, 5), (7, 3), (5, 2))):
+        c = red_l if i == 4 else (red if i % 2 == 0 else red_d)
+        for x in range(int(23.5 - half), int(23.5 + half) + 1):
+            px(x, yy, c); px(x, yy + 1, red_d if i % 2 == 0 else red)
+        px(int(23.5 - half) - 1, yy, OL); px(int(23.5 + half) + 1, yy, OL)
+    px(16, 12, red_d); px(15, 11, red_d); px(14, 11, OL)
+    px(31, 12, red_d); px(32, 11, red_d); px(33, 11, OL)
+    for y in range(0, 5): px(24, y, (96, 66, 44, 255))                        # 旗桿
+    for (x, y) in ((25, 0), (26, 0), (27, 0), (25, 1), (26, 1), (27, 1), (28, 1)): px(x, y, (212, 48, 44, 255))
+    px(24, 4, gold); px(23, 4, gold)
+    # ---- 城門
+    outline(18, 35, 29, 46)
+    rect(18, 35, 29, 46, (24, 18, 24, 255))
+    for x in range(19, 29):                                                   # 門板
+        for y in range(38, 47):
+            px(x, y, wood if (x % 3) else wood_d)
+    for y in range(38, 47):
+        px(23, y, OL); px(24, y, OL)                                           # 門縫
+    for (x, y) in ((20, 41), (21, 41), (26, 41), (27, 41), (20, 44), (21, 44), (26, 44), (27, 44)): px(x, y, (190, 190, 200, 255))   # 鐵釘
+    for x in range(19, 29): px(x, 37, wood_d) if x not in (19, 28) else None
+    for (x, y) in ((19, 36), (20, 36), (27, 36), (28, 36), (19, 37), (28, 37)): px(x, y, stone2)       # 拱石
+    for x in range(17, 31): px(x, 34, hi) if x in (17, 18, 29, 30) else None
+    rect(21, 33, 26, 34, gold)                                                 # 門額
+    px(21, 33, OL); px(26, 33, OL)
+    return im
+
+
+def _castle_part(tx, ty):
+    return lambda: castle_big().crop((tx * 16, ty * 16, tx * 16 + 16, ty * 16 + 16))
+
+
+def tile_city():
+    return _castle_part(1, 2)()   # 城門（中下）
+
+
+def tile_cave(base=None):
+    # 洞口：山壁上一個黑洞（可以走進去）
+    im = (base or tile_mountain)()
+    for y in range(6, 16):
+        for x in range(16):
+            d = ((x - 7.5) / 5.2) ** 2 + ((y - 14) / 8.0) ** 2
+            if d <= 1.0:
+                im.putpixel((x, y), (14, 10, 16, 255))
+            elif d <= 1.35:
+                im.putpixel((x, y), OUTLINE)
+    return im
+
+
+def tile_cavefloor():
+    return noise_tile((84, 76, 92), [(72, 64, 80), (98, 90, 108), (60, 54, 68)], 21, 40)
+
+
+def tile_cavewall():
+    im = noise_tile((40, 34, 48), [(30, 26, 38), (52, 46, 62), (24, 20, 30)], 22, 50)
+    for y in range(0, 16, 5):
+        for x in range(16):
+            if (x + y) % 5 != 0:
+                im.putpixel((x, y), (22, 18, 28, 255))
+    return im
+
+
+def _remap(im, table):
+    im = im.copy()
+    for y in range(16):
+        for x in range(16):
+            c = im.getpixel((x, y))
+            if c in table: im.putpixel((x, y), table[c])
+    return im
+
+
+def tile_sand():
+    return _remap(tile_wgrass(), {(92, 156, 74, 255): (222, 200, 142, 255), (66, 126, 58, 255): (198, 172, 112, 255), (122, 180, 92, 255): (240, 226, 174, 255), (226, 214, 120, 255): (176, 150, 96, 255)})
+
+
+def tile_snow():
+    return _remap(tile_wgrass(), {(92, 156, 74, 255): (228, 236, 244, 255), (66, 126, 58, 255): (190, 206, 226, 255), (122, 180, 92, 255): (246, 250, 255, 255), (226, 214, 120, 255): (160, 196, 236, 255)})
+
+
+def tile_snowforest():
+    return _remap(tile_forest(), {(58, 112, 54, 255): (214, 224, 236, 255), (18, 52, 34, 255): (24, 48, 56, 255), (30, 88, 46, 255): (36, 84, 84, 255), (50, 128, 60, 255): (56, 116, 104, 255), (84, 164, 82, 255): (240, 246, 252, 255)})
+
+
+def tile_snowmountain():
+    return _remap(tile_mountain(), {(92, 156, 74, 255): (228, 236, 244, 255), (66, 126, 58, 255): (190, 206, 226, 255), (122, 180, 92, 255): (246, 250, 255, 255), (226, 214, 120, 255): (160, 196, 236, 255),
+        (196, 154, 104, 255): (244, 247, 252, 255), (158, 114, 72, 255): (190, 204, 224, 255), (112, 78, 52, 255): (128, 144, 174, 255), (74, 56, 44, 255): (86, 98, 128, 255), (60, 110, 54, 255): (168, 188, 212, 255)})
+
+
+def tile_snowcave():
+    return tile_cave(tile_snowmountain)
+
+
 def build_tiles():
     makers = [tile_grass, tile_road, tile_water, tile_tree, tile_stone, tile_floor, tile_roof, tile_house_wall, tile_door,
-              tile_fence, tile_well, tile_crate, tile_barrel, tile_flowers, tile_stall, tile_sign, tile_thatch, tile_haystack, tile_bush, tile_forest, tile_mountain, tile_sea]
+              tile_fence, tile_well, tile_crate, tile_barrel, tile_flowers, tile_stall, tile_sign, tile_thatch, tile_haystack, tile_bush, tile_forest, tile_mountain, tile_sea, tile_city, tile_cave, tile_cavefloor, tile_cavewall,
+              _castle_part(0, 0), _castle_part(1, 0), _castle_part(2, 0), _castle_part(0, 2), _castle_part(2, 2), tile_wgrass, tile_sand, tile_snow, tile_snowforest, tile_snowmountain, tile_snowcave,
+              _castle_part(0, 1), _castle_part(1, 1), _castle_part(2, 1)]
     sheet = Image.new("RGBA", (16 * len(makers), 16))
     for i, m in enumerate(makers):
         sheet.paste(m(), (i * 16, 0))

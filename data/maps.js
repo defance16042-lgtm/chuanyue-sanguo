@@ -4,11 +4,11 @@
 window.DATA = window.DATA || {};
 window.DATA.legend = { '.': 0, ',': 1, '~': 2, 'T': 3, '#': 4, '_': 5, 'R': 6, 'W': 7, 'D': 8,
   'F': 9, 'O': 10, 'X': 11, 'B': 12, 'f': 13, 'S': 14, 'N': 15, 't': 16, 'H': 17, 'b': 18,
-  'Y': 19, 'M': 20, 'Z': 21 };   // Y 森林、M 山、Z 海：都可以走過去
+  'Y': 19, 'M': 20, 'Z': 21, 'C': 22, 'V': 23, 'c': 24, 'w': 25, 'q': 26, 'k': 27, 'p': 28, 'l': 29, 'r': 30, 'g': 31, 'a': 32, 'i': 33, 'I': 34, 'm': 35, 'v': 36, 'e': 37, 'u': 38, 'j': 39 };   // Y 森林、M 山、Z 海：都可以走過去
 // 地形：圖塊編號 → 地形（沒列出的都是平地）。戰鬥會依踩著的地形改變背景與適性
-window.DATA.terrainOf = { 19: 'forest', 20: 'mountain', 21: 'sea' };
+window.DATA.terrainOf = { 19: 'forest', 20: 'mountain', 21: 'sea', 34: 'forest', 35: 'mountain' };
 window.DATA.terrainNames = { plain: '平地', forest: '森林', mountain: '山', sea: '海' };
-window.DATA.solidTiles = [2, 3, 4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18];
+window.DATA.solidTiles = [2, 3, 4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 25, 26, 27, 28, 29, 30, 37, 38, 39];
 window.DATA.maps = {
   zhuoxian: {
     name: '涿縣',
@@ -38,10 +38,12 @@ window.DATA.maps = {
       'T.FFFFFFFF.....,,.......bT.....T',
       'T............f.,,.f..f......T..T',
       'T..............,,.........f....T',
-      'TTTTTTTTTTTTTTT,,TTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTT,,TTTTTTTTTTTTTTT'
     ],
     start: { x: 15, y: 9, dir: 'down' },
     warps: [
+      { x: 2, y: 25, to: 'world', tx: 38, ty: 11, dir: 'down' },
+      { x: 3, y: 25, to: 'world', tx: 38, ty: 11, dir: 'down' },
       { x: 5, y: 4, to: 'inn', tx: 5, ty: 6, dir: 'up' },
       { x: 12, y: 4, to: 'home1', tx: 4, ty: 5, dir: 'up' },
       { x: 21, y: 4, to: 'home2', tx: 4, ty: 5, dir: 'up' },
@@ -139,10 +141,12 @@ window.DATA.maps = {
       'T..........,,..........T',
       'T...f...X..,,..B...f...T',
       'T..........,,..........T',
-      'TTTTTTTTTTT,,TTTTTTTTTTT'
+      'TT,,TTTTTTT,,TTTTTTTTTTT'
     ],
     start: { x: 11, y: 1, dir: 'down' },
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 54, ty: 13, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 54, ty: 13, dir: 'down' },
       { x: 11, y: 0, to: 'field', tx: 11, ty: 18, dir: 'up' },
       { x: 12, y: 0, to: 'field', tx: 12, ty: 18, dir: 'up' },
       { x: 11, y: 19, to: 'yingchuan', tx: 13, ty: 1, dir: 'down', need: 'boss2_down', deny: 'path_blocked2' },
@@ -183,7 +187,7 @@ window.DATA.maps = {
       'T.MMMMMMM.b.,,,....YYYYYYYYT',
       'T............,,..b.........T',
       'T..f.........,,............T',
-      'TTTTTTTTTTTTT,,TTTTTTTTTTTTT'
+      'TTTT,,TTTTTTT,,TTTTTTTTTTTTT'
     ],
     start: { x: 13, y: 1, dir: 'down' },
     events: [
@@ -193,6 +197,8 @@ window.DATA.maps = {
       { x: 15, y: 4, dialogue: 'yc_sign' }
     ],
     warps: [
+      { x: 4, y: 23, to: 'world', tx: 40, ty: 63, dir: 'down' },
+      { x: 5, y: 23, to: 'world', tx: 40, ty: 63, dir: 'down' },
       { x: 13, y: 0, to: 'guangyang', tx: 11, ty: 18, dir: 'up' },
       { x: 14, y: 0, to: 'guangyang', tx: 12, ty: 18, dir: 'up' },
       { x: 13, y: 23, to: 'changshe', tx: 11, ty: 1, dir: 'down' },
@@ -229,10 +235,12 @@ window.DATA.maps = {
       'T.WWDWW....,,....WWDWW.T',
       'T........f.,,.b........T',
       'T......HH..,,..HH......T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 11, y: 1, dir: 'down' },
     warps: [
+      { x: 2, y: 17, to: 'world', tx: 60, ty: 68, dir: 'down' },
+      { x: 3, y: 17, to: 'world', tx: 60, ty: 68, dir: 'down' },
       { x: 11, y: 0, to: 'yingchuan', tx: 13, ty: 22, dir: 'up' },
       { x: 12, y: 0, to: 'yingchuan', tx: 14, ty: 22, dir: 'up' }
     ],
@@ -274,13 +282,15 @@ window.DATA.maps = {
       'T.YYYYYY...,,..........T',
       'T..........,,..........T',
       'T..........,,..........T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [
       { once: 'rn_intro_done', dialogue: 'rn_intro' }
     ],
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 80, ty: 67, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 80, ty: 67, dir: 'down' },
       { x: 0, y: 10, to: 'yingchuan', tx: 26, ty: 12, dir: 'left' },
       { x: 23, y: 10, to: 'wancheng', tx: 1, ty: 10, dir: 'right', need: 'pengtuo_down', deny: 'path_blocked4' }
     ],
@@ -317,13 +327,15 @@ window.DATA.maps = {
       'T..f...........b.......T',
       'T......................T',
       'T..........f...........T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [
       { once: 'wc_intro_done', dialogue: 'wc_intro' }
     ],
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 14, ty: 68, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 14, ty: 68, dir: 'down' },
       { x: 0, y: 10, to: 'runan', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'dongjun', tx: 1, ty: 10, dir: 'right', need: 'hanzhong_down', deny: 'path_blocked5' }
     ],
@@ -362,13 +374,15 @@ window.DATA.maps = {
       'T......................T',
       'T..YYYYY...........f...T',
       'T..YYYYY...............T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TTTTTTTT,,TTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [
       { once: 'dj_intro_done', dialogue: 'dj_intro' }
     ],
     warps: [
+      { x: 8, y: 19, to: 'world', tx: 84, ty: 53, dir: 'down' },
+      { x: 9, y: 19, to: 'world', tx: 84, ty: 53, dir: 'down' },
       { x: 0, y: 10, to: 'wancheng', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'jizhou', tx: 1, ty: 10, dir: 'right', need: 'busi_down', deny: 'path_blocked6' }
     ],
@@ -406,13 +420,15 @@ window.DATA.maps = {
       'T..........,,..........T',
       'T..YYYYY...............T',
       'T..YYYYY...............T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TTTTTTTT,,TTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [
       { once: 'jz_intro_done', dialogue: 'jz_intro' }
     ],
     warps: [
+      { x: 8, y: 19, to: 'world', tx: 52, ty: 27, dir: 'down' },
+      { x: 9, y: 19, to: 'world', tx: 52, ty: 27, dir: 'down' },
       { x: 0, y: 10, to: 'dongjun', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'guangzong', tx: 1, ty: 10, dir: 'right' }
     ],
@@ -447,13 +463,15 @@ window.DATA.maps = {
       'T......................T',
       'T..YYYY................T',
       'T..YYYY................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TTTTTTT,,TTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [
       { once: 'gz_intro_done', dialogue: 'gz_intro' }
     ],
     warps: [
+      { x: 7, y: 19, to: 'world', tx: 64, ty: 36, dir: 'down' },
+      { x: 8, y: 19, to: 'world', tx: 64, ty: 36, dir: 'down' },
       { x: 0, y: 10, to: 'jizhou', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'xiaquyang', tx: 1, ty: 10, dir: 'right', need: 'zuofeng_done', deny: 'path_blocked7' }
     ],
@@ -492,13 +510,15 @@ window.DATA.maps = {
       'T..YYYYY.......MMMM....T',
       'T..YYYYY...............T',
       'T......................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [
       { once: 'xq_intro_done', dialogue: 'xq_intro' }
     ],
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 32, ty: 37, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 32, ty: 37, dir: 'down' },
       { x: 0, y: 10, to: 'guangzong', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'gzcity', tx: 1, ty: 10, dir: 'right', need: 'zhangbao_down', deny: 'path_blocked8' }
     ],
@@ -534,13 +554,15 @@ window.DATA.maps = {
       'T......................T',
       'T..f...........f.......T',
       'T......................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [
       { once: 'gc_intro_done', dialogue: 'gc_intro' }
     ],
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 48, ty: 40, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 48, ty: 40, dir: 'down' },
       { x: 0, y: 10, to: 'xiaquyang', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'anxi', tx: 1, ty: 10, dir: 'right', need: 'sanzhang_down', deny: 'path_blocked9' }
     ],
@@ -575,13 +597,15 @@ window.DATA.maps = {
       'T...f..........~~~.....T',
       'T..............~~~.....T',
       'T......................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [
       { once: 'an_intro_done', dialogue: 'an_intro' }
     ],
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 30, ty: 23, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 30, ty: 23, dir: 'down' },
       { x: 0, y: 10, to: 'gzcity', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'heishan', tx: 1, ty: 10, dir: 'right', need: 'duyou_down', deny: 'path_blocked10' }
     ],
@@ -620,13 +644,15 @@ window.DATA.maps = {
       'T..YYYYY.......MMMM....T',
       'T..YYYYY...............T',
       'T......................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [
       { once: 'hs_intro_done', dialogue: 'hs_intro' }
     ],
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 12, ty: 23, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 12, ty: 23, dir: 'down' },
       { x: 0, y: 10, to: 'anxi', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'youbei', tx: 1, ty: 10, dir: 'right', need: 'zhangyan_down', deny: 'path_blocked11' }
     ],
@@ -663,11 +689,13 @@ window.DATA.maps = {
       'T...............YYY....T',
       'T......................T',
       'T......................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [ { once: 'yb_intro_done', dialogue: 'yb_intro' } ],
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 70, ty: 7, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 70, ty: 7, dir: 'down' },
       { x: 0, y: 10, to: 'heishan', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'pingyuan', tx: 1, ty: 10, dir: 'right', need: 'zhangchun_down', deny: 'path_blocked12' }
     ],
@@ -702,11 +730,13 @@ window.DATA.maps = {
       'T...f..........~~~.....T',
       'T..............~~~.....T',
       'T......................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [ { once: 'py_intro_done', dialogue: 'py_intro' } ],
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 82, ty: 27, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 82, ty: 27, dir: 'down' },
       { x: 0, y: 10, to: 'youbei', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'suanzao', tx: 1, ty: 10, dir: 'right', need: 'py_news', deny: 'path_blocked13' }
     ],
@@ -743,11 +773,13 @@ window.DATA.maps = {
       'T......................T',
       'T..YYY.............f...T',
       'T..YYY.................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TTTTTT,,TTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [ { once: 'sz_intro_done', dialogue: 'sz_intro' } ],
     warps: [
+      { x: 6, y: 19, to: 'world', tx: 56, ty: 56, dir: 'down' },
+      { x: 7, y: 19, to: 'world', tx: 56, ty: 56, dir: 'down' },
       { x: 0, y: 10, to: 'pingyuan', tx: 22, ty: 10, dir: 'left' },
       { x: 23, y: 10, to: 'sishui', tx: 1, ty: 10, dir: 'right', need: 'sz_meeting', deny: 'path_blocked14' }
     ],
@@ -786,11 +818,13 @@ window.DATA.maps = {
       'T....f.................T',
       'T......................T',
       'T......................T',
-      'TTTTTTTTTTTTTTTTTTTTTTTT'
+      'TT,,TTTTTTTTTTTTTTTTTTTT'
     ],
     start: { x: 1, y: 10, dir: 'right' },
     events: [ { once: 'ss_intro_done', dialogue: 'ss_intro' } ],
     warps: [
+      { x: 2, y: 19, to: 'world', tx: 20, ty: 56, dir: 'down' },
+      { x: 3, y: 19, to: 'world', tx: 20, ty: 56, dir: 'down' },
       { x: 0, y: 10, to: 'suanzao', tx: 22, ty: 10, dir: 'left' }
     ],
     npcs: [
