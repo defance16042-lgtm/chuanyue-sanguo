@@ -62,19 +62,23 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('oath_done set, route chosen (wit)', s.flags.oath_done === true && s.flags.route === 'wit' && s.scene === 'MapScene', s.flags);
   await go('zhuoxian', 15, 24, 'down'); await sleep(150);
   await tap('ArrowDown', 90, 900); s = await S();
-  check('after the oath the south gate opens (to the field)', s.map === 'field', s.map);
+  check('after the oath the south gate opens (onto the world map)', s.map === 'world', s.map);
 
   // 野外：鄒靖給任務；沒打倒程遠志前不能往南
   await face('field', 12, 2, 'right'); s = await S();
   check('Zou Jing sets camp_ok', s.flags.camp_ok === true, s.flags);
   await go('field', 11, 18, 'down'); await sleep(150);
-  await tap('ArrowDown', 90, 900); await talk(); s = await S();
-  check('south exit blocked until Cheng Yuanzhi is beaten', s.map === 'field', s.map);
-
-  // 程遠志倒下之後可以往南到廣陽
-  await page.evaluate(() => { Game.flags.boss_down = true; });
-  await go('field', 11, 18, 'down'); await sleep(150);
   await tap('ArrowDown', 90, 900); s = await S();
+  check('field south exit leads out to the world map', s.map === 'world', s.map);
+  const gp = await page.evaluate(() => DATA.worldTowns.guangyang);
+  await go('world', gp.x, gp.y + 1, 'up'); await sleep(150);
+  await tap('ArrowUp', 90, 900); await talk(); s = await S();
+  check('Guangyang gate stays shut until Cheng Yuanzhi is beaten', s.map === 'world', s.map);
+
+  // 程遠志倒下之後，大地圖上廣陽的城門就開了
+  await page.evaluate(() => { Game.flags.boss_down = true; });
+  await go('world', gp.x, gp.y + 1, 'up'); await sleep(150);
+  await tap('ArrowUp', 90, 900); s = await S();
   check('after the boss the way to Guangyang is open', s.map === 'guangyang', s.map);
 
   // 廣陽頭目：對話後進入戰鬥，勝利後旗標與結尾對話

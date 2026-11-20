@@ -4,7 +4,7 @@
 window.DATA = window.DATA || {};
 window.DATA.legend = { '.': 0, ',': 1, '~': 2, 'T': 3, '#': 4, '_': 5, 'R': 6, 'W': 7, 'D': 8,
   'F': 9, 'O': 10, 'X': 11, 'B': 12, 'f': 13, 'S': 14, 'N': 15, 't': 16, 'H': 17, 'b': 18,
-  'Y': 19, 'M': 20, 'Z': 21, 'C': 22, 'V': 23, 'c': 24, 'w': 25, 'q': 26, 'k': 27, 'p': 28, 'l': 29, 'r': 30, 'g': 31, 'a': 32, 'i': 33, 'I': 34, 'm': 35, 'v': 36, 'e': 37, 'u': 38, 'j': 39 };   // Y 森林、M 山、Z 海：都可以走過去
+  'Y': 19, 'M': 20, 'Z': 21, 'C': 22, 'V': 23, 'c': 24, 'w': 25, 'q': 26, 'k': 27, 'p': 28, 'l': 29, 'r': 30, 'g': 31, 'a': 32, 'i': 33, 'I': 34, 'm': 35, 'v': 36, 'e': 37, 'u': 38, 'j': 39, '>': 40, '<': 41, 'K': 42 };   // Y 森林、M 山、Z 海：都可以走過去
 // 地形：圖塊編號 → 地形（沒列出的都是平地）。戰鬥會依踩著的地形改變背景與適性
 window.DATA.terrainOf = { 19: 'forest', 20: 'mountain', 21: 'sea', 34: 'forest', 35: 'mountain' };
 window.DATA.terrainNames = { plain: '平地', forest: '森林', mountain: '山', sea: '海' };
@@ -47,8 +47,8 @@ window.DATA.maps = {
       { x: 5, y: 4, to: 'inn', tx: 5, ty: 6, dir: 'up' },
       { x: 12, y: 4, to: 'home1', tx: 4, ty: 5, dir: 'up' },
       { x: 21, y: 4, to: 'home2', tx: 4, ty: 5, dir: 'up' },
-      { x: 15, y: 25, to: 'field', tx: 11, ty: 1, dir: 'down', need: 'oath_done', deny: 'gate_closed' },
-      { x: 16, y: 25, to: 'field', tx: 12, ty: 1, dir: 'down', need: 'oath_done', deny: 'gate_closed' }
+      { x: 15, y: 25, to: 'world', tx: 38, ty: 11, dir: 'down', need: 'oath_done', deny: 'gate_closed' },
+      { x: 16, y: 25, to: 'world', tx: 38, ty: 11, dir: 'down', need: 'oath_done', deny: 'gate_closed' }
     ],
     npcs: [
       { id: 'villager1', name: '村民', sprite: 4, x: 13, y: 8, dir: 'down', dialogue: 'villager', alt: { flag: 'notice_read', dialogue: 'villager_after' } },
@@ -77,7 +77,7 @@ window.DATA.maps = {
     ]
   },
   field: {
-    name: '野外（戰鬥測試地圖）',
+    name: '涿縣南郊',
     battleBg: 'grass',
     encounter: { group: 'field1', rate: 0.07, minSteps: 4 },
     tiles: [
@@ -104,10 +104,10 @@ window.DATA.maps = {
     ],
     start: { x: 11, y: 1, dir: 'down' },
     warps: [
-      { x: 11, y: 0, to: 'zhuoxian', tx: 15, ty: 24, dir: 'up' },
-      { x: 12, y: 0, to: 'zhuoxian', tx: 16, ty: 24, dir: 'up' },
-      { x: 11, y: 19, to: 'guangyang', tx: 11, ty: 1, dir: 'down', need: 'boss_down', deny: 'path_blocked' },
-      { x: 12, y: 19, to: 'guangyang', tx: 12, ty: 1, dir: 'down', need: 'boss_down', deny: 'path_blocked' }
+      { x: 11, y: 0, to: 'world', tx: 46, ty: 11, dir: 'down' },
+      { x: 12, y: 0, to: 'world', tx: 46, ty: 11, dir: 'down' },
+      { x: 11, y: 19, to: 'world', tx: 46, ty: 11, dir: 'down' },
+      { x: 12, y: 19, to: 'world', tx: 46, ty: 11, dir: 'down' }
     ],
     npcs: [
       { id: 'zoujing', name: '鄒靖', sprite: 13, x: 13, y: 2, dir: 'left', dialogue: 'zoujing', alt: { flag: 'boss_down', dialogue: 'zoujing_after' } },
@@ -147,10 +147,10 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 54, ty: 13, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 54, ty: 13, dir: 'down' },
-      { x: 11, y: 0, to: 'field', tx: 11, ty: 18, dir: 'up' },
-      { x: 12, y: 0, to: 'field', tx: 12, ty: 18, dir: 'up' },
-      { x: 11, y: 19, to: 'yingchuan', tx: 13, ty: 1, dir: 'down', need: 'boss2_down', deny: 'path_blocked2' },
-      { x: 12, y: 19, to: 'yingchuan', tx: 14, ty: 1, dir: 'down', need: 'boss2_down', deny: 'path_blocked2' }
+      { x: 11, y: 0, to: 'world', tx: 54, ty: 13, dir: 'down' },
+      { x: 12, y: 0, to: 'world', tx: 54, ty: 13, dir: 'down' },
+      { x: 11, y: 19, to: 'world', tx: 54, ty: 13, dir: 'down' },
+      { x: 12, y: 19, to: 'world', tx: 54, ty: 13, dir: 'down' }
     ],
     npcs: [
       { id: 'boss2', name: '黃巾渠帥', sprite: 12, x: 11, y: 17, dir: 'up', dialogue: 'boss_qushuai', hideIf: 'boss2_down' },
@@ -199,11 +199,11 @@ window.DATA.maps = {
     warps: [
       { x: 4, y: 23, to: 'world', tx: 40, ty: 63, dir: 'down' },
       { x: 5, y: 23, to: 'world', tx: 40, ty: 63, dir: 'down' },
-      { x: 13, y: 0, to: 'guangyang', tx: 11, ty: 18, dir: 'up' },
-      { x: 14, y: 0, to: 'guangyang', tx: 12, ty: 18, dir: 'up' },
-      { x: 13, y: 23, to: 'changshe', tx: 11, ty: 1, dir: 'down' },
-      { x: 14, y: 23, to: 'changshe', tx: 12, ty: 1, dir: 'down' },
-      { x: 27, y: 12, to: 'runan', tx: 1, ty: 10, dir: 'right', need: 'bocai_down', deny: 'path_blocked3' }
+      { x: 13, y: 0, to: 'world', tx: 40, ty: 63, dir: 'down' },
+      { x: 14, y: 0, to: 'world', tx: 40, ty: 63, dir: 'down' },
+      { x: 13, y: 23, to: 'world', tx: 40, ty: 63, dir: 'down' },
+      { x: 14, y: 23, to: 'world', tx: 40, ty: 63, dir: 'down' },
+      { x: 27, y: 12, to: 'world', tx: 40, ty: 63, dir: 'down' }
     ],
     npcs: [
       { id: 'kuibing', name: '朱儁軍潰兵', sprite: 9, x: 12, y: 7, dir: 'right', dialogue: 'yc_kuibing' },
@@ -241,8 +241,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 17, to: 'world', tx: 60, ty: 68, dir: 'down' },
       { x: 3, y: 17, to: 'world', tx: 60, ty: 68, dir: 'down' },
-      { x: 11, y: 0, to: 'yingchuan', tx: 13, ty: 22, dir: 'up' },
-      { x: 12, y: 0, to: 'yingchuan', tx: 14, ty: 22, dir: 'up' }
+      { x: 11, y: 0, to: 'world', tx: 60, ty: 68, dir: 'down' },
+      { x: 12, y: 0, to: 'world', tx: 60, ty: 68, dir: 'down' }
     ],
     npcs: [
       { id: 'huangfu', name: '皇甫嵩', sprite: 16, x: 5, y: 6, dir: 'down', dialogue: 'hf_first', alt: { flag: 'guest_caocao', dialogue: 'hf_plan' }, hideIf: 'bocai_down' },
@@ -291,8 +291,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 80, ty: 67, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 80, ty: 67, dir: 'down' },
-      { x: 0, y: 10, to: 'yingchuan', tx: 26, ty: 12, dir: 'left' },
-      { x: 23, y: 10, to: 'wancheng', tx: 1, ty: 10, dir: 'right', need: 'pengtuo_down', deny: 'path_blocked4' }
+      { x: 0, y: 10, to: 'world', tx: 80, ty: 67, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 80, ty: 67, dir: 'down' }
     ],
     npcs: [
       { id: 'pengtuo', name: '彭脫', sprite: 12, x: 18, y: 10, dir: 'left', dialogue: 'boss_pengtuo', hideIf: 'pengtuo_down' },
@@ -336,8 +336,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 14, ty: 68, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 14, ty: 68, dir: 'down' },
-      { x: 0, y: 10, to: 'runan', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'dongjun', tx: 1, ty: 10, dir: 'right', need: 'hanzhong_down', deny: 'path_blocked5' }
+      { x: 0, y: 10, to: 'world', tx: 14, ty: 68, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 14, ty: 68, dir: 'down' }
     ],
     npcs: [
       { id: 'zhaohong', name: '趙弘', sprite: 12, x: 12, y: 5, dir: 'down', dialogue: 'boss_zhaohong', hideIf: 'zhaohong_down' },
@@ -383,8 +383,8 @@ window.DATA.maps = {
     warps: [
       { x: 8, y: 19, to: 'world', tx: 84, ty: 53, dir: 'down' },
       { x: 9, y: 19, to: 'world', tx: 84, ty: 53, dir: 'down' },
-      { x: 0, y: 10, to: 'wancheng', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'jizhou', tx: 1, ty: 10, dir: 'right', need: 'busi_down', deny: 'path_blocked6' }
+      { x: 0, y: 10, to: 'world', tx: 84, ty: 53, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 84, ty: 53, dir: 'down' }
     ],
     npcs: [
       { id: 'busi', name: '卜巳', sprite: 12, x: 18, y: 10, dir: 'left', dialogue: 'boss_busi', hideIf: 'busi_down' },
@@ -429,8 +429,8 @@ window.DATA.maps = {
     warps: [
       { x: 8, y: 19, to: 'world', tx: 52, ty: 27, dir: 'down' },
       { x: 9, y: 19, to: 'world', tx: 52, ty: 27, dir: 'down' },
-      { x: 0, y: 10, to: 'dongjun', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'guangzong', tx: 1, ty: 10, dir: 'right' }
+      { x: 0, y: 10, to: 'world', tx: 52, ty: 27, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 52, ty: 27, dir: 'down' }
     ],
     npcs: [
       { id: 'jzrefugee', name: '逃難的老人', sprite: 7, x: 6, y: 9, dir: 'right', dialogue: 'jz_refugee' },
@@ -472,8 +472,8 @@ window.DATA.maps = {
     warps: [
       { x: 7, y: 19, to: 'world', tx: 64, ty: 36, dir: 'down' },
       { x: 8, y: 19, to: 'world', tx: 64, ty: 36, dir: 'down' },
-      { x: 0, y: 10, to: 'jizhou', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'xiaquyang', tx: 1, ty: 10, dir: 'right', need: 'zuofeng_done', deny: 'path_blocked7' }
+      { x: 0, y: 10, to: 'world', tx: 64, ty: 36, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 64, ty: 36, dir: 'down' }
     ],
     npcs: [
       { id: 'luzhi', name: '盧植', sprite: 19, x: 5, y: 6, dir: 'right', dialogue: 'gz_luzhi', hideIf: 'guest_luzhi' },
@@ -519,8 +519,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 32, ty: 37, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 32, ty: 37, dir: 'down' },
-      { x: 0, y: 10, to: 'guangzong', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'gzcity', tx: 1, ty: 10, dir: 'right', need: 'zhangbao_down', deny: 'path_blocked8' }
+      { x: 0, y: 10, to: 'world', tx: 32, ty: 37, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 32, ty: 37, dir: 'down' }
     ],
     npcs: [
       { id: 'zhangbao', name: '張寶', sprite: 22, x: 17, y: 10, dir: 'left', dialogue: 'boss_zhangbao', hideIf: 'zhangbao_down' },
@@ -563,8 +563,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 48, ty: 40, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 48, ty: 40, dir: 'down' },
-      { x: 0, y: 10, to: 'xiaquyang', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'anxi', tx: 1, ty: 10, dir: 'right', need: 'sanzhang_down', deny: 'path_blocked9' }
+      { x: 0, y: 10, to: 'world', tx: 48, ty: 40, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 48, ty: 40, dir: 'down' }
     ],
     npcs: [
       { id: 'zhangjiao', name: '張角', sprite: 23, x: 12, y: 5, dir: 'down', dialogue: 'boss_zhangjiao', hideIf: 'zhangjiao_down' },
@@ -606,8 +606,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 30, ty: 23, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 30, ty: 23, dir: 'down' },
-      { x: 0, y: 10, to: 'gzcity', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'heishan', tx: 1, ty: 10, dir: 'right', need: 'duyou_down', deny: 'path_blocked10' }
+      { x: 0, y: 10, to: 'world', tx: 30, ty: 23, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 30, ty: 23, dir: 'down' }
     ],
     npcs: [
       { id: 'jianyong', name: '簡雍', sprite: 27, x: 12, y: 6, dir: 'down', dialogue: 'an_jianyong', alt: { flag: 'duyou_down', dialogue: 'an_jianyong2' } },
@@ -653,8 +653,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 12, ty: 23, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 12, ty: 23, dir: 'down' },
-      { x: 0, y: 10, to: 'anxi', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'youbei', tx: 1, ty: 10, dir: 'right', need: 'zhangyan_down', deny: 'path_blocked11' }
+      { x: 0, y: 10, to: 'world', tx: 12, ty: 23, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 12, ty: 23, dir: 'down' }
     ],
     npcs: [
       { id: 'zhangyan', name: '張燕', sprite: 26, x: 17, y: 10, dir: 'left', dialogue: 'boss_zhangyan', hideIf: 'zhangyan_down' },
@@ -696,8 +696,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 70, ty: 7, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 70, ty: 7, dir: 'down' },
-      { x: 0, y: 10, to: 'heishan', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'pingyuan', tx: 1, ty: 10, dir: 'right', need: 'zhangchun_down', deny: 'path_blocked12' }
+      { x: 0, y: 10, to: 'world', tx: 70, ty: 7, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 70, ty: 7, dir: 'down' }
     ],
     npcs: [
       { id: 'zhangchun', name: '張純', sprite: 32, x: 17, y: 10, dir: 'left', dialogue: 'boss_zhangchun', hideIf: 'zhangchun_down' },
@@ -737,8 +737,8 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 82, ty: 27, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 82, ty: 27, dir: 'down' },
-      { x: 0, y: 10, to: 'youbei', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'suanzao', tx: 1, ty: 10, dir: 'right', need: 'py_news', deny: 'path_blocked13' }
+      { x: 0, y: 10, to: 'world', tx: 82, ty: 27, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 82, ty: 27, dir: 'down' }
     ],
     npcs: [
       { id: 'pyjianyong', name: '簡雍', sprite: 27, x: 12, y: 6, dir: 'down', dialogue: 'py_jianyong' },
@@ -780,8 +780,8 @@ window.DATA.maps = {
     warps: [
       { x: 6, y: 19, to: 'world', tx: 56, ty: 56, dir: 'down' },
       { x: 7, y: 19, to: 'world', tx: 56, ty: 56, dir: 'down' },
-      { x: 0, y: 10, to: 'pingyuan', tx: 22, ty: 10, dir: 'left' },
-      { x: 23, y: 10, to: 'sishui', tx: 1, ty: 10, dir: 'right', need: 'sz_meeting', deny: 'path_blocked14' }
+      { x: 0, y: 10, to: 'world', tx: 56, ty: 56, dir: 'down' },
+      { x: 23, y: 10, to: 'world', tx: 56, ty: 56, dir: 'down' }
     ],
     npcs: [
       { id: 'yuanshao', name: '袁紹', sprite: 29, x: 12, y: 6, dir: 'down', dialogue: 'sz_yuanshao', alt: { flag: 'sz_meeting', dialogue: 'sz_yuanshao2' } },
@@ -825,7 +825,7 @@ window.DATA.maps = {
     warps: [
       { x: 2, y: 19, to: 'world', tx: 20, ty: 56, dir: 'down' },
       { x: 3, y: 19, to: 'world', tx: 20, ty: 56, dir: 'down' },
-      { x: 0, y: 10, to: 'suanzao', tx: 22, ty: 10, dir: 'left' }
+      { x: 0, y: 10, to: 'world', tx: 20, ty: 56, dir: 'down' }
     ],
     npcs: [
       { id: 'huaxiong', name: '華雄', sprite: 31, x: 17, y: 10, dir: 'left', dialogue: 'boss_huaxiong', hideIf: 'huaxiong_down' },

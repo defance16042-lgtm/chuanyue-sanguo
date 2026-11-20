@@ -708,11 +708,65 @@ def tile_snowcave():
     return tile_cave(tile_snowmountain)
 
 
+def tile_stairs_down():
+    # 往下的樓梯：地面上一個暗洞口，階梯逐級變暗
+    im = tile_cavefloor()
+    for i in range(5):
+        y0 = 3 + i * 2
+        c = (96 - i * 16, 88 - i * 15, 104 - i * 16, 255)
+        for y in range(y0, y0 + 2):
+            for x in range(3 + i // 2, 13 - i // 2): im.putpixel((x, y), c)
+    for x in range(2, 14): im.putpixel((x, 2), OUTLINE); im.putpixel((x, 13), OUTLINE)
+    for y in range(2, 14): im.putpixel((2, y), OUTLINE); im.putpixel((13, y), OUTLINE)
+    return im
+
+
+def tile_stairs_up():
+    # 往上的樓梯：階梯逐級變亮，盡頭透出一點光
+    im = tile_cavefloor()
+    for i in range(5):
+        y0 = 3 + i * 2
+        c = (190 - i * 22, 180 - i * 22, 160 - i * 18, 255)
+        for y in range(y0, y0 + 2):
+            for x in range(3, 13): im.putpixel((x, y), c)
+    for x in range(3, 13): im.putpixel((x, 3), (250, 244, 200, 255))
+    for x in range(2, 14): im.putpixel((x, 2), OUTLINE); im.putpixel((x, 13), OUTLINE)
+    for y in range(2, 14): im.putpixel((2, y), OUTLINE); im.putpixel((13, y), OUTLINE)
+    return im
+
+
+def tile_camp():
+    # 黃巾營寨：草地上兩頂帳篷、營火與黃旗（涿縣南郊的入口）
+    im = tile_wgrass()
+    def tent(cx, top, h, light, dark):
+        for r in range(h):
+            y = top + r; half = r + 1
+            for x in range(cx - half, cx + half + 1):
+                if 0 <= x < 16 and 0 <= y < 16:
+                    im.putpixel((x, y), light if x < cx else dark)
+            for x in (cx - half - 1, cx + half + 1):
+                if 0 <= x < 16 and 0 <= y < 16: im.putpixel((x, y), OUTLINE)
+        for x in range(cx - h - 1, cx + h + 2):
+            if 0 <= x < 16 and top + h < 16: im.putpixel((x, top + h), OUTLINE)
+        for r in range(h - 3, h):                          # 帳門
+            for x in range(cx - 1 if r == h - 1 else cx, cx + 1):
+                im.putpixel((x, top + r), (46, 32, 30, 255))
+        im.putpixel((cx, top - 1), OUTLINE)
+    tent(4, 7, 6, (226, 204, 146, 255), (184, 158, 104, 255))
+    tent(11, 9, 5, (214, 190, 132, 255), (172, 146, 94, 255))
+    for y in range(0, 8): im.putpixel((8, y), (90, 60, 40, 255))
+    for (x, y) in ((9, 0), (10, 0), (11, 0), (12, 0), (9, 1), (10, 1), (11, 1), (12, 1), (9, 2), (10, 2), (11, 2)):
+        im.putpixel((x, y), (240, 210, 40, 255))
+    for (x, y) in ((7, 14), (8, 14), (8, 13)):
+        im.putpixel((x, y), (240, 120, 40, 255))
+    return im
+
+
 def build_tiles():
     makers = [tile_grass, tile_road, tile_water, tile_tree, tile_stone, tile_floor, tile_roof, tile_house_wall, tile_door,
               tile_fence, tile_well, tile_crate, tile_barrel, tile_flowers, tile_stall, tile_sign, tile_thatch, tile_haystack, tile_bush, tile_forest, tile_mountain, tile_sea, tile_city, tile_cave, tile_cavefloor, tile_cavewall,
               _castle_part(0, 0), _castle_part(1, 0), _castle_part(2, 0), _castle_part(0, 2), _castle_part(2, 2), tile_wgrass, tile_sand, tile_snow, tile_snowforest, tile_snowmountain, tile_snowcave,
-              _castle_part(0, 1), _castle_part(1, 1), _castle_part(2, 1)]
+              _castle_part(0, 1), _castle_part(1, 1), _castle_part(2, 1), tile_stairs_down, tile_stairs_up, tile_camp]
     sheet = Image.new("RGBA", (16 * len(makers), 16))
     for i, m in enumerate(makers):
         sheet.paste(m(), (i * 16, 0))

@@ -529,6 +529,46 @@
   }
 
   // ------------------------------------------------------------ 地圖
+  // 洞穴裡的物件：火把、骨堆、雕像、石碑、陶罐、靈泉、拉桿、石門（全部用方塊畫的像素圖）
+  function drawCaveObj(c, x, y, o) {
+    const r = function (col, a, b, w, h) { c.fillStyle = col; c.fillRect(x + a, y + b, w, h); };
+    const t = Math.floor(E.time / 160) % 3;
+    const K = '#1a1220';
+    if (o.type === 'torch') {
+      r(K, 6, 6, 4, 9); r('#7a5232', 7, 7, 2, 7); r('#4a3020', 5, 13, 6, 2);
+      r(K, 5, 1 + (t === 1 ? 1 : 0), 6, 6);
+      r(t === 2 ? '#ffb030' : '#ff8820', 6, 2 + (t === 1 ? 1 : 0), 4, 4);
+      r('#ffe070', 7, 3 + (t === 1 ? 1 : 0), 2, 2);
+    } else if (o.type === 'bones') {
+      r('#2a2230', 2, 9, 12, 5);
+      r('#e8e2d0', 3, 11, 10, 2); r('#e8e2d0', 4, 9, 2, 2); r('#e8e2d0', 10, 10, 2, 2);
+      r(K, 6, 5, 6, 6); r('#f0ead8', 7, 5, 4, 5); r(K, 8, 7, 1, 1); r(K, 10, 7, 1, 1); r('#c8c2b0', 8, 9, 3, 1);
+    } else if (o.type === 'statue') {
+      r(K, 3, 12, 10, 3); r('#8a8694', 4, 12, 8, 2);
+      r(K, 5, 4, 6, 9); r('#a8a4b2', 6, 5, 4, 7); r('#7a7686', 9, 5, 1, 7);
+      r(K, 6, 0, 4, 5); r('#b8b4c2', 7, 1, 2, 3);
+      r('#6a5a44', 11, 3, 1, 10); r('#d8d0b0', 11, 2, 1, 2);
+    } else if (o.type === 'tablet') {
+      r(K, 3, 2, 10, 13); r('#8e8a9c', 4, 3, 8, 11); r('#aaa6b8', 4, 3, 8, 2);
+      for (let i = 0; i < 4; i++) r('#5c586a', 5, 6 + i * 2, 6 - (i % 2) * 2, 1);
+    } else if (o.type === 'urn') {
+      const broken = !!G.flags['urn_' + o.id];
+      if (broken) { r('#5a3a28', 3, 12, 3, 2); r('#7a5238', 8, 11, 4, 3); r('#5a3a28', 6, 13, 2, 1); }
+      else { r(K, 4, 3, 8, 12); r('#9a5c3a', 5, 4, 6, 10); r('#b87850', 5, 4, 2, 9); r('#6a3c24', 9, 5, 2, 9); r(K, 5, 2, 6, 2); r('#c08860', 6, 2, 4, 1); }
+    } else if (o.type === 'spring') {
+      r(K, 1, 5, 14, 10); r('#8a8694', 2, 6, 12, 8); r('#2a6ac8', 3, 7, 10, 6); r('#58a8f0', 4, 8, 5, 2);
+      if (t === 0) r('#e8f8ff', 10, 9, 1, 1); if (t === 1) r('#e8f8ff', 6, 11, 1, 1); if (t === 2) r('#e8f8ff', 11, 8, 1, 1);
+    } else if (o.type === 'lever') {
+      const on = !!G.flags[o.flag];
+      r(K, 3, 10, 10, 5); r('#8a8694', 4, 11, 8, 3);
+      for (let i = 0; i < 6; i++) r('#c0b8a0', on ? 4 + i : 11 - i, 9 - i, 2, 2);
+      r('#d84838', on ? 9 : 4, 3, 3, 3);
+    } else if (o.type === 'gate') {
+      r(K, 0, 0, 16, 16); r('#7a768a', 1, 1, 14, 14); r('#9a96aa', 1, 1, 14, 2);
+      r('#5c586a', 7, 3, 2, 12); r('#5c586a', 1, 8, 14, 1);
+      [[3, 4], [12, 4], [3, 11], [12, 11]].forEach(function (p) { r('#c8c0a0', p[0], p[1], 1, 1); });
+    }
+  }
   // 寶箱：用方塊畫的像素寶箱（關著／打開）
   function drawChest(c, x, y, open) {
     const r = function (col, a, b, w, h) { c.fillStyle = col; c.fillRect(x + a, y + b, w, h); };
@@ -564,7 +604,7 @@
     terrainHere() { return D.terrainOf[this.tileAt(this.p.x, this.p.y)] || 'plain'; }
     visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf]); }
     npcAt(x, y) { return this.npcs.find(function (n) { return n.x === x && n.y === y && this.visible(n); }, this); }
-    objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y; }); }
+    objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]); }); }
     blocked(x, y) {
       const t = this.tileAt(x, y);
       return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!this.objAt(x, y);
@@ -581,10 +621,27 @@
       }
       else if (obj && obj.type === 'save') E.push(new SaveScene('save'));
       else if (obj && obj.type === 'chest') this.openChest(obj);
+      else if (obj && obj.type === 'urn') this.openUrn(obj);
+      else if (obj && obj.type === 'spring') { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('清涼的泉水洗去了疲勞。隊伍的兵力與戰術點全部恢復了。'); }
+      else if (obj && obj.type === 'lever') {
+        if (G.flags[obj.flag]) this.say('拉桿已經扳下去了。');
+        else { G.flags[obj.flag] = true; this.say('喀啦——拉桿扳了下去，遠處傳來沉重的石門滑開的聲音。'); }
+      }
+      else if (obj && obj.type === 'gate') this.say('一道沉重的石門擋住去路，附近一定有開啟的機關。');
+      else if (obj && obj.text) this.say(obj.text);
       else {
         const sign = (this.map.signs || []).find(function (k) { return k.x === tx && k.y === ty; });
         if (sign) E.push(new DialogScene(D.dialogue[sign.dialogue]));
       }
+    }
+    openUrn(o) {
+      const key = 'urn_' + o.id;
+      if (G.flags[key]) { this.say('陶罐已經碎了，裡面什麼都沒有。'); return; }
+      G.flags[key] = true;
+      const got = [];
+      if (o.gold) { G.gold = (G.gold || 0) + o.gold; got.push(o.gold + '金'); }
+      Object.keys(o.item || {}).forEach(function (id) { G.items[id] = (G.items[id] || 0) + o.item[id]; got.push(D.battle.items[id].name + '×' + o.item[id]); });
+      this.say(got.length ? '打破了陶罐！裡面有：' + got.join('、') + '。' : '打破了陶罐，裡面是空的，只有一股霉味。');
     }
     openChest(o) {
       const key = 'chest_' + o.id;
@@ -599,7 +656,8 @@
     arrive() {
       const p = this.p;
       const w = this.map.warps.find(function (k) { return k.x === p.x && k.y === p.y; });
-      if (w && w.need && !G.flags[w.need]) {      // 條件未達成：不能過去，退回一格
+      const opened = w && this.map.world && D.worldBackfill && D.worldBackfill[w.to] && G.flags[D.worldBackfill[w.to]];   // 大地圖：打通該城的關卡，城門就開了
+      if (w && w.need && !G.flags[w.need] && !opened) {      // 條件未達成：不能過去，退回一格
         if (w.deny) E.push(new DialogScene(D.dialogue[w.deny]));
         p.x = w.bx !== undefined ? w.bx : p.x; p.y = w.by !== undefined ? w.by : p.y - 1; p.dir = 'up';
       }
@@ -697,6 +755,7 @@
       if (a.gold) { G.gold = (G.gold || 0) + a.gold; got.push(a.gold + '金'); }
       if (a.gear) a.gear.forEach(function (id) { G.addGear(id); got.push(D.equipment[id].name); });
       if (a.give) Object.keys(a.give).forEach(function (id) { G.items[id] = (G.items[id] || 0) + a.give[id]; got.push(D.battle.items[id].name + '×' + a.give[id]); });
+      if (a.heal) { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('隊伍的兵力與戰術點全部恢復了。'); }
       if (got.length) this.say((a.pay ? '付出 ' + a.pay + ' 金。' : '') + '獲得：' + got.join('、') + '。');
       if (a.recruit) {
         if (G.flags['recruited_' + a.recruit]) return;
@@ -791,6 +850,8 @@
         items.push({ y: n.y * T, draw: function () { drawSprite(wc, n.sprite, n.dir, 0, n.x * T - cam.x, n.y * T - cam.y); } });
       });
       this.map.objects.forEach(function (o) {
+        if (o.type === 'gate' && G.flags[o.flag]) return;
+        if (o.type !== 'save' && o.type !== 'chest' && o.type && drawCaveObj) { items.push({ y: o.y * T, draw: function () { drawCaveObj(wc, o.x * T - cam.x, o.y * T - cam.y, o); } }); return; }
         if (o.type === 'chest') { items.push({ y: o.y * T, draw: function () { drawChest(wc, o.x * T - cam.x, o.y * T - cam.y, !!G.flags['chest_' + o.id]); } }); return; }
         items.push({ y: o.y * T, draw: function () {
           wc.drawImage(E.images.objects, (Math.floor(E.time / 450) % 2) * 16, 0, 16, 16, o.x * T - cam.x, o.y * T - cam.y, 16, 16);
