@@ -824,6 +824,11 @@
         c.fillStyle = 'rgba(0,0,0,' + (this.fade.phase === 'out' ? a : 1 - a) + ')';
         c.fillRect(0, 0, W, H);
       }
+      if (this.map.world) {
+        const terrain = D.terrainNames[this.terrainHere()] || '平地';
+        E.panel(c, 6, H - 22, 68, 16);
+        E.text(c, '地形：' + terrain, 11, H - 18, { size: 7, color: GOLD });
+      }
     }
   }
 
