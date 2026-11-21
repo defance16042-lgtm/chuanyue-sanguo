@@ -1,4 +1,4 @@
-// 戰鬥資料：經驗表、道具、計謀／技能、敵人、敵群。數值為初版，之後依試玩調整。
+// 戰鬥資料：經驗表、道具、計謀／技能、敵人、敵群。
 window.DATA = window.DATA || {};
 window.DATA.battle = {
   // 等級沒有上限。升到第 n 級所需的累積經驗由 BattleLogic.expFor(n) 計算，越高級越多

@@ -766,11 +766,81 @@ def tile_camp():
     return im
 
 
+def tile_guangate():
+    # 關門：草地上一段石牆，中間是木門拱洞，牆頭有垛口與紅旗
+    im = tile_wgrass()
+    D, M, L, O = (92, 92, 106, 255), (136, 136, 150, 255), (170, 170, 184, 255), OUTLINE
+    for y in range(4, 16):
+        for x in range(0, 16):
+            row = (y - 4) // 4
+            c = M
+            if (y - 4) % 4 == 3 or (x + (row % 2) * 4) % 8 == 7: c = D
+            elif (y - 4) % 4 == 0: c = L
+            im.putpixel((x, y), c)
+    for x in range(0, 16):                       # 垛口
+        if (x // 2) % 2 == 0:
+            for y in (2, 3): im.putpixel((x, y), M if y == 3 else L)
+            im.putpixel((x, 1), O)
+        im.putpixel((x, 4), O)
+    for x in range(0, 16):
+        im.putpixel((x, 15), O)
+    for y in range(8, 16):                       # 拱門
+        for x in range(4, 12):
+            top = 8 + (1 if x in (4, 11) else 0) + (1 if x in (5, 10) and y == 8 else 0)
+            if y >= top and not (y == 8 and x in (4, 11)): im.putpixel((x, y), (44, 30, 30, 255))
+    for y in range(9, 16):                       # 木門與鐵釘
+        for x in range(5, 11):
+            c = (130, 84, 48, 255) if x % 2 == 0 else (104, 66, 38, 255)
+            im.putpixel((x, y), c)
+    for (x, y) in ((6, 11), (9, 11), (6, 14), (9, 14)): im.putpixel((x, y), (214, 200, 90, 255))
+    for x in range(4, 12): im.putpixel((x, 8), O)
+    for y in range(8, 16): im.putpixel((4, y), O); im.putpixel((11, y), O)
+    for y in range(0, 3): im.putpixel((13, y), (90, 60, 40, 255))   # 旗杆與紅旗
+    for (x, y) in ((14, 0), (15, 0), (14, 1), (15, 1)): im.putpixel((x, y), (200, 40, 40, 255))
+    return im
+
+
+def tile_cliff():
+    # 懸崖：深色岩層，不能通過
+    rng = random.Random(77)
+    im = Image.new("RGBA", (16, 16), (108, 94, 88, 255))
+    for y in range(16):
+        for x in range(16):
+            band = (y + (x // 5)) % 5
+            c = (108, 94, 88, 255)
+            if band == 0: c = (140, 124, 112, 255)
+            elif band == 4: c = (72, 62, 62, 255)
+            im.putpixel((x, y), c)
+    for _ in range(18):
+        im.putpixel((rng.randrange(16), rng.randrange(16)), rng.choice([(84, 72, 68, 255), (152, 136, 120, 255)]))
+    for x in range(16): im.putpixel((x, 15), (50, 42, 46, 255))
+    return im
+
+
+def tile_pass():
+    # 山口：兩側是岩壁，中間一條小徑，路口立著木柵門與黃旗
+    im = tile_cliff()
+    for y in range(16):
+        for x in range(5, 11):
+            c = (190, 160, 110, 255) if (x + y) % 5 else (170, 140, 96, 255)
+            im.putpixel((x, y), c)
+    O = OUTLINE
+    for x in (4, 11):
+        for y in range(3, 16): im.putpixel((x, y), (96, 64, 40, 255))
+        im.putpixel((x, 2), O)
+        for y in range(3, 16): im.putpixel((x + (1 if x == 4 else -1), y), (126, 86, 52, 255))
+    for x in range(4, 12): im.putpixel((x, 5), (86, 56, 36, 255)); im.putpixel((x, 6), (126, 86, 52, 255))
+    for x in (4, 6, 9, 11):                         # 柵頭削尖
+        im.putpixel((x, 1), (126, 86, 52, 255)); im.putpixel((x, 2), (126, 86, 52, 255))
+    for (x, y) in ((7, 3), (8, 3), (7, 4), (8, 4), (7, 2)): im.putpixel((x, y), (230, 200, 50, 255))
+    return im
+
+
 def build_tiles():
     makers = [tile_grass, tile_road, tile_water, tile_tree, tile_stone, tile_floor, tile_roof, tile_house_wall, tile_door,
               tile_fence, tile_well, tile_crate, tile_barrel, tile_flowers, tile_stall, tile_sign, tile_thatch, tile_haystack, tile_bush, tile_forest, tile_mountain, tile_sea, tile_city, tile_cave, tile_cavefloor, tile_cavewall,
               _castle_part(0, 0), _castle_part(1, 0), _castle_part(2, 0), _castle_part(0, 2), _castle_part(2, 2), tile_wgrass, tile_sand, tile_snow, tile_snowforest, tile_snowmountain, tile_snowcave,
-              _castle_part(0, 1), _castle_part(1, 1), _castle_part(2, 1), tile_stairs_down, tile_stairs_up, tile_camp]
+              _castle_part(0, 1), _castle_part(1, 1), _castle_part(2, 1), tile_stairs_down, tile_stairs_up, tile_camp, tile_guangate, tile_pass, tile_cliff]
     sheet = Image.new("RGBA", (16 * len(makers), 16))
     for i, m in enumerate(makers):
         sheet.paste(m(), (i * 16, 0))

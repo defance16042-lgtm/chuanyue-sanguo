@@ -33,13 +33,6 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const sz = await page.evaluate(() => DATA.worldTowns.suanzao);
   await go('world2', sz.x, sz.y + 1, 'up'); await sleep(300); await tap('ArrowUp', 90, 1200);
   check('suanzao gate opens', (await info())[0] === 'suanzao', await info());
-  // 關口：守將擋路
-  await setup({ py_news: true }); const g = W.p1.guard;
-  await go('world', g[0] + 1, g[1], 'left'); await sleep(300); await tap('z', 60, 500); await talk(); await sleep(900);
-  check('pass guard starts a battle', (await top()) === 'BattleScene', await top());
-  await page.evaluate(() => { while (Engine.top().constructor.name !== 'MapScene') Engine.pop(); Game.flags.pass_open = true; Engine.replaceAll(new Scenes.Map('world', { x: DATA.maps.world.pass.x + 1, y: DATA.maps.world.pass.y, dir: 'left' })); });
-  await sleep(300); await tap('ArrowLeft', 90, 1200);
-  check('after the guard falls the pass leads to the Guandong map', (await info())[0] === 'world2', await info());
   // 回程搭船
   await setup({ py_news: true }); await go('world2', W.w2.x, W.w2.y + 1, 'up'); await sleep(300); await tap('z', 60, 500);
   for (let i = 0; i < 6; i++) { if ((await top()) === 'DialogScene') await tap('z', 40, 150); }

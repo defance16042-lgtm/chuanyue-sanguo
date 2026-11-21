@@ -158,6 +158,11 @@ E.append(face((50, 60, 56), ((170, 190, 180), (110, 130, 124), (72, 88, 84)), (2
 E.append(face((40, 60, 84), ((120, 170, 220), (70, 110, 170), (44, 70, 118)), (230, 220, 120), (206, 156, 112), (26, 22, 24), cap=(230, 200, 70), beard='short', wild=True, brow=3))   # 51 管亥（黃頭巾水軍將）
 E.append(face((44, 64, 70), ((140, 180, 190), (84, 120, 134), (52, 80, 92)), (190, 210, 220), (212, 162, 120), (30, 26, 26), helm=((120, 150, 160), (80, 104, 114)), plume=(70, 140, 190), beard='long', brow=3))   # 52 郭太（白波軍首領）
 
+E.append(face((60, 48, 44), ((176, 140, 110), (126, 96, 70), (86, 66, 50)), (190, 60, 50), (208, 158, 114), (26, 22, 22), helm=((150, 120, 96), (104, 84, 64)), plume=(190, 50, 50), beard='mustache', brow=3))   # 53 樊稠
+E.append(face((50, 56, 50), ((150, 150, 130), (100, 104, 88), (66, 72, 62)), (160, 150, 80), (212, 162, 120), (28, 24, 24), cap=(90, 100, 80), beard='long', wild=True, brow=3))   # 54 白繞
+E.append(face((70, 50, 36), ((190, 150, 100), (140, 104, 66), (96, 70, 44)), (200, 190, 150), (206, 154, 110), (24, 20, 20), helm=((196, 180, 140), (140, 124, 96)), plume=(230, 220, 180), beard='long', wild=True, brow=3, wrinkles=True))   # 55 丘力居
+E.append(face((44, 40, 56), ((130, 120, 150), (88, 80, 110), (58, 52, 76)), (200, 200, 210), (212, 162, 120), (28, 24, 28), cap=(40, 36, 50), beard='short', wild=True, brow=3))   # 56 胡才
+
 sheet = Image.new('RGBA', (48 * (30 + len(E)), 48))
 sheet.paste(base, (0, 0))
 for i, im in enumerate([zoujing(), caocao, huang, bocai, zhujun, sunjian, pengtuo, zhaohong, hanzhong, sunxia, busi, luzhi, zhangliang, zuofeng, zhangbao, zhangjiao, duyou, zhangyan, jianyong, gongsunzan, yuanshao, huaxiong, zhangchun, lubu, xurong, dongzhuo]):

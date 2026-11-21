@@ -39,6 +39,8 @@ ROADS_BY = {
 # 兩章之間的通道：關口（陸路，要打倒守將）與渡口（水路，付船錢）
 PASS = {'world': dict(x=2, y=58, guard=(3, 58), d=1), 'world2': dict(x=77, y=40, guard=(76, 40), d=-1)}   # 關口（C 圖塊）與守將位置
 DOCK = {'world': dict(shore=(86, 33), d=(1, 0)), 'world2': dict(shore=(30, 7), d=(0, -1))}       # 渡口：岸邊、朝海的方向；木棧橋 4 格，船夫站在橋頭，船停在橋的盡頭
+SHANKOU = [dict(id='shankou1', world='world', near=(22, 18), name='太行山口'), dict(id='shankou2', world='world', near=(72, 14), name='燕山口'),
+           dict(id='shankou3', world='world2', near=(22, 42), name='轘轅山口')]
 CAMPS = {'world': (46, 10), 'world2': None}
 # ==END-CONSTANTS==（patch_gates.py 只讀這行以上）
 
@@ -123,7 +125,28 @@ def make_world(wid):
                     if best is None or d < best[0]: best = (d, xx, yy2)
         if best[0] > 7: road((x, y + 1), (best[1], best[2]))
     # 關口 C 圖塊與渡口碼頭（沙）、船（海）
-    g[P['y']][P['x']] = 'C'
+    g[P['y']][P['x']] = 'G'
+    for dy in (-1, 1):
+        for dx in (0, 1): g[P['y'] + dy][P['x'] + dx * P['d']] = 'Q'
+    sks = []
+    for sk in [k for k in SHANKOU if k['world'] == wid]:   # 山口：在一段筆直的橫路上築一道懸崖，兩側各開一個山口，要翻山才能過去
+        best = None
+        for y in range(8, H - 8):
+            x = 3
+            while x < W - 4:
+                if g[y][x] == ',':
+                    x0 = x
+                    while x < W - 4 and g[y][x] == ',' and g[y - 1][x] != ',' and g[y + 1][x] != ',': x += 1
+                    if x - x0 >= 7:
+                        cx = (x0 + x) // 2; d = abs(cx - sk['near'][0]) + abs(y - sk['near'][1])
+                        if all(g[y + dy][cx + dx] not in 'qkpejulrCKVGPQ' for dy in range(-7, 8) for dx in (-1, 0, 1)) and (best is None or d < best[0]): best = (d, cx, y)
+                x += 1
+        assert best, ('no straight road for', sk['id'])
+        _, cx, cy = best
+        for dy in range(-7, 8):
+            if g[cy + dy][cx] not in 'qkpejulrCKV~T': g[cy + dy][cx] = 'Q'
+        g[cy][cx - 1] = 'P'; g[cy][cx + 1] = 'P'
+        sks.append(dict(sk, x=cx, y=cy))
     for y in range(1, H - 1):                          # 海邊沙灘
         for x in range(1, W - 1):
             if g[y][x] in '.Y' and any(g[y + b][x + a] == '~' for a in (-1, 0, 1) for b in (-1, 0, 1) if 0 <= x + a < W and 0 <= y + b < H):
@@ -179,7 +202,7 @@ def make_world(wid):
             t = min(towns, key=lambda k2: (towns[k2][0] - cx) ** 2 + (towns[k2][1] - cy) ** 2)
             row += format(tiers.index(TIER[t]), 'x')
         zg.append(row)
-    return dict(rows=rows, tiers=tiers, zg=zg, camp=camp)
+    return dict(rows=rows, tiers=tiers, zg=zg, camp=camp, sks=sks)
 
 WORLD_MAPS = {w: make_world(w) for w in WORLDS}
 world_rows = WORLD_MAPS['world']['rows']
@@ -502,16 +525,15 @@ for wid, cfg in WORLDS.items():
         sp = CAVE_FLOORS[c][0]['spawn']; warps.append(dict(x=x, y=y, to=c, tx=sp[0], ty=sp[1], dir='up'))
     other = 'world2' if wid == 'world' else 'world'
     P, PO = PASS[wid], PASS[other]
-    pw = dict(x=P['x'], y=P['y'], to=other, tx=PO['x'] + PO['d'] * 2, ty=PO['y'], dir='left' if PO['d'] < 0 else 'right', bx=P['x'] + P['d'], by=P['y'])
-    if wid == 'world': pw.update(need='pass_open', deny='pass_deny')
+    pw = dict(x=P['x'], y=P['y'], to='guan_w' if wid == 'world' else 'guan_e', tx=11, ty=24, dir='up', bx=P['x'] + P['d'], by=P['y'])
     warps.append(pw)
+    for sk in WORLD_MAPS[wid]['sks']:
+        warps.append(dict(x=sk['x'] - 1, y=sk['y'], to=sk['id'], tx=12, ty=25, dir='up', bx=sk['x'] - 2, by=sk['y']))
+        warps.append(dict(x=sk['x'] + 1, y=sk['y'], to=sk['id'] + '_3', tx=12, ty=2, dir='down', bx=sk['x'] + 2, by=sk['y']))
     Dk = DOCK[wid]
     objs = [dict(type='boat', x=Dk['boat'][0], y=Dk['boat'][1])]
     npcs = [dict(id='boatman_' + wid, name='船夫', sprite=8, x=Dk['x'], y=Dk['y'], dir='right' if wid == 'world' else 'up', dialogue='boat_early' if wid == 'world' else 'boat_back',
                  alts=[dict(flag='py_news', dialogue='boat_offer')] if wid == 'world' else [])]
-    if wid == 'world':
-        npcs.append(dict(id='passguard', name='關口守將', sprite=34, x=P['guard'][0], y=P['guard'][1], dir='right', dialogue='pass_guard_early', hideIf='pass_open',
-                         alts=[dict(flag='py_news', dialogue='pass_guard')]))
     out.append('  D.maps.%s = {' % wid)
     out.append("    name: %s, battleBg: 'grass', world: true," % json.dumps(cfg['name'], ensure_ascii=False))
     out.append("    encounter: { group: 'field1', rate: 0.05, minSteps: 6 },")
@@ -522,7 +544,7 @@ for wid, cfg in WORLDS.items():
     out.append('    labels: ' + json.dumps(labels) + ',')
     out.append('    warps: ' + json.dumps(warps) + ',')
     out.append('    npcs: ' + json.dumps(npcs, ensure_ascii=False) + ', objects: ' + json.dumps(objs) + ',')
-    out.append('    pass: ' + json.dumps(P) + ', dock: ' + json.dumps(Dk))
+    out.append('    pass: ' + json.dumps(P) + ', dock: ' + json.dumps(Dk) + ', shankou: ' + json.dumps(WORLD_MAPS[wid]['sks'], ensure_ascii=False))
     out.append('  };')
 for k, fl in CAVE_FLOORS.items():
     spec = CAVE_SPEC[k]

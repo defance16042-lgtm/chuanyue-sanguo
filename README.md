@@ -140,3 +140,4 @@ npm run dist:win
 - v0.27.0：第二章(三)虎牢關呂布、洛陽徐榮（data/ch2c.js）。
 - v0.28.0：每章獨立大地圖（world / world2，tools/build_world.py 的 WORLDS），船與關口通道（data/ch2d.js）、孟津、邙山古墓、敵將頭像。
 - v0.29.0：專屬地形與兵力條顏色（data/terrain.js）、沙漠背景、海岸水軍遇敵。
+- v0.30.0：可進入的關口（西關／成皋東關）與三層山口（太行山口／燕山口／轘轅山口），data/passes.js。
