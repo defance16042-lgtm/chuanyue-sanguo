@@ -38,7 +38,7 @@ ROADS_BY = {
 }
 # 兩章之間的通道：關口（陸路，要打倒守將）與渡口（水路，付船錢）
 PASS = {'world': dict(x=2, y=58, guard=(3, 58), d=1), 'world2': dict(x=77, y=40, guard=(76, 40), d=-1)}   # 關口（C 圖塊）與守將位置
-DOCK = {'world': dict(x=87, y=33, boat=(88, 33), arrive=(86, 33)), 'world2': dict(x=30, y=5, boat=(30, 4), arrive=(30, 6))}       # 渡口：沙灘上的碼頭與停靠的船
+DOCK = {'world': dict(shore=(86, 33), d=(1, 0)), 'world2': dict(shore=(30, 7), d=(0, -1))}       # 渡口：岸邊、朝海的方向；木棧橋 4 格，船夫站在橋頭，船停在橋的盡頭
 CAMPS = {'world': (46, 10), 'world2': None}
 # ==END-CONSTANTS==（patch_gates.py 只讀這行以上）
 
@@ -96,14 +96,12 @@ def make_world(wid):
         for dx in range(-1, 5):
             xx = P['x'] + dx * P['d']
             if 0 < xx < W - 1: g[P['y'] + dy][xx] = 'M' if dy else '.'
-    for dx in range(-3, 4):
-        for dy in range(-2, 3):
-            xx, yy2 = Dk['x'] + dx, Dk['y'] + dy
-            if 0 < xx < W - 1 and 0 < yy2 < H - 1 and g[yy2][xx] in 'M~T': g[yy2][xx] = '.'
     near = min(towns, key=lambda t: abs(towns[t][0] - P['x']) + abs(towns[t][1] - P['y']))
     road((P['x'] + P['d'], P['y']), (towns[near][0], towns[near][1] + 1))
-    near = min(towns, key=lambda t: abs(towns[t][0] - Dk['x']) + abs(towns[t][1] - Dk['y']))
-    road((Dk['x'], Dk['y'] + 1), (towns[near][0], towns[near][1] + 1))
+    sx0, sy0 = Dk['shore']; ddx, ddy = Dk['d']
+    ax, ay = sx0 - ddx, sy0 - ddy                      # 上岸後站的位置
+    near = min(towns, key=lambda t: abs(towns[t][0] - ax) + abs(towns[t][1] - ay))
+    road((ax, ay), (towns[near][0], towns[near][1] + 1))
     for t, (x, y) in towns.items():
         for dx in (-2, -1, 0, 1, 2):
             for dy in (-3, -2, -1, 0, 1):
@@ -126,13 +124,28 @@ def make_world(wid):
         if best[0] > 7: road((x, y + 1), (best[1], best[2]))
     # 關口 C 圖塊與渡口碼頭（沙）、船（海）
     g[P['y']][P['x']] = 'C'
-    g[Dk['y']][Dk['x']] = '.'
-    bx, by = DOCK[wid]['boat']; g[by][bx] = '~'
-    for y in range(1, H - 1):
+    for y in range(1, H - 1):                          # 海邊沙灘
         for x in range(1, W - 1):
             if g[y][x] in '.Y' and any(g[y + b][x + a] == '~' for a in (-1, 0, 1) for b in (-1, 0, 1) if 0 <= x + a < W and 0 <= y + b < H):
                 g[y][x] = 'a'
-    g[Dk['y']][Dk['x']] = 'a'; g[Dk['y'] + 1][Dk['x']] = 'a'
+    # 港灣：把棧橋周圍挖成水面，鋪四格木板棧橋，船停在橋的盡頭
+    pier = [(sx0 + k * ddx, sy0 + k * ddy) for k in range(4)]
+    ex, ey = pier[-1]; bx, by = ex + ddx, ey + ddy
+    for k in range(1, 6):
+        cx, cy = sx0 + k * ddx, sy0 + k * ddy
+        for u in range(-3, 4):
+            wx, wy = cx + (u if ddx == 0 else 0), cy + (u if ddy == 0 else 0)
+            if 0 < wx < W - 1 and 0 < wy < H - 1 and (wx, wy) != (sx0, sy0): g[wy][wx] = '~'
+    for u in range(-2, 3):                             # 岸邊兩側鋪沙灘
+        wx, wy = sx0 + (u if ddx == 0 else 0), sy0 + (u if ddy == 0 else 0)
+        if 0 < wx < W - 1 and 0 < wy < H - 1: g[wy][wx] = 'a'
+    for k in range(-1, 2):
+        for u in range(-2, 3):
+            wx, wy = sx0 - k * ddx + (u if ddx == 0 else 0), sy0 - k * ddy + (u if ddy == 0 else 0)
+            if 0 < wx < W - 1 and 0 < wy < H - 1 and g[wy][wx] in '.YMT~': g[wy][wx] = 'a'
+    for px, py in pier: g[py][px] = '_'
+    g[ay][ax] = 'a'
+    Dk.update(x=ex, y=ey, boat=(bx, by), arrive=(ax, ay))
     camp = CAMPS[wid]
     if wid == 'world':
         SNOW = lambda x, y: x >= 52 + (y % 4) and y <= 17 + (x % 3)
@@ -156,7 +169,7 @@ def make_world(wid):
     for kk, (x, y) in chk.items():
         assert (x, y + 1) in r, ('unreachable', wid, kk)
     assert (P['x'] + P['d'], P['y']) in r, ('pass', wid)
-    assert (Dk['x'], Dk['y'] + 1) in r, ('dock', wid)
+    assert (ax, ay) in r and (ex, ey) in r, ('dock', wid)
     rows = [''.join(rw).replace('.', 'g') for rw in g]
     tiers = sorted(set(TIER[t] for t in towns)); zg = []
     for by2 in range(H // 4):

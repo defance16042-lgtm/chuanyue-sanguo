@@ -34,10 +34,10 @@
   S.boat_early = [{ speaker: '船夫', text: '黃巾還沒平，河上不太平，沒人敢出船啊。' }];
   S.boat_offer = [{ speaker: '船夫', text: '要過河？去關東的船，順著黃河走，一人 300 金（全隊一起算）。比走關口省事，也省得和守將打架。' },
     { speaker: '船夫', text: '怎麼樣，上不上船？', choices: [
-      { label: '上船（300金）', act: { pay: 300, warp: { map: 'world2', x: 30, y: 6, dir: 'down' } } },
+      { label: '上船（300金）', act: { pay: 300, warp: { map: 'world2', x: 30, y: 8, dir: 'down' } } },
       { label: '再想想' }] }];
   S.boat_back = [{ speaker: '船夫', text: '要回河北？一趟 200 金。', choices: [
-      { label: '搭船回去（200金）', act: { pay: 200, warp: { map: 'world', x: 86, y: 33, dir: 'left' } } },
+      { label: '搭船回去（200金）', act: { pay: 200, warp: { map: 'world', x: 85, y: 33, dir: 'left' } } },
       { label: '不用了' }] }];
   S.pass_guard_early = [{ speaker: '關口守將', text: '黃巾亂事未平，閒雜人等不得出關。回去吧！' }];
   S.pass_guard = [
