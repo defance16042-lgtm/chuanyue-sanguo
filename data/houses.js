@@ -16,6 +16,11 @@
         npcs: [{ name: '躲在屋裡的老人', sprite: 6, states: [
           { flag: 'h_yc_gift', lines: ['老人：他們都往南邊逃了。你們是官軍的人吧？替我們多殺幾個賊。'] },
           { lines: ['老人：我走不動了，索性躲在家裡。賊兵來了兩次，都嫌我家窮，沒搶。窮也有窮的好處。', '老人：這碗乾糧你拿去，我一個老頭子吃不了多少。'], act: { give: { herb: 1 }, once: 'h_yc_gift' } }] }] }
+,
+      { door: [17, 7], name: '潰兵借住的農舍', size: 'small',
+        chest: { id: 'h_yc_b', gold: 120, msg: '灶房的罐子裡，是農婦存下的幾串錢。' },
+        npcs: [{ name: '農婦', sprite: 6, states: [
+          { lines: ['農婦：有幾個官軍的潰兵借住在這兒，吃了我兩天的飯，連句謝都沒說。'] }] }] }
     ],
     changshe: [
       { door: [5, 5], name: '老學究的書房', size: 'small',
@@ -145,6 +150,75 @@
         npcs: [{ name: '難民', sprite: 6, states: [{ lines: ['難民：大火燒了三天三夜，我的家只剩下這半面牆。'] }] }] },
       { door: [15, 16], name: '太倉殘屋', size: 'small',
         npcs: [{ name: '老吏', sprite: 8, states: [{ lines: ['老吏：太倉的糧，被董卓搬空了。連皇宮的銅人，都被他融去鑄錢。'] }] }] }
+    ],
+    zhuoxian: [
+      { door: [28, 4], name: '張世平的貨棧', size: 'small',
+        chest: { id: 'h_zx_a', gold: 150, msg: '貨架後的小匣子，裝著夥計偷偷攢下的零錢。' },
+        npcs: [{ name: '夥計', sprite: 9, states: [
+          { lines: ['夥計：東家去北邊買馬了，這批貨是給劉備他們留的，不收錢……啊，我什麼都沒說。'] }] }] }
+    ],
+    guangyang: [
+      { door: [4, 5], name: '衙役的家', size: 'small',
+        chest: { id: 'h_gy_a', gold: 120, msg: '床板下的錢袋，是衙役沒來得及帶走的月俸。' },
+        npcs: [{ name: '躲起來的衙役', sprite: 21, states: [
+          { flag: 'boss2_down', lines: ['躲起來的衙役：渠帥倒了？那我明天就去縣衙，把腰牌找回來！'] },
+          { lines: ['躲起來的衙役：黃巾進城的那天，我把官服塞進灶裡燒了。現在想起來，真丟人。'] }] }] },
+      { door: [18, 5], name: '城南藥鋪', size: 'small',
+        npcs: [{ name: '藥鋪掌櫃', sprite: 4, states: [
+          { lines: ['藥鋪掌櫃：黃巾來的時候，我把值錢的藥都藏起來了。你們要藥，我賣給你們便宜點。'], choices: [{ label: '傷藥 20金', act: { buy: 'herb' } }, { label: '提神茶 30金', act: { buy: 'tonic' } }, { label: '不買了' }] }] }] },
+      { door: [5, 11], name: '倖存者的家', size: 'small',
+        chest: { id: 'h_gy_b', item: { herb: 3 }, msg: '灶台上的小包袱，裡頭是老婦預備給兒子的藥草。' },
+        npcs: [{ name: '老婦', sprite: 6, states: [
+          { flag: 'boss2_down', lines: ['老婦：聽說渠帥被打倒了……我兒子，會不會回來？'] },
+          { lines: ['老婦：我兒子被黃巾抓去當兵，到現在沒回來。你們要是遇到，請告訴他，娘還在等他。'] }] }] },
+      { door: [19, 11], name: '糧鋪', size: 'small',
+        npcs: [{ name: '糧鋪夥計', sprite: 8, states: [
+          { lines: ['糧鋪夥計：城裡的米價一天三漲，黃巾占了倉，我只能偷偷賣一點。'] }] }] }
+    ],
+    youbei: [
+      { door: [15, 7], name: '牧羊人的小屋', size: 'small',
+        chest: { id: 'h_yb_a', item: { herb: 2 }, msg: '床邊的草藥袋，牧羊人自己都捨不得用。' },
+        npcs: [{ name: '牧羊人', sprite: 8, states: [
+          { lines: ['牧羊人：烏桓人的馬跑得比風還快，我這群羊，看到他們都不敢叫。'] }] }] },
+      { door: [19, 14], name: '驛站', size: 'small',
+        npcs: [{ name: '驛卒', sprite: 9, states: [
+          { lines: ['驛卒：公孫將軍的軍報一天來三趟，我的馬都累瘦了。'] }] }] }
+    ],
+    heishan: [
+      { door: [17, 7], name: '獵戶的屋子', size: 'small',
+        chest: { id: 'h_hs_a', item: { herb: 3, smoke: 1 }, msg: '牆上掛著獵戶備著的藥草和煙霧彈。' },
+        npcs: [{ name: '獵戶', sprite: 8, states: [
+          { lines: ['獵戶：太行山上的飛燕，一半是人、一半是鳥，你們小心他的刀。'] }] }] },
+      { door: [5, 9], name: '客商的歇腳處', size: 'small',
+        npcs: [{ name: '客商', sprite: 4, states: [
+          { lines: ['客商：這條山路我走了十年，今年第一次被人攔路，還給我留了回家的盤纏。'] }] }] }
+    ],
+    xiaquyang: [
+      { door: [17, 7], name: '道觀', size: 'small',
+        chest: { id: 'h_xq_a', item: { tonic: 2, herb: 2 }, msg: '供桌下的藥包，是道士平常給鄉人看病用的。' },
+        npcs: [{ name: '老道人', sprite: 10, states: [
+          { lines: ['老道人：符水治不了病，我早說過。可惜沒有人聽老道的話。'] }] }] },
+      { door: [5, 9], name: '傷兵營', size: 'small',
+        npcs: [{ name: '軍醫', sprite: 10, states: [
+          { lines: ['軍醫：皇甫將軍的兵一路攻山，傷兵都往這兒送。要藥就快買。'], choices: [{ label: '傷藥 20金', act: { buy: 'herb' } }, { label: '提神茶 30金', act: { buy: 'tonic' } }, { label: '不買了' }] }] }] }
+    ],
+    jizhou: [
+      { door: [16, 4], name: '盧植的傳令所', size: 'small',
+        npcs: [{ name: '傳令兵', sprite: 9, states: [
+          { lines: ['傳令兵：盧中郎在廣宗築圍，每天都要我送三份軍報。他說，等圍成了，黃巾自己就會餓倒。'] }] }] },
+      { door: [5, 13], name: '難民的草棚', size: 'small',
+        chest: { id: 'h_jz_a', gold: 100, msg: '草棚角落的破布包，是難民僅剩的一點錢。' },
+        npcs: [{ name: '難民', sprite: 6, states: [
+          { lines: ['難民：我們從廣宗逃出來的，路上沒有一口熱飯。你們要是有餘糧，分給孩子吧。'] }] }] }
+    ],
+    runan: [
+      { door: [5, 5], name: '漁夫的竹屋', size: 'small',
+        chest: { id: 'h_rn_a', item: { herb: 2, tonic: 1 }, msg: '竹屋樑上吊著的藥包，漁夫說是治風濕的。' },
+        npcs: [{ name: '漁夫', sprite: 8, states: [
+          { lines: ['漁夫：汝南的水我最熟，彭脫熟得比我還熟，這就是他不好打的原因。'] }] }] },
+      { door: [16, 6], name: '米行', size: 'small',
+        npcs: [{ name: '米行掌櫃', sprite: 4, states: [
+          { lines: ['米行掌櫃：彭脫的人來買過米，付的是現錢。我也搞不清楚他們到底算不算賊。'] }] }] }
     ],
     mengjin: [
       { door: [[11, 3], [12, 3]], name: '渡口官倉', size: 'big',
