@@ -102,32 +102,41 @@
   function climb(id, name, st, tier) {
     const o = SK[id], sid = id.replace('shankou', 'sk');
     const floorMap = function (segs, pockets, choke) {
-      const g = grid(24, 28, 'Q');
+      const g = grid(24, 28, 'A');
       segs.forEach(function (s) {
         for (let y = Math.min(s[1], s[3]) - (s[0] === s[2] ? 0 : 1); y <= Math.max(s[1], s[3]) + (s[0] === s[2] ? 0 : 1); y++)
           for (let x = Math.min(s[0], s[2]) - (s[1] === s[3] ? 0 : 1); x <= Math.max(s[0], s[2]) + (s[1] === s[3] ? 0 : 1); x++) if (x > 0 && x < 23 && y >= 0 && y < 28) g[y][x] = ',';
       });
       pockets.forEach(function (r) { rect(g, r[0], r[1], r[2], r[3], ','); });
+      const walk = function (x, y) { return y >= 0 && y < 28 && x >= 0 && x < 24 && g[y][x] === ','; };
+      const out = grid(24, 28, 'A');
       for (let y = 0; y < 28; y++) for (let x = 0; x < 24; x++) {
-        if (g[y][x] !== ',') continue; const h = (x * 7 + y * 13 + x * y) % 11;
-        if (h < 3) g[y][x] = 'M'; else if (h === 3 && y > 1 && y < 26) g[y][x] = 'Y';
+        const h = (x * 7 + y * 13 + x * y) % 11;
+        if (walk(x, y)) {
+          const edge = !(walk(x - 1, y) && walk(x + 1, y) && walk(x, y - 1) && walk(x, y + 1));
+          out[y][x] = edge ? (h === 3 ? 'Y' : 'L') : 'J';
+          if (!edge && h === 5 && walk(x, y - 1) && walk(x, y + 1) && !walk(x - 1, y) === false && y > 2 && y < 25) out[y][x] = 'h';
+        } else if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(function (d) { return walk(x + d[0], y + d[1]); })) {
+          out[y][x] = h === 1 ? 'E' : (h === 7 ? 'U' : 'A');
+        }
       }
-      if (choke) { for (let x = choke[0]; x <= choke[1]; x++) { g[choke[2] - 1][x] = 'Q'; g[choke[2] + 1][x] = 'Q'; g[choke[2]][x] = ','; } }
+      for (let y = 0; y < 28; y++) for (let x = 0; x < 24; x++) g[y][x] = out[y][x];
+      if (choke) { for (let x = choke[0]; x <= choke[1]; x++) { g[choke[2] - 1][x] = 'A'; g[choke[2] + 1][x] = 'A'; g[choke[2]][x] = 'J'; } }
       return g;
     };
     const stair = function (g, x, y, ch) { g[y][x] = ch; };
     const warp = function (x, y, to, tx, ty, dir) { return { x: x, y: y, to: to, tx: tx, ty: ty, dir: dir }; };
     // 第一層：山腳（西）
     let g = floorMap([[12, 27, 12, 22], [12, 22, 6, 22], [6, 22, 6, 15], [6, 15, 16, 15], [16, 15, 16, 8], [16, 8, 10, 8], [10, 8, 10, 2]], [[1, 18, 4, 20], [18, 11, 22, 13]]);
-    for (let x = 11; x <= 13; x++) { g[27][x] = ','; g[26][x] = ','; }
-    stair(g, 10, 1, '<'); g[2][10] = ','; g[1][9] = 'Q'; g[1][11] = 'Q';
+    for (let x = 11; x <= 13; x++) { g[27][x] = 'J'; g[26][x] = 'J'; }
+    stair(g, 10, 1, '<'); g[2][10] = 'J'; g[1][9] = 'A'; g[1][11] = 'A';
     D.maps[id] = { name: name + '・山腳', battleBg: 'mountain', mountain: true, encounter: { group: 'field' + tier, rate: 0.1, minSteps: 4 }, tiles: rows(g), start: { x: 12, y: 25, dir: 'up' }, home: { map: 'world' },
       warps: [warp(11, 27, 'WORLD', 0, 0, 'left'), warp(12, 27, 'WORLD', 0, 0, 'left'), warp(13, 27, 'WORLD', 0, 0, 'left'), warp(10, 1, id + '_2', 10, 26, 'up')],
       npcs: [{ id: id + '_g1', name: o.g1[0], sprite: 2, x: 6, y: 18, dir: 'down', dialogue: id + '_g1', hideIf: id + '_g1_down' }],
-      objects: [chestObj(id + '_c1', 2, 19, st.c1), { type: 'tablet', x: 11, y: 24, text: o.tab }, { type: 'bones', x: 20, y: 12, text: '一具被山風吹乾的屍骨，旁邊的行囊早被掏空了。' }, { type: 'torch', x: 14, y: 21, text: '路邊插著山賊的火把，油還沒燒完。' }] };
+      objects: [chestObj(id + '_c1', 2, 19, st.c1), { type: 'tablet', x: 11, y: 24, text: o.tab }, { type: 'bones', x: 20, y: 12, text: '一具被山風吹乾的屍骨，旁邊的行囊早被掏空了。' }, { type: 'torch', x: 8, y: 21, text: '路邊插著山賊的火把，油還沒燒完。' }] };
     // 第二層：山頂（窄口與守將）
     g = floorMap([[10, 27, 10, 22], [10, 22, 18, 22], [18, 22, 18, 15], [18, 15, 6, 15], [6, 15, 6, 8], [6, 8, 12, 8], [12, 8, 12, 2]], [[19, 17, 22, 19], [5, 21, 8, 23], [14, 3, 16, 5]], [8, 16, 15]);
-    stair(g, 10, 27, '>'); g[26][10] = ','; g[27][9] = 'Q'; g[27][11] = 'Q'; stair(g, 12, 1, '>'); g[2][12] = ','; g[1][11] = 'Q'; g[1][13] = 'Q';
+    stair(g, 10, 27, '>'); g[26][10] = 'J'; g[27][9] = 'A'; g[27][11] = 'A'; stair(g, 12, 1, '>'); g[2][12] = 'J'; g[1][11] = 'A'; g[1][13] = 'A';
     D.maps[id + '_2'] = { name: name + '・山頂', battleBg: 'mountain', mountain: true, encounter: { group: 'field' + tier, rate: 0.1, minSteps: 4 }, tiles: rows(g), start: { x: 10, y: 26, dir: 'up' }, home: { map: 'world' },
       warps: [warp(10, 27, id, 10, 2, 'down'), warp(12, 1, id + '_3', 12, 26, 'up')],
       npcs: [{ id: id + '_boss', name: o.boss[0], sprite: st.sprite, x: 12, y: 15, dir: 'right', dialogue: id + '_boss', hideIf: o.boss[2] },
@@ -136,11 +145,12 @@
       objects: [chestObj(id + '_c2', 6, 22, st.c2), chestObj(id + '_c3', 15, 4, st.c3), { type: 'spring', x: 22, y: 19, text: '山頂的泉水，清冽甘甜。' }, { type: 'statue', x: 8, y: 21, text: '一座風化的山神像，腳下擺著山賊供的酒。' }] };
     // 第三層：山腳（東）
     g = floorMap([[12, 27, 12, 22], [12, 22, 18, 22], [18, 22, 18, 14], [18, 14, 7, 14], [7, 14, 7, 7], [7, 7, 12, 7], [12, 7, 12, 0]], [[2, 11, 5, 13]]);
-    for (let x = 11; x <= 13; x++) { g[0][x] = ','; g[1][x] = ','; }
-    stair(g, 12, 27, '<'); g[26][12] = ','; g[27][11] = 'Q'; g[27][13] = 'Q';
+    for (let x = 11; x <= 13; x++) { g[0][x] = 'J'; g[1][x] = 'J'; }
+    for (let x = 11; x <= 14; x++) { g[13][x] = 'U'; g[15][x] = 'U'; g[14][x] = '_'; }   // 山谷上的木板吊橋
+    stair(g, 12, 27, '<'); g[26][12] = 'J'; g[27][11] = 'A'; g[27][13] = 'A';
     D.maps[id + '_3'] = { name: name + '・東麓', battleBg: 'mountain', mountain: true, encounter: { group: 'field' + tier, rate: 0.1, minSteps: 4 }, tiles: rows(g), start: { x: 12, y: 26, dir: 'up' }, home: { map: 'world' },
       warps: [warp(12, 27, id + '_2', 12, 2, 'down'), warp(11, 0, 'WORLD', 0, 0, 'right'), warp(12, 0, 'WORLD', 0, 0, 'right'), warp(13, 0, 'WORLD', 0, 0, 'right')],
-      npcs: [], objects: [chestObj(id + '_c4', 3, 12, { gold: Math.round(st.c1.gold * 0.8), msg: '路邊岩縫裡的錢袋，大概是哪個逃命的行商掉的。' }), { type: 'bones', x: 19, y: 17, text: '岩縫裡露出半截生鏽的刀。' }, { type: 'torch', x: 14, y: 20, text: '山賊守夜的火把。' }] };
+      npcs: [], objects: [chestObj(id + '_c4', 3, 12, { gold: Math.round(st.c1.gold * 0.8), msg: '路邊岩縫裡的錢袋，大概是哪個逃命的行商掉的。' }), { type: 'bones', x: 19, y: 17, text: '岩縫裡露出半截生鏽的刀。' }, { type: 'torch', x: 14, y: 21, text: '山賊守夜的火把。' }] };
   }
   climb('shankou1', '太行山口', { sprite: 19, c1: { gold: 700, msg: '山賊藏在石縫裡的贓物。' }, c2: { gear: ['cliff_boots'], msg: '一只被山石壓著的皮箱，裡面是一雙鐵釘靴。' }, c3: { item: { herb: 5, tonic: 3 }, msg: '路邊的藥囊。' } }, 7);
   climb('shankou2', '燕山口', { sprite: 23, c1: { gold: 900, msg: '烏桓人藏在氈子下的銀幣。' }, c2: { gear: ['horse_charm'], msg: '一個氈包，裡面掛著一枚銅馬牌。' }, c3: { item: { herb: 5, tonic: 4 }, msg: '草原的藥草袋。' } }, 8);

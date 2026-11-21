@@ -836,11 +836,97 @@ def tile_pass():
     return im
 
 
+def tile_peak():
+    # 山巒：整格都是褐色岩山（不能通過），一格就是一座連綿山峰，拼起來像群山
+    im = Image.new("RGBA", (16, 16), (92, 70, 54, 255))
+    ol = (36, 24, 22, 255); lt = (196, 154, 104, 255); md = (158, 114, 72, 255); dk = (112, 78, 52, 255); sh = (74, 56, 44, 255)
+    def peak(cx, top, base, hw):
+        for y in range(top, base + 1):
+            t = (y - top) / max(1, base - top); half = int(round(hw * t + 0.4))
+            for x in range(cx - half, cx + half + 1):
+                if not (0 <= x < 16): continue
+                jag = ((x * 3 + y * 5) % 7 == 0)
+                if x < cx and not jag: c = lt if (x + y) % 5 else md
+                elif x < cx: c = md
+                else: c = dk if (x + y) % 4 else sh
+                if x == cx and y > top + 1: c = md if y % 2 else dk
+                im.putpixel((x, y), c)
+            for x in (cx - half - 1, cx + half + 1):
+                if 0 <= x < 16 and y > top: im.putpixel((x, y), ol)
+    peak(4, 1, 15, 6); peak(12, 4, 15, 5)
+    for x in range(16): im.putpixel((x, 15), sh)
+    return im
+
+
+def tile_trail():
+    # 山徑：踩實的褐色泥土小路，兩側有碎石與野草
+    rng = random.Random(81)
+    im = Image.new("RGBA", (16, 16), (186, 150, 104, 255))
+    for _ in range(30): im.putpixel((rng.randrange(16), rng.randrange(16)), rng.choice([(166, 130, 88, 255), (204, 170, 122, 255)]))
+    for y in range(16):
+        for x in (0, 1, 14, 15):
+            if rng.random() < 0.55: im.putpixel((x, y), rng.choice([(120, 96, 70, 255), (96, 120, 70, 255), (150, 142, 130, 255)]))
+    for _ in range(4):
+        x, y = rng.randrange(3, 12), rng.randrange(1, 15)
+        im.putpixel((x, y), (130, 120, 112, 255)); im.putpixel((x + 1, y), (160, 150, 140, 255))
+    return im
+
+
+def tile_rockslope():
+    # 岩坡：灰褐色碎石坡，可以走，但看得出是爬坡
+    rng = random.Random(83)
+    im = Image.new("RGBA", (16, 16), (138, 118, 98, 255))
+    for _ in range(36): im.putpixel((rng.randrange(16), rng.randrange(16)), rng.choice([(112, 94, 78, 255), (160, 140, 118, 255), (96, 80, 66, 255)]))
+    for _ in range(5):
+        x, y = rng.randrange(1, 13), rng.randrange(1, 14)
+        for dx in range(3):
+            im.putpixel((x + dx, y), (172, 152, 128, 255)); im.putpixel((x + dx, y + 1), (92, 76, 62, 255))
+    return im
+
+
+def tile_chasm():
+    # 深谷：兩側岩壁夾著黑色的深淵，不能通過（橋就架在上面）
+    im = Image.new("RGBA", (16, 16), (26, 20, 30, 255))
+    rng = random.Random(87)
+    for y in range(16):
+        for x in range(16):
+            if y < 2 or y > 13: im.putpixel((x, y), (96, 78, 64, 255) if (x + y) % 3 else (70, 56, 48, 255))
+            elif rng.random() < 0.12: im.putpixel((x, y), (48, 40, 56, 255))
+    for x in range(16): im.putpixel((x, 2), (40, 30, 30, 255)); im.putpixel((x, 13), (40, 30, 30, 255))
+    return im
+
+
+def tile_boulder():
+    # 巨石：擋在山徑旁的大石頭（不能通過）
+    im = tile_rockslope()
+    ol = (36, 24, 22, 255); lt = (190, 172, 148, 255); md = (146, 126, 104, 255); dk = (98, 82, 68, 255)
+    for y in range(3, 15):
+        t = (y - 3) / 11.0; half = int(round(6 * (1 - (2 * t - 1) ** 2) ** 0.5 + 0.4)) + 1
+        for x in range(8 - half, 8 + half):
+            c = lt if (x < 6 and y < 8) else (dk if (x > 9 or y > 11) else md)
+            im.putpixel((x, y), c)
+        if 0 <= 8 - half - 1 < 16: im.putpixel((8 - half - 1, y), ol)
+        if 8 + half < 16: im.putpixel((8 + half, y), ol)
+    for x in range(3, 13): im.putpixel((x, 2), ol) if x in (7, 8) else None
+    return im
+
+
+def tile_steps():
+    # 石階：一級一級往上的山路台階（可以走）
+    im = tile_trail()
+    for k in range(4):
+        y = 1 + k * 4
+        for x in range(2, 14):
+            im.putpixel((x, y), (214, 186, 140, 255)); im.putpixel((x, y + 1), (170, 140, 100, 255)); im.putpixel((x, y + 2), (122, 96, 70, 255))
+        im.putpixel((1, y + 1), (60, 44, 36, 255)); im.putpixel((14, y + 1), (60, 44, 36, 255))
+    return im
+
+
 def build_tiles():
     makers = [tile_grass, tile_road, tile_water, tile_tree, tile_stone, tile_floor, tile_roof, tile_house_wall, tile_door,
               tile_fence, tile_well, tile_crate, tile_barrel, tile_flowers, tile_stall, tile_sign, tile_thatch, tile_haystack, tile_bush, tile_forest, tile_mountain, tile_sea, tile_city, tile_cave, tile_cavefloor, tile_cavewall,
               _castle_part(0, 0), _castle_part(1, 0), _castle_part(2, 0), _castle_part(0, 2), _castle_part(2, 2), tile_wgrass, tile_sand, tile_snow, tile_snowforest, tile_snowmountain, tile_snowcave,
-              _castle_part(0, 1), _castle_part(1, 1), _castle_part(2, 1), tile_stairs_down, tile_stairs_up, tile_camp, tile_guangate, tile_pass, tile_cliff]
+              _castle_part(0, 1), _castle_part(1, 1), _castle_part(2, 1), tile_stairs_down, tile_stairs_up, tile_camp, tile_guangate, tile_pass, tile_cliff, tile_peak, tile_trail, tile_rockslope, tile_chasm, tile_boulder, tile_steps]
     sheet = Image.new("RGBA", (16 * len(makers), 16))
     for i, m in enumerate(makers):
         sheet.paste(m(), (i * 16, 0))
