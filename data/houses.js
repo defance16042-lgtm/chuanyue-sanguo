@@ -115,6 +115,20 @@
         npcs: [{ name: '掌櫃', sprite: 14, states: [{ lines: ['掌櫃：縣尉大人要出門辦事？買點藥帶著。'], choices: [
           { label: '傷藥 20金', act: { buy: 'herb' } }, { label: '煙霧彈 40金', act: { buy: 'smoke' } }, { label: '不買了' }] }] }] }
     ],
+    mengjin: [
+      { door: [[11, 3], [12, 3]], name: '渡口官倉', size: 'big',
+        chest: { id: 'h_mj_a', gold: 400, msg: '官倉最裡面的箱子，裝著本該發給船工的工錢，大概是被人遺忘了。' },
+        npcs: [{ name: '倉吏', sprite: 21, states: [{ lines: ['倉吏：洛陽的糧車再不來，我這倉就只剩老鼠了。'] }] }] },
+      { door: [4, 9], name: '船工之家', size: 'small',
+        npcs: [{ name: '老船工', sprite: 8, states: [{ lines: ['老船工：黃河的水脾氣壞，夏天發怒、冬天結冰。想走水路，記得先問問我們。'] }] }] },
+      { door: [19, 9], name: '雜貨鋪', size: 'small',
+        chest: { id: 'h_mj_b', item: { herb: 3, tonic: 2 }, msg: '貨架下的暗格裡塞著幾包藥。' },
+        npcs: [{ name: '掌櫃', sprite: 4, states: [{ lines: ['掌櫃：生意難做啊，洛陽的人一跑，渡口就冷清了。'] }] }] },
+      { door: [5, 14], name: '渡口酒家', size: 'small',
+        npcs: [{ name: '酒客', sprite: 7, states: [{ lines: ['酒客：聯軍十八路，我數過了，有一半是來混飯吃的。'] }] }] },
+      { door: [18, 14], name: '民宅', size: 'small',
+        npcs: [{ name: '老婦', sprite: 6, states: [{ lines: ['老婦：我兒子被抓去當兵了，希望聯軍的大人們，能讓他活著回來。'] }] }] }
+    ],
     pingyuan: [
       { door: [[11, 3], [12, 3]], name: '縣衙', size: 'big',
         chest: { id: 'h_py_a', gold: 300, msg: '縣庫角落的一袋錢，是劉備省下來打算賑濟百姓的。' },

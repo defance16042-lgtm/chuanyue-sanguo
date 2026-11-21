@@ -17,7 +17,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       if (d.c) { for (let i = 0; i < choiceIdx; i++) await tap('ArrowDown'); await tap('z'); } else await tap('z', 40, d.full ? 120 : 220);
     }
   }
-  const viaWorld = async (to) => { const p = await page.evaluate(t => DATA.worldTowns[t], to); await go('world', p.x, p.y + 1, 'up'); await sleep(200); await tap('ArrowUp', 90, 900); await sleep(400); };
+  const viaWorld = async (to) => { const p = await page.evaluate(t => DATA.worldTowns[t], to); await go(p.world, p.x, p.y + 1, 'up'); await sleep(200); await tap('ArrowUp', 90, 900); await sleep(400); };
   const go = (map, x, y, dir = 'down') => page.evaluate(([m, x, y, d]) => { Engine.replaceAll(new Scenes.Map(m, { x, y, dir: d })); }, [map, x, y, dir]);
   async function face(map, x, y, dir) { await go(map, x, y, dir); await sleep(150); await tap('z'); await sleep(300); await talk(); await sleep(200); }
 
@@ -193,20 +193,20 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await viaWorld('pingyuan'); await talk();
   check('youbei east exit opens to pingyuan', (await S()).map === 'pingyuan', (await S()).map);
   await viaWorld('suanzao'); await talk();
-  check('pingyuan east exit blocked until messenger', (await S()).map === 'world', (await S()).map);
+  check('suanzao gate blocked until messenger', (await S()).map === 'world2', (await S()).map);
   await face('pingyuan', 12, 9, 'up'); await sleep(300); await talk();
   check('messenger sets py_news', (await S()).flags.py_news === true);
   await viaWorld('suanzao'); await talk();
-  check('pingyuan east exit opens to suanzao', (await S()).map === 'suanzao', (await S()).map);
+  check('suanzao gate opens after the messenger', (await S()).map === 'suanzao', (await S()).map);
   await viaWorld('sishui'); await talk();
-  check('suanzao east exit blocked until yuanshao', (await S()).map === 'world', (await S()).map);
+  check('sishui gate blocked until yuanshao', (await S()).map === 'world2', (await S()).map);
   await face('suanzao', 12, 7, 'up'); await sleep(300); await talk();
   check('yuanshao meeting done', (await S()).flags.sz_meeting === true);
   await page.evaluate(() => { Game.party = Game.party.filter(m => m.id !== 'caocao'); });
   await face('suanzao', 9, 8, 'left'); await sleep(300); await talk(); s = await S();
   check('caocao rejoins as guest again', s.ids.includes('caocao') && s.flags.sz_cc_joined === true, s.ids);
   await viaWorld('sishui'); await talk();
-  check('suanzao east exit opens to sishui', (await S()).map === 'sishui', (await S()).map);
+  check('sishui gate opens after the meeting', (await S()).map === 'sishui', (await S()).map);
   await face('sishui', 18, 10, 'left'); await sleep(500);
   check('huaxiong starts boss15', (await S()).scene === 'BattleScene');
   const g1 = (await S()).gold;

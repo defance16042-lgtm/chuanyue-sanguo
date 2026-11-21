@@ -1,12 +1,12 @@
 # 替每座城加一個通往大地圖的「城外門」（在南邊城牆，開兩格路）。只加一次。
 import re
-exec(open('tools/build_world.py').read().split('g = [[')[0])   # 取 TOWNS 等常數
+exec(open('tools/build_world.py').read().split('# ==END-CONSTANTS==')[0])   # 取 TOWNS 等常數
 p = 'data/maps.js'; s = open(p).read()
 legend_walk = set(',.fbSN')   # 簡單判斷：路、草、花等能走（用 solidTiles 太麻煩，這裡手動列）
 for t, (cx, cy) in TOWNS.items():
     i = s.index('\n  %s: {' % t); nxt = re.search(r'\n  [a-z0-9]+: \{', s[i + 5:]); j = i + 5 + nxt.start() if nxt else len(s)
     blk = s[i:j]
-    if "to: 'world'" in blk: continue
+    if re.search(r"to: 'world2?'", blk): continue
     a = blk.index('tiles: ['); b = blk.index(']', a)
     rows = re.findall(r"'([^']*)'", blk[a:b]); h = len(rows); w = len(rows[0])
     taken = set((int(x), int(y)) for x, y in re.findall(r"\{ x: (\d+), y: (\d+)", blk))

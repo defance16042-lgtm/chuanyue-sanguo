@@ -1,110 +1,175 @@
-# 產生 data/world.js（大地圖 + 洞穴地圖），並替每座城加一個通往大地圖的城門（maps.js，只加一次）。
+# 產生 data/world.js（兩張大地圖：第一章「北方大地圖」world、第二章「關東大地圖」world2，加上洞穴），
+# 並替每座城加一個通往大地圖的城門（maps.js，只加一次）。
 import random, re, json, collections
 random.seed(20)
-W, H = 96, 72
-TOWNS = {  # id: (x, y) 城門圖塊（C）的位置
- 'youbei': (70, 6), 'zhuoxian': (38, 10), 'guangyang': (54, 12), 'anxi': (30, 22), 'heishan': (12, 22),
- 'pingyuan': (82, 26), 'jizhou': (52, 26), 'guangzong': (64, 35), 'xiaquyang': (32, 36), 'gzcity': (48, 39),
- 'dongjun': (84, 52), 'suanzao': (56, 55), 'sishui': (20, 55), 'yingchuan': (40, 62), 'changshe': (60, 67),
- 'runan': (80, 66), 'wancheng': (14, 67), 'hulao': (6, 50), 'luoyang': (34, 51)}
+# 每座城屬於哪一張大地圖；座標是城門圖塊（C）的位置
+WORLDS = {
+ 'world': dict(name='北方大地圖（第一章）', W=96, H=72, seed=20, start='zhuoxian'),
+ 'world2': dict(name='關東大地圖（第二章）', W=80, H=60, seed=52, start='suanzao'),
+}
+TOWNS_BY = {
+ 'world': {'youbei': (70, 6), 'zhuoxian': (38, 10), 'guangyang': (54, 12), 'anxi': (30, 22), 'heishan': (12, 22),
+  'pingyuan': (82, 26), 'jizhou': (52, 26), 'guangzong': (64, 35), 'xiaquyang': (32, 36), 'gzcity': (48, 39),
+  'dongjun': (84, 52), 'yingchuan': (40, 62), 'changshe': (60, 67), 'runan': (80, 66), 'wancheng': (24, 66)},
+ 'world2': {'suanzao': (62, 38), 'sishui': (44, 40), 'hulao': (26, 32), 'luoyang': (10, 26), 'mengjin': (36, 12)},
+}
+TOWNS = {}
+WORLD_OF = {}
+for _w, _d in TOWNS_BY.items():
+    for _t, _p in _d.items(): TOWNS[_t] = _p; WORLD_OF[_t] = _w
 # 依故事被敵軍佔據的城：打倒該旗標的頭目之前，城頭插敵旗（顏色：黃巾黃、官僚紫、黑山黑、叛軍藍、董卓暗紅）
 GARRISON = {'guangyang': ('boss2_down', 'yellow'), 'changshe': ('bocai_down', 'yellow'), 'runan': ('pengtuo_down', 'yellow'),
  'wancheng': ('hanzhong_down', 'yellow'), 'dongjun': ('busi_down', 'yellow'), 'guangzong': ('zhangliang_down', 'yellow'),
  'xiaquyang': ('zhangbao_down', 'yellow'), 'gzcity': ('zhangjiao_down', 'yellow'), 'anxi': ('duyou_down', 'purple'),
  'heishan': ('zhangyan_down', 'black'), 'youbei': ('zhangchun_down', 'blue'), 'sishui': ('huaxiong_down', 'darkred'), 'hulao': ('lubu_down', 'darkred'), 'luoyang': ('xurong_down', 'darkred')}
 TIER = {'zhuoxian':1,'guangyang':2,'yingchuan':3,'changshe':3,'runan':4,'wancheng':5,'dongjun':6,'jizhou':6,'guangzong':6,
-        'xiaquyang':6,'gzcity':6,'anxi':6,'heishan':7,'youbei':8,'pingyuan':8,'suanzao':9,'sishui':9,'hulao':10,'luoyang':10}
-CAVES = {'cave1': (24, 8), 'cave2': (5, 36), 'cave3': (62, 4), 'cave4': (74, 44)}
-CAVE_TIER = {'cave1': 3, 'cave2': 7, 'cave3': 8, 'cave4': 6}
-ROADS = [('zhuoxian','youbei'),('zhuoxian','guangyang'),('zhuoxian','anxi'),('anxi','heishan'),('anxi','jizhou'),
- ('guangyang','pingyuan'),('pingyuan','jizhou'),('jizhou','guangzong'),('jizhou','xiaquyang'),('guangzong','gzcity'),
- ('xiaquyang','gzcity'),('guangzong','dongjun'),('pingyuan','dongjun'),('gzcity','suanzao'),('dongjun','suanzao'),
- ('suanzao','sishui'),('suanzao','yingchuan'),('yingchuan','changshe'),('changshe','runan'),('yingchuan','wancheng'),
- ('sishui','wancheng'), ('sishui','hulao'), ('hulao','luoyang'), ('luoyang','suanzao'), ('luoyang','yingchuan'),('runan','dongjun')]
-g = [['.'] * W for _ in range(H)]
-def blob(ch, cx, cy, rx, ry, n=1.0):
-    for y in range(max(1, cy - ry - 1), min(H - 1, cy + ry + 2)):
-        for x in range(max(1, cx - rx - 1), min(W - 1, cx + rx + 2)):
-            d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
-            if d <= 1 + random.uniform(-0.25, 0.25) * n: g[y][x] = ch
-for _ in range(30): blob('M', random.randint(4, 88), random.randint(4, 68), random.randint(2, 6), random.randint(2, 4))
-for _ in range(34): blob('Y', random.randint(4, 88), random.randint(4, 68), random.randint(2, 6), random.randint(2, 3))
-for _ in range(12): blob('~', random.randint(6, 80), random.randint(4, 68), random.randint(2, 4), random.randint(1, 2))
-# 太行山脈（西）與黃河（橫貫）
-for y in range(12, 48):
-    for x in range(1, 9 + (y % 3)):
-        if random.random() < .8: g[y][x] = 'M'
-yy = 45.0
-for x in range(1, W - 1):
-    yy += random.uniform(-.7, .7); yy = max(44, min(47, yy))
-    for k in (0, 1): g[int(yy) + k][x] = '~'
-# 海岸與邊框
-for y in range(H):
-    c = 88 + int(2 * random.random() + (y % 5 == 0)) - (9 if y < 9 else 0)
-    for x in range(c, W): g[y][x] = '~'
-for x in range(W): g[0][x] = 'T'; g[H - 1][x] = 'T'
-for y in range(H): g[y][0] = 'T'
-def road(a, b):
-    (x1, y1), (x2, y2) = a, b
-    pts = []
-    if random.random() < .5:
-        for x in range(min(x1, x2), max(x1, x2) + 1): pts.append((x, y1))
-        for y in range(min(y1, y2), max(y1, y2) + 1): pts.append((x2, y))
-    else:
-        for y in range(min(y1, y2), max(y1, y2) + 1): pts.append((x1, y))
-        for x in range(min(x1, x2), max(x1, x2) + 1): pts.append((x, y2))
-    for x, y in pts:
-        if 0 < x < W - 1 and 0 < y < H - 1: g[y][x] = ','
-for a, b in ROADS:
-    ax, ay = TOWNS[a]; bx, by = TOWNS[b]
-    road((ax, ay + 1), (bx, by + 1))
-for t, (x, y) in TOWNS.items():
-    for dx in (-2, -1, 0, 1, 2):
-        for dy in (-3, -2, -1, 0, 1):
-            if g[y + dy][x + dx] in 'T~': g[y + dy][x + dx] = '.'
-    g[y][x] = 'C'; g[y + 1][x] = ','
-    for dx, ch in ((-1, 'q'), (0, 'k'), (1, 'p')): g[y - 2][x + dx] = ch
-    for dx, ch in ((-1, 'e'), (0, 'u'), (1, 'j')): g[y - 1][x + dx] = ch
-    g[y][x - 1] = 'l'; g[y][x + 1] = 'r'
-for c, (x, y) in CAVES.items():
-    for dx in (-2, -1, 0, 1, 2):
-        for dy in (-2, -1, 0, 1, 2):
-            if 0 < x + dx < W - 1 and 0 < y + dy < H - 1 and abs(dx) + abs(dy) <= 3: g[y + dy][x + dx] = 'M'
-    g[y][x] = 'V'; g[y + 1][x] = '.'
-    # 洞口前的小徑通到最近的路
-    best = None
-    for yy2 in range(1, H - 1):
-        for xx in range(1, W - 1):
-            if g[yy2][xx] == ',':
-                d = abs(xx - x) + abs(yy2 - y)
-                if best is None or d < best[0]: best = (d, xx, yy2)
-    if best[0] > 7: road((x, y + 1), (best[1], best[2]))
-# 海邊沙灘（緊貼海的陸地）
-for y in range(1, H - 1):
-    for x in range(61, W - 1):
-        if g[y][x] in '.Y' and any(g[y + b][x + a] == '~' for a in (-1, 0, 1) for b in (-1, 0, 1) if 0 <= x + a < W and 0 <= y + b < H):
-            g[y][x] = 'a'
-SNOW = lambda x, y: x >= 52 + (y % 4) and y <= 17 + (x % 3)
-for y in range(1, H - 1):
-    for x in range(1, W - 1):
-        if SNOW(x, y):
-            g[y][x] = {'.': 'i', 'Y': 'I', 'M': 'm', 'a': 'i', 'V': 'v'}.get(g[y][x], g[y][x])
-CAMP = (46, 10)
-g[CAMP[1]][CAMP[0]] = 'K'; g[CAMP[1] + 1][CAMP[0]] = ','
+        'xiaquyang':6,'gzcity':6,'anxi':6,'heishan':7,'youbei':8,'pingyuan':8,'suanzao':9,'sishui':9,'hulao':10,'luoyang':10,'mengjin':9}
+CAVES_BY = {'world': {'cave1': (24, 8), 'cave2': (5, 36), 'cave3': (62, 4), 'cave4': (74, 44)}, 'world2': {'cave5': (18, 48)}}
+CAVES = {}
+for _w, _d in CAVES_BY.items(): CAVES.update(_d)
+CAVE_WORLD = {c: w for w, d in CAVES_BY.items() for c in d}
+CAVE_TIER = {'cave1': 3, 'cave2': 7, 'cave3': 8, 'cave4': 6, 'cave5': 10}
+ROADS_BY = {
+ 'world': [('zhuoxian','youbei'),('zhuoxian','guangyang'),('zhuoxian','anxi'),('anxi','heishan'),('anxi','jizhou'),
+  ('guangyang','pingyuan'),('pingyuan','jizhou'),('jizhou','guangzong'),('jizhou','xiaquyang'),('guangzong','gzcity'),
+  ('xiaquyang','gzcity'),('guangzong','dongjun'),('pingyuan','dongjun'),('gzcity','yingchuan'),('dongjun','yingchuan'),
+  ('yingchuan','changshe'),('changshe','runan'),('yingchuan','wancheng'),('runan','dongjun')],
+ 'world2': [('suanzao','sishui'),('sishui','hulao'),('hulao','luoyang'),('mengjin','hulao'),('mengjin','sishui'),('luoyang','mengjin')],
+}
+# 兩章之間的通道：關口（陸路，要打倒守將）與渡口（水路，付船錢）
+PASS = {'world': dict(x=2, y=58, guard=(3, 58), d=1), 'world2': dict(x=77, y=40, guard=(76, 40), d=-1)}   # 關口（C 圖塊）與守將位置
+DOCK = {'world': dict(x=87, y=33, boat=(88, 33), arrive=(86, 33)), 'world2': dict(x=30, y=5, boat=(30, 4), arrive=(30, 6))}       # 渡口：沙灘上的碼頭與停靠的船
+CAMPS = {'world': (46, 10), 'world2': None}
+# ==END-CONSTANTS==（patch_gates.py 只讀這行以上）
+
 SOLID = set('T~')
-def reach(sx, sy):
-    seen = {(sx, sy)}; q = collections.deque([(sx, sy)])
-    while q:
-        x, y = q.popleft()
-        for dx, dy in ((1,0),(-1,0),(0,1),(0,-1)):
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < W and 0 <= ny < H and (nx, ny) not in seen and g[ny][nx] not in SOLID:
-                seen.add((nx, ny)); q.append((nx, ny))
-    return seen
-sx, sy = TOWNS['zhuoxian']; r = reach(sx, sy + 1)
-for k, (x, y) in {**TOWNS, **CAVES, 'camp': CAMP}.items():
-    assert (x, y + 1) in r, ('unreachable', k)
-world_rows = [''.join(r).replace('.', 'g') for r in g]
+def make_world(wid):
+    cfg = WORLDS[wid]; W, H = cfg['W'], cfg['H']; random.seed(cfg['seed'])
+    towns = TOWNS_BY[wid]; roads = ROADS_BY[wid]; caves = CAVES_BY[wid]
+    g = [['.'] * W for _ in range(H)]
+    def blob(ch, cx, cy, rx, ry, n=1.0):
+        for y in range(max(1, cy - ry - 1), min(H - 1, cy + ry + 2)):
+            for x in range(max(1, cx - rx - 1), min(W - 1, cx + rx + 2)):
+                d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
+                if d <= 1 + random.uniform(-0.25, 0.25) * n: g[y][x] = ch
+    k = W * H / (96 * 72)
+    for _ in range(int(30 * k)): blob('M', random.randint(4, W - 8), random.randint(4, H - 4), random.randint(2, 6), random.randint(2, 4))
+    for _ in range(int(34 * k)): blob('Y', random.randint(4, W - 8), random.randint(4, H - 4), random.randint(2, 6), random.randint(2, 3))
+    for _ in range(int(12 * k)): blob('~', random.randint(6, W - 16), random.randint(4, H - 4), random.randint(2, 4), random.randint(1, 2))
+    if wid == 'world':
+        for y in range(12, 48):      # 太行山脈（西）
+            for x in range(1, 9 + (y % 3)):
+                if random.random() < .8: g[y][x] = 'M'
+        yy = 45.0                      # 黃河（橫貫）
+        for x in range(1, W - 1):
+            yy += random.uniform(-.7, .7); yy = max(44, min(47, yy))
+            for kk in (0, 1): g[int(yy) + kk][x] = '~'
+        for y in range(H):             # 東邊的海
+            c = 88 + int(2 * random.random() + (y % 5 == 0)) - (9 if y < 9 else 0)
+            for x in range(c, W): g[y][x] = '~'
+    else:
+        for x in range(1, W - 1):      # 北邊的黃河（寬水面）
+            d = 3 + int(random.random() * 2) + (2 if 24 <= x <= 40 else 0)
+            for y in range(1, d + 1): g[y][x] = '~'
+        for y in range(1, 26):         # 西北的邙山
+            for x in range(1, 5 + (y % 3)):
+                if random.random() < .8: g[y][x] = 'M'
+    for x in range(W): g[0][x] = 'T'; g[H - 1][x] = 'T'
+    for y in range(H): g[y][0] = 'T'; g[y][W - 1] = 'T' if wid == 'world2' else g[y][W - 1]
+    def road(a, b):
+        (x1, y1), (x2, y2) = a, b
+        pts = []
+        if random.random() < .5:
+            for x in range(min(x1, x2), max(x1, x2) + 1): pts.append((x, y1))
+            for y in range(min(y1, y2), max(y1, y2) + 1): pts.append((x2, y))
+        else:
+            for y in range(min(y1, y2), max(y1, y2) + 1): pts.append((x1, y))
+            for x in range(min(x1, x2), max(x1, x2) + 1): pts.append((x, y2))
+        for x, y in pts:
+            if 0 < x < W - 1 and 0 < y < H - 1: g[y][x] = ','
+    for a, b in roads:
+        ax, ay = towns[a]; bx, by = towns[b]
+        road((ax, ay + 1), (bx, by + 1))
+    # 關口與渡口：先把周圍整理成可走的地形，再接路
+    P, Dk = PASS[wid], DOCK[wid]
+    for dy in (-2, -1, 0, 1, 2):
+        for dx in range(-1, 5):
+            xx = P['x'] + dx * P['d']
+            if 0 < xx < W - 1: g[P['y'] + dy][xx] = 'M' if dy else '.'
+    for dx in range(-3, 4):
+        for dy in range(-2, 3):
+            xx, yy2 = Dk['x'] + dx, Dk['y'] + dy
+            if 0 < xx < W - 1 and 0 < yy2 < H - 1 and g[yy2][xx] in 'M~T': g[yy2][xx] = '.'
+    near = min(towns, key=lambda t: abs(towns[t][0] - P['x']) + abs(towns[t][1] - P['y']))
+    road((P['x'] + P['d'], P['y']), (towns[near][0], towns[near][1] + 1))
+    near = min(towns, key=lambda t: abs(towns[t][0] - Dk['x']) + abs(towns[t][1] - Dk['y']))
+    road((Dk['x'], Dk['y'] + 1), (towns[near][0], towns[near][1] + 1))
+    for t, (x, y) in towns.items():
+        for dx in (-2, -1, 0, 1, 2):
+            for dy in (-3, -2, -1, 0, 1):
+                if g[y + dy][x + dx] in 'T~': g[y + dy][x + dx] = '.'
+        g[y][x] = 'C'; g[y + 1][x] = ','
+        for dx, ch in ((-1, 'q'), (0, 'k'), (1, 'p')): g[y - 2][x + dx] = ch
+        for dx, ch in ((-1, 'e'), (0, 'u'), (1, 'j')): g[y - 1][x + dx] = ch
+        g[y][x - 1] = 'l'; g[y][x + 1] = 'r'
+    for c, (x, y) in caves.items():
+        for dx in (-2, -1, 0, 1, 2):
+            for dy in (-2, -1, 0, 1, 2):
+                if 0 < x + dx < W - 1 and 0 < y + dy < H - 1 and abs(dx) + abs(dy) <= 3: g[y + dy][x + dx] = 'M'
+        g[y][x] = 'V'; g[y + 1][x] = '.'
+        best = None
+        for yy2 in range(1, H - 1):
+            for xx in range(1, W - 1):
+                if g[yy2][xx] == ',':
+                    d = abs(xx - x) + abs(yy2 - y)
+                    if best is None or d < best[0]: best = (d, xx, yy2)
+        if best[0] > 7: road((x, y + 1), (best[1], best[2]))
+    # 關口 C 圖塊與渡口碼頭（沙）、船（海）
+    g[P['y']][P['x']] = 'C'
+    g[Dk['y']][Dk['x']] = '.'
+    bx, by = DOCK[wid]['boat']; g[by][bx] = '~'
+    for y in range(1, H - 1):
+        for x in range(1, W - 1):
+            if g[y][x] in '.Y' and any(g[y + b][x + a] == '~' for a in (-1, 0, 1) for b in (-1, 0, 1) if 0 <= x + a < W and 0 <= y + b < H):
+                g[y][x] = 'a'
+    g[Dk['y']][Dk['x']] = 'a'; g[Dk['y'] + 1][Dk['x']] = 'a'
+    camp = CAMPS[wid]
+    if wid == 'world':
+        SNOW = lambda x, y: x >= 52 + (y % 4) and y <= 17 + (x % 3)
+        for y in range(1, H - 1):
+            for x in range(1, W - 1):
+                if SNOW(x, y):
+                    g[y][x] = {'.': 'i', 'Y': 'I', 'M': 'm', 'a': 'i', 'V': 'v'}.get(g[y][x], g[y][x])
+        g[camp[1]][camp[0]] = 'K'; g[camp[1] + 1][camp[0]] = ','
+    def reach(sx, sy):
+        seen = {(sx, sy)}; q = collections.deque([(sx, sy)])
+        while q:
+            x, y = q.popleft()
+            for dx, dy in ((1,0),(-1,0),(0,1),(0,-1)):
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < W and 0 <= ny < H and (nx, ny) not in seen and g[ny][nx] not in SOLID:
+                    seen.add((nx, ny)); q.append((nx, ny))
+        return seen
+    sx, sy = towns[cfg['start']]; r = reach(sx, sy + 1)
+    chk = {**towns, **caves}
+    if camp: chk['camp'] = camp
+    for kk, (x, y) in chk.items():
+        assert (x, y + 1) in r, ('unreachable', wid, kk)
+    assert (P['x'] + P['d'], P['y']) in r, ('pass', wid)
+    assert (Dk['x'], Dk['y'] + 1) in r, ('dock', wid)
+    rows = [''.join(rw).replace('.', 'g') for rw in g]
+    tiers = sorted(set(TIER[t] for t in towns)); zg = []
+    for by2 in range(H // 4):
+        row = ''
+        for bx2 in range(W // 4):
+            cx, cy = bx2 * 4 + 2, by2 * 4 + 2
+            t = min(towns, key=lambda k2: (towns[k2][0] - cx) ** 2 + (towns[k2][1] - cy) ** 2)
+            row += format(tiers.index(TIER[t]), 'x')
+        zg.append(row)
+    return dict(rows=rows, tiers=tiers, zg=zg, camp=camp)
+
+WORLD_MAPS = {w: make_world(w) for w in WORLDS}
+world_rows = WORLD_MAPS['world']['rows']
 
 # ---- 洞穴：用房間＋走廊刻出來
 # ---- 洞穴：三層，房間＋彎曲走廊（有岔路與環），樓梯、守路頭目、特別 NPC、寶箱、存檔水晶
@@ -119,6 +184,9 @@ CAVE_SPEC = {
  'cave3': dict(name='烏桓洞', enc='field8', bossName='蹋頓', bossSprite=23, seed=37, guard=('烏桓百夫長', 23), guard2=('烏桓祭司長', 23),
    chests=[[('c3c', dict(item={'herb': 5, 'tonic': 3})), ('c3e', dict(gold=700))], [('c3a', dict(gold=1200)), ('c3f', dict(item={'tonic': 4}))], [('c3b', dict(gear=['wuhuan_cloak'])), ('c3d', dict(gear=['steppe_fan'])), ('c3g', dict(gold=900))]],
    npc=('烏桓巫師', 8, 'cave3_sp')),
+ 'cave5': dict(name='邙山古墓', enc='field10', bossName='郭汜', bossSprite=34, seed=57, guard=('西涼百夫長', 33), guard2=('墓道校尉', 34),
+   chests=[[('c5c', dict(item={'herb': 6, 'tonic': 4})), ('c5e', dict(gold=1200))], [('c5a', dict(gold=1800)), ('c5f', dict(item={'herb': 5}))], [('c5b', dict(gear=['hanling_helm'])), ('c5d', dict(gear=['hanling_sword'])), ('c5g', dict(gear=['hanling_fan'])), ('c5h', dict(gold=1500))]],
+   npc_flag='cave5_sp_done', npc=('守墓老人', 8, 'cave5_sp')),
  'cave4': dict(name='太平祕窟', enc='field6', bossName='于吉', bossSprite=8, seed=41, guard=('黃天力士', 12), guard2=('符籙護法', 8),
    chests=[[('c4c', dict(item={'herb': 6, 'tonic': 4})), ('c4e', dict(gold=800))], [('c4a', dict(gold=1500)), ('c4f', dict(item={'herb': 4}))], [('c4b', dict(gear=['sage_amulet'])), ('c4d', dict(gear=['taiping_sword'])), ('c4g', dict(gold=1000))]],
    npc_flag='cave4_sp_done', npc=('修道的童子', 8, 'cave4_sp')),
@@ -205,10 +273,11 @@ CAVE_TEXT = {
  'cave1': dict(tablet='「黃天當立，歲在甲子」——牆上刻著歪歪扭扭的字。這座洞原是黃巾軍囤積糧草的地方。', statue='一尊被敲掉半邊臉的石像，不知是哪朝留下的守洞神將。'),
  'cave2': dict(tablet='「入此寨者，留下買路財」——石碑上被人用刀刻了幾道深痕。', statue='山賊用石頭胡亂堆成的「大當家」像，鼻子特別大。'),
  'cave3': dict(tablet='碑上刻著烏桓人的狼圖騰與看不懂的文字，似乎是祭祀長生天用的。', statue='一尊戴羽冠的石像，眼睛的位置鑲著兩顆發亮的石子。'),
+ 'cave5': dict(tablet='「大漢光武皇帝之陵」——碑前的供品已被翻得亂七八糟，西涼兵的腳印滿地。', statue='一尊文官石像，捧著笏板，面容肅穆，肩上卻被人潑了酒。'),
  'cave4': dict(tablet='「太平清領，天地同流」——字跡工整，像是學者所刻。', statue='一尊手持拂塵的道人石像，面容和于吉有幾分相似。'),
 }
 BONES_TEXT = ['倒在這裡的人手裡還握著一把生鏽的刀。', '一副白骨，旁邊散落著幾枚鏽掉的銅錢。', '骨頭上還掛著破爛的布條，看起來是個行路人。']
-SECRET = {'cave1': ('turban_charm', 1), 'cave2': ('bandit_seal', 1), 'cave3': ('wolf_tooth', 1), 'cave4': ('taiji_jade', 1)}
+SECRET = {'cave1': ('turban_charm', 1), 'cave2': ('bandit_seal', 1), 'cave3': ('wolf_tooth', 1), 'cave4': ('taiji_jade', 1), 'cave5': ('cicada_jade', 1)}
 SOLID_OBJ = ('chest', 'torch', 'bones', 'statue', 'tablet', 'urn', 'spring', 'lever', 'gate', 'save')
 
 def add_decor(m, rooms, S, spawn, up, down, objects, npcs, f, k, rnd):
@@ -387,34 +456,15 @@ for k, (cx, cy) in CAVES.items():
         if f < 2: assert fd['guard'], ('no chokepoint', k, f)
     CAVE_FLOORS[k] = fl
 
-# 每 4x4 區塊最近的城決定遇敵強度
-tiers = sorted(set(TIER.values())); zg = []
-for by in range(H // 4):
-    row = ''
-    for bx in range(W // 4):
-        cx, cy = bx * 4 + 2, by * 4 + 2
-        t = min(TOWNS, key=lambda k: (TOWNS[k][0] - cx) ** 2 + (TOWNS[k][1] - cy) ** 2)
-        row += format(tiers.index(TIER[t]), 'x')
-    zg.append(row)
 
-# 城內通往大地圖的城門：落點跟著大地圖上的城位置更新
+# ---- 輸出
 ms = open('data/maps.js').read()
-for t, (x, y) in TOWNS.items():
+for t, (x, y) in TOWNS.items():       # 城內通往大地圖的城門：落點跟著大地圖上的城位置更新，並指向該城所屬的大地圖
     i = ms.index('\n  %s: {' % t); j = ms.find('\n  }', i)
     blk = ms[i:j]
-    blk2 = re.sub(r"to: 'world', tx: \d+, ty: \d+", "to: 'world', tx: %d, ty: %d" % (x, y + 1), blk)
+    blk2 = re.sub(r"to: 'world2?', tx: \d+, ty: \d+", "to: '%s', tx: %d, ty: %d" % (WORLD_OF[t], x, y + 1), blk)
     ms = ms[:i] + blk2 + ms[j:]
 open('data/maps.js', 'w').write(ms)
-labels = [dict(x=x, y=y, name=k) for k, (x, y) in TOWNS.items()]
-warps = []
-for t, (x, y) in TOWNS.items():
-    ms = open('data/maps.js').read(); i = ms.index('\n  %s: {' % t); blk = ms[i:i + 9000]
-    gx, gy = re.search(r"\{ x: (\d+), y: (\d+), to: 'world'", blk).groups()
-    warps.append(dict(x=x, y=y, to=t, tx=int(gx), ty=int(gy) - 1, dir='up', need='seen_' + t, deny='world_garrison' if t in GARRISON else 'world_unknown', bx=x, by=y + 1))
-warps.append(dict(x=CAMP[0], y=CAMP[1], to='field', tx=11, ty=1, dir='down', bx=CAMP[0], by=CAMP[1] + 1))
-for c, (x, y) in CAVES.items():
-    sp = CAVE_FLOORS[c][0]['spawn']; warps.append(dict(x=x, y=y, to=c, tx=sp[0], ty=sp[1], dir='up'))
-
 out = []
 out.append('// 大地圖與洞穴（由 tools/build_world.py 產生，請改 py 再重新產生）')
 out.append('window.DATA = window.DATA || {};')
@@ -422,24 +472,52 @@ out.append('(function () {')
 out.append('  const D = window.DATA;')
 out.append('  D.townIds = ' + json.dumps(list(TOWNS)) + ';')
 out.append('  D.worldGarrison = ' + json.dumps({k: {'flag': v[0], 'banner': v[1]} for k, v in GARRISON.items()}) + ';')
-out.append('  D.worldTowns = ' + json.dumps({k: {'x': x, 'y': y} for k, (x, y) in TOWNS.items()}) + ';')
-out.append('  D.maps.world = {')
-out.append("    name: '中原大地圖', battleBg: 'grass', world: true,")
-out.append("    encounter: { group: 'field1', rate: 0.05, minSteps: 6 },")
-out.append('    zoneTiers: ' + json.dumps(tiers) + ', zoneGrid: ' + json.dumps(zg) + ',')
-out.append('    tiles: ' + json.dumps(world_rows, ensure_ascii=False, indent=6).replace('\n    ]', '\n    ],', 1).rstrip(',') + ',')
-out.append("    start: { x: %d, y: %d, dir: 'down' }," % (TOWNS['zhuoxian'][0], TOWNS['zhuoxian'][1] + 1))
-out.append('    labels: ' + json.dumps(labels) + ',')
-out.append('    warps: ' + json.dumps(warps) + ',')
-out.append('    npcs: [], objects: []')
-out.append('  };')
+out.append('  D.worldTowns = ' + json.dumps({k: {'x': x, 'y': y, 'world': WORLD_OF[k]} for k, (x, y) in TOWNS.items()}) + ';')
+out.append('  D.worldIds = ' + json.dumps(list(WORLDS)) + ';')
+mapsrc = open('data/maps.js').read()
+for wid, cfg in WORLDS.items():
+    wm = WORLD_MAPS[wid]; towns = TOWNS_BY[wid]
+    labels = [dict(x=x, y=y, name=k) for k, (x, y) in towns.items()]
+    warps = []
+    for t, (x, y) in towns.items():
+        i = mapsrc.index('\n  %s: {' % t); blk = mapsrc[i:i + 9000]
+        gx, gy = re.search(r"\{ x: (\d+), y: (\d+), to: 'world2?'", blk).groups()
+        warps.append(dict(x=x, y=y, to=t, tx=int(gx), ty=int(gy) - 1, dir='up', need='seen_' + t, deny='world_garrison' if t in GARRISON else 'world_unknown', bx=x, by=y + 1))
+    if wm['camp']:
+        warps.append(dict(x=wm['camp'][0], y=wm['camp'][1], to='field', tx=11, ty=1, dir='down', bx=wm['camp'][0], by=wm['camp'][1] + 1))
+    for c, (x, y) in CAVES_BY[wid].items():
+        sp = CAVE_FLOORS[c][0]['spawn']; warps.append(dict(x=x, y=y, to=c, tx=sp[0], ty=sp[1], dir='up'))
+    other = 'world2' if wid == 'world' else 'world'
+    P, PO = PASS[wid], PASS[other]
+    pw = dict(x=P['x'], y=P['y'], to=other, tx=PO['x'] + PO['d'] * 2, ty=PO['y'], dir='left' if PO['d'] < 0 else 'right', bx=P['x'] + P['d'], by=P['y'])
+    if wid == 'world': pw.update(need='pass_open', deny='pass_deny')
+    warps.append(pw)
+    Dk = DOCK[wid]
+    objs = [dict(type='boat', x=Dk['boat'][0], y=Dk['boat'][1])]
+    npcs = [dict(id='boatman_' + wid, name='船夫', sprite=8, x=Dk['x'], y=Dk['y'], dir='right' if wid == 'world' else 'up', dialogue='boat_early' if wid == 'world' else 'boat_back',
+                 alts=[dict(flag='py_news', dialogue='boat_offer')] if wid == 'world' else [])]
+    if wid == 'world':
+        npcs.append(dict(id='passguard', name='關口守將', sprite=34, x=P['guard'][0], y=P['guard'][1], dir='right', dialogue='pass_guard_early', hideIf='pass_open',
+                         alts=[dict(flag='py_news', dialogue='pass_guard')]))
+    out.append('  D.maps.%s = {' % wid)
+    out.append("    name: %s, battleBg: 'grass', world: true," % json.dumps(cfg['name'], ensure_ascii=False))
+    out.append("    encounter: { group: 'field1', rate: 0.05, minSteps: 6 },")
+    out.append('    zoneTiers: ' + json.dumps(wm['tiers']) + ', zoneGrid: ' + json.dumps(wm['zg']) + ',')
+    out.append('    tiles: ' + json.dumps(wm['rows'], ensure_ascii=False, indent=6).replace('\n    ]', '\n    ],', 1).rstrip(',') + ',')
+    sx, sy = towns[cfg['start']]
+    out.append("    start: { x: %d, y: %d, dir: 'down' }," % (sx, sy + 1))
+    out.append('    labels: ' + json.dumps(labels) + ',')
+    out.append('    warps: ' + json.dumps(warps) + ',')
+    out.append('    npcs: ' + json.dumps(npcs, ensure_ascii=False) + ', objects: ' + json.dumps(objs) + ',')
+    out.append('    pass: ' + json.dumps(P) + ', dock: ' + json.dumps(Dk))
+    out.append('  };')
 for k, fl in CAVE_FLOORS.items():
     spec = CAVE_SPEC[k]
     for f, fd in enumerate(fl):
         mid = k if f == 0 else '%s_%d' % (k, f + 1)
         warps = []
         if f == 0:
-            warps.append(dict(x=fd['up'][0], y=fd['up'][1], to='world', tx=CAVES[k][0], ty=CAVES[k][1] + 1, dir='down'))
+            warps.append(dict(x=fd['up'][0], y=fd['up'][1], to=CAVE_WORLD[k], tx=CAVES[k][0], ty=CAVES[k][1] + 1, dir='down'))
         else:
             prev = fl[f - 1]; pid = k if f == 1 else '%s_%d' % (k, f)
             warps.append(dict(x=fd['up'][0], y=fd['up'][1], to=pid, tx=prev['down'][0] - 1, ty=prev['down'][1], dir='left'))
@@ -452,4 +530,4 @@ for k, fl in CAVE_FLOORS.items():
         out.append('  D.maps.%s = %s;' % (mid, json.dumps(mp, ensure_ascii=False)))
 out.append('})();')
 open('data/world.js', 'w').write('\n'.join(out) + '\n')
-print('\n'.join(world_rows))
+for w in WORLDS: print('\n'.join(WORLD_MAPS[w]['rows']))

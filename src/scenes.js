@@ -534,7 +534,13 @@
     const r = function (col, a, b, w, h) { c.fillStyle = col; c.fillRect(x + a, y + b, w, h); };
     const t = Math.floor(E.time / 160) % 3;
     const K = '#1a1220';
-    if (o.type === 'torch') {
+    if (o.type === 'boat') {
+      const bob = t === 1 ? 1 : 0;
+      r(K, 1, 10 + bob, 14, 5); r('#8a5a34', 2, 10 + bob, 12, 3); r('#5a3820', 3, 13 + bob, 10, 1);
+      r(K, 7, 1 + bob, 2, 10); r('#6a4428', 7, 2 + bob, 1, 9);
+      r(K, 8, 2 + bob, 6, 7); r('#f0e8d0', 9, 3 + bob, 4, 5); r('#c8bea0', 9, 7 + bob, 4, 1);
+      r('#b03030', 3, 8 + bob, 4, 2);
+    } else if (o.type === 'torch') {
       r(K, 6, 6, 4, 9); r('#7a5232', 7, 7, 2, 7); r('#4a3020', 5, 13, 6, 2);
       r(K, 5, 1 + (t === 1 ? 1 : 0), 6, 6);
       r(t === 2 ? '#ffb030' : '#ff8820', 6, 2 + (t === 1 ? 1 : 0), 4, 4);
@@ -590,8 +596,8 @@
       this.banner = 2000; this.evCheck = true;
       G.mapId = mapId; this.syncPos();
       if (D.townIds && D.townIds.indexOf(mapId) >= 0) { G.flags['seen_' + mapId] = true; G.flags.lastTown = mapId; }
-      if (mapId === 'world' && !G.flags.world_init) {   // 舊存檔：已經走過的城，大地圖上也進得去
-        G.flags.world_init = true;
+      if (m.world && !G.flags['world_init_' + mapId] && !(mapId === 'world' && G.flags.world_init)) {   // 舊存檔：已經走過的城，大地圖上也進得去
+        G.flags['world_init_' + mapId] = true; if (mapId === 'world') G.flags.world_init = true;
         const bf = D.worldBackfill || {};
         Object.keys(bf).forEach(function (t) { if (G.flags[bf[t]]) G.flags['seen_' + t] = true; });
       }
@@ -772,6 +778,8 @@
         m.hp = m.hpMax; G.fullTp(m);
         G.party.push(m); G.flags['guest_' + a.guest] = true;
         this.say(m.name + '助戰，暫時加入了隊伍！（劇情結束就會離隊）');
+      } else if (a.warp) {
+        const w = a.warp; E.replaceAll(new MapScene(w.map, { x: w.x, y: w.y, dir: w.dir || 'down' })); return;
       } else if (a.leave) {
         const k = G.party.findIndex(function (m) { return m.id === a.leave; });
         if (k > 0) {
@@ -818,8 +826,10 @@
     }
     drawBanners(c, cam) {
       const gar = D.worldGarrison || {}, cols = { yellow: '#f0d020', purple: '#9a40c8', black: '#303038', blue: '#3a6ad8', darkred: '#8a1820', own: '#38b860' };
+      const here = this.mapId;
       Object.keys(gar).forEach(function (t) {
         const pos = D.worldTowns[t], held = !G.flags[gar[t].flag];
+        if (!pos || pos.world !== here) return;
         if (!held && !G.flags['seen_' + t]) return;
         const x = pos.x * T - cam.x + 8, y = (pos.y - 2) * T - cam.y - 8;
         if (x < -16 || y < -20 || x > W + 16 || y > H + 16) return;
@@ -846,7 +856,7 @@
       if (this.map.world) {
         // 涿縣使用完整自創城堡圖，取代原本容易破碎的 3x3 小圖塊外觀
         const town = D.worldTowns && D.worldTowns.zhuoxian;
-        if (town && E.images.castle) {
+        if (town && town.world === this.mapId && E.images.castle) {
           const castleX = Math.round(town.x * T + 8 - 48 - cam.x);
           const castleY = Math.round((town.y + 2) * T - 57 - cam.y);
           wc.save();

@@ -16,7 +16,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('data present', st.g.every(Boolean) && !!st.w, st);
   // 世界地圖進虎牢關
   const hl = await page.evaluate(() => DATA.worldTowns.hulao);
-  await page.evaluate(h => Engine.replaceAll(new Scenes.Map('world', { x: h.x, y: h.y + 1, dir: 'up' })), hl); await sleep(300); await tap('ArrowUp', 90, 1200);
+  await page.evaluate(h => Engine.replaceAll(new Scenes.Map('world2', { x: h.x, y: h.y + 1, dir: 'up' })), hl); await sleep(300); await tap('ArrowUp', 90, 1200);
   check('enter hulao from world', (await page.evaluate(() => Game.mapId)) === 'hulao');
   await page.evaluate(() => Engine.replaceAll(new Scenes.Map('hulao', { x: 11, y: 4, dir: 'up' }))); await sleep(400); await talk();
   await tap('z', 60, 400); await talk(); await sleep(900);
