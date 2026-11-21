@@ -78,6 +78,6 @@
     { speaker: '曹操', text: '玄德，今日多謝你們相助。我要回去重新整頓兵馬，咱們後會有期。' },
     { speaker: '劉備', text: '孟德兄保重。', act: { leave: 'caocao' } },
     { speaker: '', text: '（獲得伏兵鐵甲、金 3000。）', act: { gold: 3000 } },
-    { speaker: '', text: '【第二章（三）　虎牢關・洛陽　完】（第三章，製作中）' }
+    { speaker: '', text: '【第二章　群雄逐鹿　完】' }
   ];
 })();

@@ -39,7 +39,7 @@
   S.boat_back = [{ speaker: '船夫', text: '要回河北？一趟 200 金。', choices: [
       { label: '搭船回去（200金）', act: { pay: 200, warp: { map: 'world', x: 85, y: 33, dir: 'left' } } },
       { label: '不用了' }] }];
-  S.pass_guard_early = [{ speaker: '關口守將', text: '黃巾亂事未平，閒雜人等不得出關。回去吧！' }];
+  S.pass_guard_early = [{ speaker: '關尉', text: '黃巾亂事未平，朝廷有令，閒雜人等不得出關。回去吧！' }, { speaker: '諸葛貓妖', text: '（官軍的關尉……等天下的消息傳來，這道關的守將大概就要換人了，喵。）' }];
   S.pass_guard = [
     { speaker: '關口守將', text: '站住！關東諸侯會盟，過關的人都要查驗。沒有文書，休想通過！' },
     { speaker: '張飛', text: '文書？俺的丈八蛇矛就是文書！', act: { battle: 'passguard', flag: 'pass_open', after: 'pass_after' } }];
