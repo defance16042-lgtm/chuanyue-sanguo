@@ -3,7 +3,7 @@
   const D = window.DATA, B = D.battle, E = D.equipment, S = D.dialogue;
   const T = function (p, f, m, s) { return { plain: p, forest: f, mountain: m, sea: s }; };
   // ---- 敵人（數值比華雄再強一階；呂布是這一章最強的頭目）
-  B.enemies.lubu = { name: '呂布', terrain: T('A', 'B', 'A', 'C'), int: 30, lead: 62, luck: 12, title: '飛將・并州刺史', cls: '無雙猛將', weapon: '矛', desc: '人中呂布，馬中赤兔。董卓的義子，號稱天下第一的猛將，手中方天畫戟無人能擋。', hp: 48000, atk: 165, def: 78, spd: 30, exp: 6000, gold: 4500, sprite: 26, boss: true, ai: 'boss' };
+  B.enemies.lubu = { name: '呂布', terrain: T('A', 'B', 'A', 'C'), int: 30, lead: 62, luck: 12, title: '飛將・并州刺史', cls: '無雙猛將', weapon: '矛', desc: '人中呂布，馬中赤兔。董卓的義子，號稱天下第一的猛將，手中方天畫戟無人能擋。', hp: 30000, atk: 140, def: 62, spd: 30, exp: 6000, gold: 4500, sprite: 26, boss: true, ai: 'boss' };
   B.enemies.xurong = { name: '徐榮', terrain: T('B', 'B', 'A', 'C'), int: 52, lead: 55, luck: 10, title: '董卓部將', cls: '伏兵將', weapon: '矛', desc: '董卓麾下善於用兵的老將，在滎陽設伏，專等追兵自投羅網。', hp: 33000, atk: 150, def: 70, spd: 18, exp: 4200, gold: 3000, sprite: 27, boss: true, ai: 'boss' };
   B.enemies.langqi = { name: '并州狼騎', terrain: T('A', 'B', 'B', 'C'), int: 12, lead: 14, luck: 6, title: '呂布親兵', cls: '騎兵', weapon: '矛', desc: '呂布從并州帶來的精騎，衝鋒起來像一群餓狼。', hp: 900, atk: 84, def: 38, spd: 20, exp: 90, gold: 110, sprite: 29 };
   B.groups.boss16 = [['lubu', 'langqi', 'langqi', 'langqi', 'xiliang']];

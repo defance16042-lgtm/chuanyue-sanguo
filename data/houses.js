@@ -115,6 +115,37 @@
         npcs: [{ name: '掌櫃', sprite: 14, states: [{ lines: ['掌櫃：縣尉大人要出門辦事？買點藥帶著。'], choices: [
           { label: '傷藥 20金', act: { buy: 'herb' } }, { label: '煙霧彈 40金', act: { buy: 'smoke' } }, { label: '不買了' }] }] }] }
     ],
+    sishui: [
+      { door: [5, 8], name: '關前民宅', size: 'small',
+        chest: { id: 'h_ss_a', item: { herb: 3, tonic: 2 }, msg: '米缸後面藏著幾包藥，是老農留著過冬的。' },
+        npcs: [{ name: '老農', sprite: 8, states: [
+          { flag: 'huaxiong_down', lines: ['老農：華雄倒了？那就好，我的田終於不用給人當戰場了。'] },
+          { lines: ['老農：華雄那莽夫天天在關前罵陣，我的莊稼都被馬蹄踩光了。'] }] }] },
+      { door: [19, 8], name: '聯軍傷兵帳', size: 'small',
+        npcs: [{ name: '軍醫', sprite: 10, states: [{ lines: ['軍醫：被華雄砍傷的人，一個接一個抬回來。要藥就快買。'], choices: [
+          { label: '傷藥 20金', act: { buy: 'herb' } }, { label: '提神茶 30金', act: { buy: 'tonic' } }, { label: '不買了' }] }] }] },
+      { door: [5, 16], name: '關下糧倉', size: 'small',
+        chest: { id: 'h_ss_b', gold: 500, msg: '糧倉角落的軍餉箱，不知道是哪一路諸侯忘了帶走。' },
+        npcs: [{ name: '糧官', sprite: 9, states: [{ lines: ['糧官：十八路的糧草都要從這兒過，我的帳本都快寫成天書了。'] }] }] },
+      { door: [19, 16], name: '鐵匠鋪', size: 'small',
+        npcs: [{ name: '鐵匠', sprite: 21, states: [{ lines: ['鐵匠：這幾天打的都是修補的活，刀砍卷了刃，槍折了桿。你們的兵器還好嗎？'] }] }] }
+    ],
+    hulao: [
+      { door: [5, 16], name: '降卒營房', size: 'small',
+        chest: { id: 'h_hl_a', gold: 600, msg: '床底下的錢袋，是西涼兵逃跑時沒來得及帶走的。' },
+        npcs: [{ name: '降卒', sprite: 25, states: [
+          { flag: 'lubu_down', lines: ['降卒：呂布都輸了，我們這些小兵還打什麼？我想回家種田。'] },
+          { lines: ['降卒：將軍說關下有十八路人馬，我數了數，每路都比我們人多。'] }] }] },
+      { door: [19, 16], name: '關下茶棚', size: 'small',
+        npcs: [{ name: '茶棚老闆', sprite: 4, states: [{ lines: ['老闆：虎牢關下的茶，一碗三文。呂布一來，客人全跑光了，現在只剩你們還敢坐。'] }] }] }
+    ],
+    luoyang: [
+      { door: [8, 16], name: '半毀的民宅', size: 'small',
+        chest: { id: 'h_ly_a', item: { herb: 4, tonic: 3 }, msg: '牆角的陶罐沒被燒壞，裡面還留著藥草。' },
+        npcs: [{ name: '難民', sprite: 6, states: [{ lines: ['難民：大火燒了三天三夜，我的家只剩下這半面牆。'] }] }] },
+      { door: [15, 16], name: '太倉殘屋', size: 'small',
+        npcs: [{ name: '老吏', sprite: 8, states: [{ lines: ['老吏：太倉的糧，被董卓搬空了。連皇宮的銅人，都被他融去鑄錢。'] }] }] }
+    ],
     mengjin: [
       { door: [[11, 3], [12, 3]], name: '渡口官倉', size: 'big',
         chest: { id: 'h_mj_a', gold: 400, msg: '官倉最裡面的箱子，裝著本該發給船工的工錢，大概是被人遺忘了。' },

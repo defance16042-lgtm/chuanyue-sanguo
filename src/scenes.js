@@ -725,7 +725,7 @@
         enc = Object.assign({}, enc, { group: 'field' + tier });
         this._forceTerr = null;
         if (this.terrainHere() === 'desert') {   // 海岸邊的沙灘：遇到水軍（偶爾是水軍將領），在海上作戰
-          const gen = Math.random() < 0.22 ? (tier >= 9 ? 'coastG2' : (tier >= 5 ? 'coastG1' : null)) : null;
+          const gen = Math.random() < 0.22 ? (tier >= 9 ? 'coastG2' : (tier >= 7 ? 'coastG1' : null)) : null;
           enc.group = gen || (tier <= 4 ? 'coastA' : (tier <= 8 ? 'coastB' : 'coastC'));
           this._forceTerr = 'sea';
         }
