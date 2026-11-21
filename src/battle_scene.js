@@ -294,7 +294,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         E.text(wc, '地形：' + window.DATA.terrainNames[T], 128, 3, { size: 8, color: '#ffd668', align: 'center' });
         return;
       }
-      const sky = { plain: ['#5a8ad0', '#b8d8f0'], forest: ['#4a7a9a', '#a8c8c0'], mountain: ['#7a8aa8', '#d0d8e8'], sea: ['#4a80d0', '#c8e4f8'] }[T];
+      const sky = { plain: ['#5a8ad0', '#b8d8f0'], forest: ['#4a7a9a', '#a8c8c0'], mountain: ['#7a8aa8', '#d0d8e8'], sea: ['#4a80d0', '#c8e4f8'], desert: ['#6096d6', '#f6e8c4'] }[T];
       const g = wc.createLinearGradient(0, 0, 0, 60);
       g.addColorStop(0, sky[0]); g.addColorStop(1, sky[1]);
       wc.fillStyle = g; wc.fillRect(0, 0, W, 60);
@@ -391,7 +391,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         E.text(c, u.name, 6, y + 2, { size: 10, color: dead ? GREY : (sel ? GOLD : '#fff') });
         const low = !dead && self.H(u) / u.hpMax < 0.3;
         E.text(c, String(self.H(u)), 8, y + 16, { size: 10, color: dead ? GREY : (low ? RED : '#fff') });
-        self.bar(c, 40, y + 19, 60, self.H(u) / u.hpMax, '#f0a030');
+        self.bar(c, 40, y + 19, 60, self.H(u) / u.hpMax, window.DATA.terrainColors[u.home] || '#6ccf4a');
         const bf = [];
         if (u.buffs.atk) bf.push(u.buffs.atk.mult > 1 ? '攻+' : '攻-');
         if (u.buffs.def) bf.push('守+');
@@ -405,7 +405,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         const sel = self.state === 'target' && self.targetSide === 'enemy' && self.targets[self.targetSel] === e;
         E.text(c, e.name, 250, y + 2, { size: 10, align: 'right', color: dead ? GREY : (sel ? GOLD : '#fff') });
         E.text(c, String(self.H(e)), 250, y + 16, { size: 10, align: 'right', color: dead ? GREY : '#fff' });
-        self.bar(c, 156, y + 19, 60, self.H(e) / e.hpMax, '#a050d0');
+        self.bar(c, 156, y + 19, 60, self.H(e) / e.hpMax, window.DATA.terrainColors[e.home] || '#6ccf4a');
         const bf = [];
         if (e.confused > 0) bf.push('亂');
         if (e.buffs.atk) bf.push('攻-');

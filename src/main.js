@@ -1,7 +1,7 @@
 // 進入點：載入圖檔後顯示標題畫面。
 window.addEventListener('load', function () {
   Engine.init('screen');
-  Engine.load({ tiles: 'assets/tiles.png', sprites: 'assets/sprites.png', objects: 'assets/objects.png', bparty16: 'assets/battle_party16.png', benemy16: 'assets/battle_enemy16.png', portraits: 'assets/portraits.png', bg_plain: 'assets/bg_plain.png', bg_forest: 'assets/bg_forest.png', bg_mountain: 'assets/bg_mountain.png', bg_sea: 'assets/bg_sea.png' })
+  Engine.load({ tiles: 'assets/tiles.png', sprites: 'assets/sprites.png', objects: 'assets/objects.png', bparty16: 'assets/battle_party16.png', benemy16: 'assets/battle_enemy16.png', portraits: 'assets/portraits.png', bg_plain: 'assets/bg_plain.png', bg_forest: 'assets/bg_forest.png', bg_mountain: 'assets/bg_mountain.png', bg_sea: 'assets/bg_sea.png', bg_desert: 'assets/bg_desert.png' })
     .then(function () {
       Engine.replaceAll(new Scenes.Title());
       Engine.start();

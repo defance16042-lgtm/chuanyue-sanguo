@@ -24,7 +24,7 @@
   function unitFromMember(m, i) {
     const G = root.Game, e = function (k) { return G && G.eff ? G.eff(m, k) : (m[k] || 0); };
     return { side: 'party', idx: i, ref: m, id: m.id, name: m.name, hp: m.hp, hpMax: m.hpMax, tp: Math.min(m.tp, G && G.tpMaxOf ? G.tpMaxOf(m) : m.tpMax), tpMax: G && G.tpMaxOf ? G.tpMaxOf(m) : m.tpMax, wtype: BL.weaponTypeOf(m), isAdvisor: !!(G && G.advisor && G.advisor === m.id),
-      terr: (root.DATA.characters[m.id] || {}).terrain || {}, atk: e('atk'), pow: G && G.bonus ? G.bonus(m, 'pow') : 0, int: e('int'), def: e('def'), spd: e('spd'), lead: e('lead'), luck: e('luck'), cha: e('lead'), buffs: {}, confused: 0, defending: false, escaped: false };
+      terr: (root.DATA.characters[m.id] || {}).terrain || {}, home: (root.DATA.characters[m.id] || {}).home || 'plain', atk: e('atk'), pow: G && G.bonus ? G.bonus(m, 'pow') : 0, int: e('int'), def: e('def'), spd: e('spd'), lead: e('lead'), luck: e('luck'), cha: e('lead'), buffs: {}, confused: 0, defending: false, escaped: false };
   }
   // 武器種類：優先看身上裝備的武器，沒有就用角色本來的武器類別
   BL.weaponTypeOf = function (m) {
@@ -34,7 +34,7 @@
   function unitFromEnemy(id, i) {
     const e = B.enemies[id];
     return { side: 'enemy', idx: i, id: id, name: e.name, hp: e.hp, hpMax: e.hp, tp: 0, tpMax: 0,
-      terr: e.terrain || {}, atk: e.atk, pow: 0, int: e.int != null ? e.int : e.atk, def: e.def, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, wtype: e.weapon || '刀', title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
+      terr: e.terrain || {}, home: e.home || 'plain', atk: e.atk, pow: 0, int: e.int != null ? e.int : e.atk, def: e.def, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, wtype: e.weapon || '刀', title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
       buffs: {}, confused: 0, defending: false };
   }
 

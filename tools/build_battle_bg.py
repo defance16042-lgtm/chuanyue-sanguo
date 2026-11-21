@@ -273,6 +273,33 @@ def sea():
     finish(img, "bg_sea.png", 0.1)
 
 
+def desert():
+    hz = 66
+    img = sky((96, 150, 214), (246, 232, 196), hz, 31, 0.25, sun=(70, 26, 6))
+    # 遠近兩層沙丘，亮面朝陽、暗面背光
+    for seed, base, amp, col, shade in ((41, hz + 2, 14, (226, 196, 130), (196, 160, 104)), (43, hz + 14, 18, (236, 208, 142), (204, 170, 112))):
+        line = ridge(seed, base, amp, 40)
+        for x in range(W):
+            for y in range(int(line[x]), H):
+                slope = line[min(W - 1, x + 2)] - line[max(0, x - 2)]
+                img[y, x] = shade if slope < 0 and y < line[x] + 5 else col
+    ground_texture(img, hz + 30, (238, 212, 148), (206, 176, 114), (250, 232, 176), 47)
+    # 近處幾塊風化的岩石與枯草
+    r = rng(53)
+    for _ in range(9):
+        x, y = int(r.rand() * W), int(hz + 34 + r.rand() * (H - hz - 40))
+        w = 3 + int(r.rand() * 4)
+        for dx in range(w):
+            for dy in range(2 if w < 5 else 3):
+                if 0 <= x + dx < W and y + dy < H:
+                    img[y + dy, x + dx] = (150, 118, 80) if dy else (180, 146, 104)
+    # 熱氣在地平線附近的微微波動
+    for x in range(W):
+        if int(x * 0.5) % 3 == 0:
+            img[hz + 2, x] = np.array(img[hz + 2, x]) * 0.9 + np.array((255, 244, 214)) * 0.1
+    finish(img, "bg_desert.png", 0.1)
+
+
 if __name__ == "__main__":
-    plain(); forest(); mountain(); sea()
+    plain(); forest(); mountain(); sea(); desert()
     print("ok")

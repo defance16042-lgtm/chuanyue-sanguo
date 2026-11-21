@@ -155,6 +155,9 @@ E.append(face((50, 50, 60), ((150, 150, 170), (96, 96, 116), (64, 64, 84)), (190
 E.append(face((70, 54, 44), ((190, 160, 120), (140, 108, 70), (96, 74, 50)), (160, 60, 50), (218, 168, 126), (36, 28, 26), helm=((170, 140, 100), (120, 96, 66)), plume=(190, 50, 40), beard='long', brow=2, wrinkles=True))   # 49 關口守將
 E.append(face((50, 60, 56), ((170, 190, 180), (110, 130, 124), (72, 88, 84)), (200, 200, 200), (230, 190, 156), (236, 236, 240), cap=(70, 84, 80), beard='long', brow=1, wrinkles=True))   # 50 守墓老人
 
+E.append(face((40, 60, 84), ((120, 170, 220), (70, 110, 170), (44, 70, 118)), (230, 220, 120), (206, 156, 112), (26, 22, 24), cap=(230, 200, 70), beard='short', wild=True, brow=3))   # 51 管亥（黃頭巾水軍將）
+E.append(face((44, 64, 70), ((140, 180, 190), (84, 120, 134), (52, 80, 92)), (190, 210, 220), (212, 162, 120), (30, 26, 26), helm=((120, 150, 160), (80, 104, 114)), plume=(70, 140, 190), beard='long', brow=3))   # 52 郭太（白波軍首領）
+
 sheet = Image.new('RGBA', (48 * (30 + len(E)), 48))
 sheet.paste(base, (0, 0))
 for i, im in enumerate([zoujing(), caocao, huang, bocai, zhujun, sunjian, pengtuo, zhaohong, hanzhong, sunxia, busi, luzhi, zhangliang, zuofeng, zhangbao, zhangjiao, duyou, zhangyan, jianyong, gongsunzan, yuanshao, huaxiong, zhangchun, lubu, xurong, dongzhuo]):

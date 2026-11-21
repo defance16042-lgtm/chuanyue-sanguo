@@ -424,7 +424,8 @@
       const sk = window.BattleLogic.skillsFor(m, G.flags).map(function (x) { return x.name; });
       E.text(c, '計謀：' + (sk.join('、') || '無'), 20, 151, { size: 8 });
       const eq = m.equip || {};
-      E.text(c, '地形：' + Object.keys(D.terrainNames).map(function (k) { return D.terrainNames[k] + ((ch.terrain && ch.terrain[k]) || 'B'); }).join('　'), 20, 131, { size: 8 });
+      E.text(c, '專屬地形：' + (D.terrainNames[ch.home] || '平地'), 20, 121, { size: 8, color: D.terrainColors[ch.home] || '#6ccf4a' });
+      E.text(c, '地形：' + Object.keys(D.terrainNames).map(function (k) { return D.terrainNames[k] + ((ch.terrain && ch.terrain[k]) || 'B'); }).join(' '), 20, 131, { size: 7 });
       E.text(c, '裝備：' + Object.keys(D.slots).map(function (k) { return eq[k] ? D.equipment[eq[k]].name : '－'; }).join(' / '), 20, 161, { size: 7, color: GREY });
       if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 171 + i * 9, { size: 7, color: GREY }); });
       E.text(c, (G.party.length > 1 ? '左右換人　' : '') + 'X 返回　（升級時能力自動隨機成長）', 20, 204, { size: 7, color: GREY });
@@ -722,6 +723,12 @@
         const row = this.map.zoneGrid[Math.floor(this.p.y / 4)] || '', ch = row[Math.floor(this.p.x / 4)] || '0';
         const tier = this.map.zoneTiers[parseInt(ch, 16)] || 1;
         enc = Object.assign({}, enc, { group: 'field' + tier });
+        this._forceTerr = null;
+        if (this.terrainHere() === 'desert') {   // 海岸邊的沙灘：遇到水軍（偶爾是水軍將領），在海上作戰
+          const gen = Math.random() < 0.22 ? (tier >= 9 ? 'coastG2' : (tier >= 5 ? 'coastG1' : null)) : null;
+          enc.group = gen || (tier <= 4 ? 'coastA' : (tier <= 8 ? 'coastB' : 'coastC'));
+          this._forceTerr = 'sea';
+        }
       }
       this.steps = (this.steps || 0) + 1;
       if (this.steps < (enc.minSteps || 4) || Math.random() >= enc.rate) return;
@@ -730,17 +737,18 @@
       let g = groups[Math.floor(Math.random() * groups.length)].slice();
       // 打倒過的頭目，有機會帶殘部再度出現（捲土重來）
       const rm = D.battle.rematch || {}, done = Object.keys(rm).filter(function (f) { return G.flags[f] && D.battle.enemies[rm[f] + '_r']; });
-      if (done.length && Math.random() < (D.battle.rematchRate || 0)) {
+      if (!this._forceTerr && done.length && Math.random() < (D.battle.rematchRate || 0)) {
         const id = rm[done[Math.floor(Math.random() * done.length)]] + '_r';
         g[0] = id;   // 取代隊伍裡的第一名雜兵
         if (g.length > 4) g.pop();   // 殘部很壯，少一個雜兵
       }
       this.startBattle(g, false);
+      this._forceTerr = null;
     }
     startBattle(group, boss) {
       const self = this;
       this.hidden = true;
-      E.push(new Scenes.Battle(group, { boss: !!boss, bg: this.map.battleBg, terrain: this.terrainHere(), fire: boss && boss.fire, onEnd: function (r) { self.hidden = false; self.afterBattle(r, boss); } }));
+      E.push(new Scenes.Battle(group, { boss: !!boss, bg: this.map.battleBg, terrain: this._forceTerr || this.terrainHere(), fire: boss && boss.fire, onEnd: function (r) { self.hidden = false; self.afterBattle(r, boss); } }));
     }
     afterBattle(r, boss) {
       if (r === 'lose') {
