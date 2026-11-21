@@ -854,16 +854,6 @@
         }
       }
       if (this.map.world) {
-        // 涿縣使用完整自創城堡圖，取代原本容易破碎的 3x3 小圖塊外觀
-        const town = D.worldTowns && D.worldTowns.zhuoxian;
-        if (town && town.world === this.mapId && E.images.castle) {
-          const castleX = Math.round(town.x * T + 8 - 48 - cam.x);
-          const castleY = Math.round((town.y + 2) * T - 57 - cam.y);
-          wc.save();
-          wc.imageSmoothingEnabled = true;
-          wc.drawImage(E.images.castle, castleX, castleY, 96, 57);
-          wc.restore();
-        }
         this.drawBanners(wc, cam);
       }
       const items = [];

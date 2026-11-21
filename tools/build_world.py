@@ -86,7 +86,7 @@ def make_world(wid):
             for y in range(min(y1, y2), max(y1, y2) + 1): pts.append((x1, y))
             for x in range(min(x1, x2), max(x1, x2) + 1): pts.append((x, y2))
         for x, y in pts:
-            if 0 < x < W - 1 and 0 < y < H - 1: g[y][x] = ','
+            if 0 < x < W - 1 and 0 < y < H - 1 and g[y][x] not in 'qkpejulrCKV': g[y][x] = ','
     for a, b in roads:
         ax, ay = towns[a]; bx, by = towns[b]
         road((ax, ay + 1), (bx, by + 1))
