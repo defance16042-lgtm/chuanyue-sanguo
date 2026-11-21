@@ -5,9 +5,15 @@ window.DATA.battle = {
   restPrice: 30,
 
   items: {
-    herb:   { name: '傷藥',   desc: '回復兵力 60', price: 20, hp: 60 },
-    tonic:  { name: '提神茶', desc: '回復戰術點 6', price: 30, tp: 6 },
-    smoke:  { name: '煙霧彈', desc: '一定能逃離戰鬥', price: 40, escape: true }
+    herb:   { name: '傷藥',     desc: '回復兵力 60（少量）', price: 20, hp: 60 },
+    herb2:  { name: '上等傷藥', desc: '回復兵力 200（中量）', price: 70, hp: 200 },
+    herb3:  { name: '靈丹',     desc: '回復兵力 500（大量）', price: 200, hp: 500 },
+    tonic:  { name: '提神茶',   desc: '回復戰術點 6（少量）', price: 30, tp: 6 },
+    tonic2: { name: '養神湯',   desc: '回復戰術點 16（中量）', price: 90, tp: 16 },
+    tonic3: { name: '玉露瓊漿', desc: '回復戰術點 36（大量）', price: 220, tp: 36 },
+    revive: { name: '還魂丹',   desc: '讓倒下的同伴復活，回復一半兵力', price: 150, revive: 0.5 },
+    revive2: { name: '九轉金丹', desc: '讓倒下的同伴復活，兵力全滿', price: 400, revive: 1 },
+    smoke:  { name: '煙霧彈',   desc: '一定能逃離戰鬥', price: 40, escape: true }
   },
 
   // kind: phys 依武力、tact 依智力；target: one / all / ally / allAlly / self
@@ -44,23 +50,66 @@ window.DATA.battle = {
     discord2: { name: '連環離間', tp: 5, kind: 'confuse', target: 'all', turns: 2, fx: 'star', replaces: 'discord' },
     fire2:    { name: '烈火計',   tp: 7, allTp: 10, kind: 'tact', target: 'one', choice: true, power: 3.4, allPower: 2.0, fx: 'fire', replaces: 'fire' },
     fire3:    { name: '業火計',   tp: 10, allTp: 14, kind: 'tact', target: 'one', choice: true, power: 4.6, allPower: 2.7, fx: 'fire', replaces: 'fire2' },
-    rally2:   { name: '全軍激勵', tp: 5, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.45, turns: 4, fx: 'aura', replaces: 'rally' }
+    rally2:   { name: '全軍激勵', tp: 5, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.45, turns: 4, fx: 'aura', replaces: 'rally' },
+    // ---- 復活與輔助（kind: revive 讓倒下的同伴站起來；tpgive 補給戰術點）----
+    revive:   { name: '復活術',   tp: 8, kind: 'revive', target: 'deadAlly', pct: 0.35, fx: 'heal' },
+    revive2:  { name: '起死回生', tp: 14, kind: 'revive', target: 'deadAlly', pct: 0.8, fx: 'heal', replaces: 'revive' },
+    tpgive:   { name: '調息',     tp: 3, kind: 'tpgive', target: 'ally', power: 0.4, fx: 'aura' },
+    tpgive2:  { name: '聚氣陣',   tp: 6, kind: 'tpgive', target: 'allAlly', power: 0.28, fx: 'aura' },
+    // ---- 新增計謀 ----
+    haste:    { name: '疾風令',   tp: 4, kind: 'buff', target: 'allAlly', stat: 'spd', mult: 1.5, turns: 3, fx: 'aura' },
+    weaken:   { name: '破甲計',   tp: 4, kind: 'debuff', target: 'all', stat: 'def', mult: 0.7, turns: 3, fx: 'shock' },
+    weaken2:  { name: '摧鋒破甲', tp: 6, kind: 'debuff', target: 'all', stat: 'def', mult: 0.5, turns: 4, fx: 'shock', replaces: 'weaken' },
+    slowfoe:  { name: '絆馬索',   tp: 4, kind: 'debuff', target: 'all', stat: 'spd', mult: 0.6, turns: 3, fx: 'shock' },
+    ambush:   { name: '伏兵',     tp: 7, kind: 'tact', target: 'all', power: 1.2, fx: 'bolt' },
+    rockfall: { name: '落石計',   tp: 6, kind: 'tact', target: 'one', power: 3.0, fx: 'bolt' },
+    thunder:  { name: '天雷計',   tp: 9, allTp: 13, kind: 'tact', target: 'one', choice: true, power: 3.8, allPower: 2.2, fx: 'bolt' },
+    empty:    { name: '空城計',   tp: 7, kind: 'confuse', target: 'all', turns: 3, fx: 'star' },
+    eight:    { name: '八陣圖',   tp: 7, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.6, turns: 4, fx: 'aura' },
+    whirl:    { name: '旋風斬',   tp: 5, kind: 'phys', target: 'all', power: 0.95, fx: 'slash' },
+    lunge:    { name: '突刺',     tp: 4, kind: 'phys', target: 'one', power: 2.1, fx: 'slash' },
+    // ---- 軍師專屬計謀：只有被指定為軍師的人才能使用 ----
+    adv_nyao_a: { name: '貓步連環計', tp: 9, kind: 'tact', target: 'all', power: 1.7, fx: 'bolt' },
+    adv_nyao_b: { name: '喵之幻術',   tp: 6, kind: 'confuse', target: 'all', turns: 3, fx: 'star' },
+    adv_nyao_c: { name: '九命貓息',   tp: 10, kind: 'revive', target: 'deadAlly', pct: 0.6, fx: 'heal' },
+    adv_cao_a:  { name: '奸雄令',     tp: 6, kind: 'buff', target: 'allAlly', stat: 'atk', mult: 1.5, turns: 4, fx: 'aura' },
+    adv_cao_b:  { name: '煮酒論英雄', tp: 5, kind: 'debuff', target: 'all', stat: 'atk', mult: 0.55, turns: 3, fx: 'shock' },
+    adv_cao_c:  { name: '魏武一擊',   tp: 9, kind: 'tact', target: 'one', power: 4.0, fx: 'bolt' },
+    adv_lu_a:   { name: '圍壘之計',   tp: 6, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.8, turns: 4, fx: 'aura' },
+    adv_lu_b:   { name: '掘塹斷糧',   tp: 5, kind: 'debuff', target: 'all', stat: 'spd', mult: 0.5, turns: 4, fx: 'shock' },
+    adv_lu_c:   { name: '長圍困獸',   tp: 8, kind: 'confuse', target: 'all', turns: 3, fx: 'star' },
+    adv_liu_a:  { name: '仁德之師',   tp: 7, kind: 'heal', target: 'allAlly', power: 2.2, fx: 'heal' },
+    adv_liu_b:  { name: '三顧求賢',   tp: 8, kind: 'tpgive', target: 'allAlly', power: 0.35, fx: 'aura' },
+    adv_liu_c:  { name: '桃園之誓',   tp: 8, kind: 'buff', target: 'allAlly', stat: 'atk', mult: 1.5, turns: 4, fx: 'aura' },
+    adv_guan_a: { name: '春秋大義',   tp: 6, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.5, turns: 4, fx: 'aura' },
+    adv_guan_b: { name: '威震華夏',   tp: 6, kind: 'debuff', target: 'all', stat: 'atk', mult: 0.55, turns: 3, fx: 'shock' },
+    adv_zhang_a: { name: '長坂斷喝',  tp: 5, kind: 'debuff', target: 'all', stat: 'spd', mult: 0.5, turns: 3, fx: 'shock' },
+    adv_zhang_b: { name: '莽夫奇謀',  tp: 5, kind: 'tact', target: 'one', power: 2.6, fx: 'bolt' }
   },
   // 角色技能：字串＝一開始就會；[等級, 技能]＝到該等級自動習得（有 replaces 的會取代較低階的同系技能）
   charSkills: {
     nyao: [],
-    liubei: ['inspire', 'mend', [8, 'mend2'], [10, 'inspire2'], [16, 'mend3']],
-    guanyu: ['qinglong', [8, 'qinglong2'], [14, 'wusheng']],
-    zhangfei: ['roar', [8, 'roar2'], [12, 'spearstorm']],
+    liubei: ['inspire', 'mend', [8, 'mend2'], [10, 'inspire2'], [12, 'tpgive'], [16, 'mend3'], [20, 'tpgive2']],
+    guanyu: ['qinglong', [8, 'qinglong2'], [10, 'whirl'], [14, 'wusheng']],
+    zhangfei: ['roar', [8, 'roar2'], [10, 'lunge'], [12, 'spearstorm']],
     zoujing: ['roar'],
-    caocao: ['strategy', 'inspire', [14, 'strategy2']],
-    luzhi: ['rally', 'strategy', [8, 'fire'], [12, 'rally2']]
+    caocao: ['strategy', 'inspire', [8, 'weaken'], [10, 'ambush'], [14, 'strategy2'], [16, 'revive'], [20, 'weaken2']],
+    luzhi: ['rally', 'strategy', [6, 'slowfoe'], [8, 'fire'], [10, 'revive'], [12, 'rally2'], [14, 'eight'], [20, 'revive2']]
+  },
+  // 軍師專屬計謀：被指定為軍師之後才能用。每項為 [解鎖等級, 技能]
+  advisorSkills: {
+    nyao: [[1, 'adv_nyao_a'], [6, 'adv_nyao_b'], [12, 'adv_nyao_c']],
+    caocao: [[1, 'adv_cao_a'], [8, 'adv_cao_b'], [14, 'adv_cao_c']],
+    luzhi: [[1, 'adv_lu_a'], [6, 'adv_lu_b'], [12, 'adv_lu_c']],
+    liubei: [[1, 'adv_liu_a'], [10, 'adv_liu_b'], [16, 'adv_liu_c']],
+    guanyu: [[1, 'adv_guan_a'], [10, 'adv_guan_b']],
+    zhangfei: [[1, 'adv_zhang_a'], [10, 'adv_zhang_b']]
   },
 
   // 選了路線之後才解鎖（只限諸葛貓妖）。每項為 [解鎖等級, 技能]
   routeSkills: {
-    force: [[1, 'smash'], [3, 'flurry'], [5, 'breach'], [8, 'smash2'], [12, 'flurry2'], [16, 'breach2']],
-    wit:   [[1, 'discord'], [3, 'fire'], [5, 'rally'], [8, 'discord2'], [10, 'fire2'], [12, 'rally2'], [18, 'fire3']]
+    force: [[1, 'smash'], [3, 'flurry'], [5, 'breach'], [7, 'haste'], [8, 'smash2'], [9, 'weaken'], [12, 'flurry2'], [16, 'breach2'], [18, 'revive'], [20, 'whirl'], [24, 'weaken2']],
+    wit:   [[1, 'discord'], [3, 'fire'], [5, 'rally'], [6, 'rockfall'], [7, 'haste'], [8, 'discord2'], [9, 'weaken'], [10, 'fire2'], [10, 'revive'], [12, 'rally2'], [14, 'ambush'], [16, 'empty'], [18, 'fire3'], [20, 'revive2'], [22, 'thunder']]
   },
 
 

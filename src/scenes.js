@@ -358,7 +358,8 @@
         if (E.hit.cancel) { this.target = -1; return; }
         if (E.hit.ok) {
           const k = list[this.sel], it = D.battle.items[k], m = G.party[this.target];
-          if (it.hp && m.hp > 0 && m.hp < m.hpMax) { m.hp = Math.min(m.hpMax, m.hp + it.hp); G.items[k]--; this.msg = m.name + '回復了兵力'; }
+          if (it.revive) { if (m.hp <= 0) { m.hp = Math.max(1, Math.round(m.hpMax * it.revive)); G.items[k]--; this.msg = m.name + '復活了！'; } else this.msg = '沒有效果'; }
+          else if (it.hp && m.hp > 0 && m.hp < m.hpMax) { m.hp = Math.min(m.hpMax, m.hp + it.hp); G.items[k]--; this.msg = m.name + '回復了兵力'; }
           else if (it.tp && m.tp < G.tpMaxOf(m)) { m.tp = Math.min(G.tpMaxOf(m), m.tp + it.tp); G.items[k]--; this.msg = m.name + '回復了戰術點'; }
           else this.msg = '沒有效果';
           if (!(G.items[k] > 0)) this.target = -1;
@@ -507,8 +508,9 @@
       if (E.hit.up) this.sel = (this.sel + n - 1) % n;
       if (E.hit.down) this.sel = (this.sel + 1) % n;
       if (E.hit.ok) {
-        const id = this.ids[this.sel], it = D.equipment[id];
+        const id = this.ids[this.sel], isItem = !!D.battle.items[id], it = isItem ? D.battle.items[id] : D.equipment[id];
         if ((G.gold || 0) < it.price) this.msg = '金錢不足。';
+        else if (isItem) { G.gold -= it.price; G.items[id] = (G.items[id] || 0) + 1; this.msg = '買了' + it.name + '（持有 ' + G.items[id] + '）。'; }
         else { G.gold -= it.price; G.addGear(id); this.msg = '買了' + it.name + '，到「裝備」裡裝上。'; }
       }
     }
@@ -518,12 +520,12 @@
       E.text(c, this.title, 20, 16, { size: 11, color: GOLD });
       const top = Math.max(0, Math.min(this.sel - 5, this.ids.length - 11));
       this.ids.slice(top, top + 11).forEach(function (id, k) {
-        const i = top + k, it = D.equipment[id], sel = i === this.sel, y = 34 + k * 13, col = sel ? GOLD : '#f4f4ff';
+        const i = top + k, isItem = !!D.battle.items[id], it = isItem ? D.battle.items[id] : D.equipment[id], sel = i === this.sel, y = 34 + k * 13, col = sel ? GOLD : '#f4f4ff';
         E.text(c, (sel ? '▶ ' : '　') + it.name + (it.wtype ? '(' + it.wtype + ')' : ''), 20, y, { size: 8, color: col });
         E.text(c, it.price + '金', 90, y, { size: 8, color: col });
-        E.text(c, Object.keys(it.mods).map(function (k2) { return ({ pow: '攻', atk: '武', int: '智', def: '防', spd: '速', lead: '統', luck: '運', grd: '守' })[k2] + (it.mods[k2] > 0 ? '+' : '') + it.mods[k2]; }).join(' '), 130, y, { size: 8, color: col });
+        E.text(c, isItem ? '持有' + (G.items[id] || 0) : Object.keys(it.mods).map(function (k2) { return ({ pow: '攻', atk: '武', int: '智', def: '防', spd: '速', lead: '統', luck: '運', grd: '守' })[k2] + (it.mods[k2] > 0 ? '+' : '') + it.mods[k2]; }).join(' '), 130, y, { size: 8, color: col });
       }, this);
-      const it = D.equipment[this.ids[this.sel]];
+      const it = D.equipment[this.ids[this.sel]] || D.battle.items[this.ids[this.sel]];
       E.text(c, this.msg || it.desc, 20, 184, { size: 8, color: this.msg ? GOLD : GREY });
       E.text(c, '持有金 ' + (G.gold || 0) + '　Z 購買　X 離開', 20, 200, { size: 7, color: GREY });
     }

@@ -65,3 +65,11 @@
 ## 補充設定（務必遵守）
 - 主角諸葛貓妖是**男生**。台詞、稱呼、簡介一律用男性稱呼，不可用姑娘、小妹、貓妹、姊姊等。
 - 遊戲內所有文字都當正式遊戲，不可出現「測試」「製作中」之類字樣。
+
+## 道具、復活與計謀系統（v0.31.0）
+- 藥品三階與復活藥在 data/battle.js 的 items；藥鋪商店與寶箱追加藥品在 data/supplies.js（最後載入）。
+- 計謀：kind 有 phys、tact、heal、buff、debuff、confuse、revive（target 'deadAlly'）、tpgive。buff／debuff 的 stat 可用 atk、def、spd。
+- 復活術學習者：諸葛貓妖（智力路線 10 級、武力路線 18 級）、曹操 16 級、盧植 10 級（20 級起死回生）。
+- 軍師專屬計謀：data/battle.js 的 advisorSkills；只有被指定為軍師的角色才有，id 以 adv_ 開頭，戰鬥選單以「軍・」標示。
+- 全體攻擊（自動戰鬥）時 BattleScene.update 的 dt 乘 2.3，所以動畫與等待整體加快。
+- 測試：tests/supplies_test.js（不開瀏覽器，直接測 BattleLogic）。

@@ -16,9 +16,11 @@
     };
     (B.charSkills[member.id] || []).forEach(add);
     if (member.id === 'nyao' && flags && flags.route && B.routeSkills[flags.route]) B.routeSkills[flags.route].forEach(add);
+    const G0 = root.Game;
+    if (G0 && G0.advisor === member.id && B.advisorSkills && B.advisorSkills[member.id]) B.advisorSkills[member.id].forEach(add);   // 軍師專屬計謀
     const gone = {};   // 高階技能取代低階技能
     ids.forEach(function (id) { let r = B.skills[id] && B.skills[id].replaces; while (r && !gone[r]) { gone[r] = 1; r = B.skills[r] && B.skills[r].replaces; } });
-    return ids.filter(function (id) { return !gone[id]; }).map(function (id) { return Object.assign({ id: id }, B.skills[id]); });
+    return ids.filter(function (id) { return !gone[id]; }).map(function (id) { return Object.assign({ id: id, adv: /^adv_/.test(id) }, B.skills[id]); });
   };
 
   function unitFromMember(m, i) {
@@ -119,6 +121,11 @@
     if (kind === 'all') return BL.alive(foes);
     if (kind === 'allAlly') return BL.alive(friends);
     if (kind === 'self') return [a];
+    if (kind === 'deadAlly') {
+      const dead = friends.filter(function (u) { return u.hp <= 0 && !u.escaped; });
+      const t = action.target && action.target.hp <= 0 ? action.target : dead[0];
+      return t ? [t] : [];
+    }
     if (kind === 'ally') {
       const t = action.target && action.target.hp > 0 ? action.target : BL.alive(friends)[0];
       return t ? [t] : [];
@@ -167,6 +174,14 @@
         else ev.push({ type: 'msg', text: '但是沒有效果……' });
         return ev;
       }
+      if (it.revive) {
+        const dead = b.party.filter(function (u) { return u.hp <= 0 && !u.escaped; });
+        const t = action.target && action.target.hp <= 0 ? action.target : dead[0];
+        if (!t) { ev.push({ type: 'msg', text: '但是沒有倒下的同伴……' }); if (inv) inv[action.item]++; return ev; }
+        const h = Math.max(1, Math.round(t.hpMax * it.revive)); t.hp = h; t.defending = false; t.confused = 0; t.buffs = {};
+        ev.push({ type: 'msg', text: t.name + '復活了！' }); ev.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp });
+        return ev;
+      }
       const t = action.target && action.target.hp > 0 ? action.target : a;
       if (it.hp) { const h = Math.min(it.hp, t.hpMax - t.hp); t.hp += h; ev.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp }); }
       if (it.tp) { const g = Math.min(it.tp, t.tpMax - t.tp); t.tp += g; ev.push({ type: 'tp', target: t, amount: g }); }
@@ -209,12 +224,18 @@
       } else if (kind === 'heal') {
         const h = Math.min(Math.round(a.int * power0), t.hpMax - t.hp);
         t.hp += h; resEv.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp });
+      } else if (kind === 'revive') {
+        const h = Math.max(1, Math.round(t.hpMax * skill.pct)); t.hp = h; t.confused = 0; t.buffs = {}; t.defending = false;
+        resEv.push({ type: 'msg', text: t.name + '復活了！' }); resEv.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp });
+      } else if (kind === 'tpgive') {
+        const g = Math.max(1, Math.min(Math.round(a.int * power0), t.tpMax - t.tp)); t.tp += g;
+        resEv.push({ type: 'tp', target: t, amount: g });
       } else if (kind === 'buff') {
         t.buffs[skill.stat] = { mult: 1 + (skill.mult - 1) * (1 + (a.cha || 0) / 100), turns: skill.turns + 1 };   // 統率讓鼓舞更有效
-        resEv.push({ type: 'status', target: t, text: t.name + (skill.stat === 'atk' ? '氣勢大振' : '防禦提升') });
+        resEv.push({ type: 'status', target: t, text: t.name + ({ atk: '氣勢大振', def: '防禦提升', spd: '行動加快' }[skill.stat] || '能力提升') });
       } else if (kind === 'debuff') {
         t.buffs[skill.stat] = { mult: Math.max(0.4, 1 - (1 - skill.mult) * (1 + (a.cha || 0) / 100)), turns: skill.turns + 1 };
-        resEv.push({ type: 'status', target: t, text: t.name + '被震懾，攻擊下降' });
+        resEv.push({ type: 'status', target: t, text: t.name + ({ atk: '被震懾，攻擊下降', def: '防禦崩潰', spd: '行動遲緩' }[skill.stat] || '能力下降') });
       } else if (kind === 'confuse') {
         // 智力越高越容易成功；頭目抵抗較強
         const chance = clamp(0.55 + (a.int - t.def) * 0.02 + (a.cha || 0) * 0.005 - (t.boss ? 0.35 : 0), 0.15, 0.9);

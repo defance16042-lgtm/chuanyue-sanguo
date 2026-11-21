@@ -153,6 +153,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
 
     // ---- 指令選擇 ----
     update(dt) {
+      if (this.auto && this.state === 'exec') dt *= 2.3;   // 全體攻擊：動畫與等待整體加快
       this.time += dt;
       const self0 = this; this.b.party.concat(this.b.enemies).forEach(function (u) {
         if (u.shake > 0) u.shake -= dt;
@@ -204,7 +205,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       else if (c === '防禦') this.commit({ type: 'defend' });
       else if (c === '逃跑') this.commit({ type: 'flee' });
       else if (c === '計謀') {
-        this.sub = BL.skillsFor(u.ref, G.flags).map(function (s) { return { label: s.name, right: s.tp + 'TP', disabled: u.tp < s.tp, skill: s }; });
+        this.sub = BL.skillsFor(u.ref, G.flags).map(function (s) { return { label: (s.adv ? '軍・' : '') + s.name, right: s.tp + 'TP', disabled: u.tp < s.tp, skill: s }; });
         if (!this.sub.length) { this.msgText = '還沒有學會計謀'; return; }
         this.state = 'skill'; this.subSel = 0;
       } else {
@@ -234,9 +235,11 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         }
         if (k === 'one') this.pickTarget('enemy', { type: 'skill', skill: it.skill.id });
         else if (k === 'ally') this.pickTarget('ally', { type: 'skill', skill: it.skill.id });
+        else if (k === 'deadAlly') this.pickTarget('dead', { type: 'skill', skill: it.skill.id });
         else this.commit({ type: 'skill', skill: it.skill.id });
       } else {
         if (it.def.escape) this.commit({ type: 'item', item: it.item });
+        else if (it.def.revive) this.pickTarget('dead', { type: 'item', item: it.item });
         else this.pickTarget('ally', { type: 'item', item: it.item });
       }
     }
@@ -252,7 +255,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     }
     pickTarget(side, action) {
       this.pending = action;
-      this.targets = BL.alive(side === 'enemy' ? this.b.enemies : this.b.party);
+      this.targets = side === 'dead' ? this.b.party.filter(function (u) { return u.hp <= 0 && !u.escaped; }) : BL.alive(side === 'enemy' ? this.b.enemies : this.b.party);
+      if (!this.targets.length) { this.msgText = '沒有倒下的同伴'; return; }
       this.targetSel = 0; this.targetSide = side; this.prevState = this.state; this.state = 'target';
     }
     updateTarget() {
@@ -387,7 +391,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       // 兩側名單：名字、兵力數字、兵力條
       b.party.forEach(function (u, i) {
         const y = self.rowY(i), dead = self.H(u) <= 0;
-        const sel = self.state === 'cmd' && self.cur === i || (self.state === 'target' && self.targetSide === 'ally' && self.targets[self.targetSel] === u);
+        const sel = self.state === 'cmd' && self.cur === i || (self.state === 'target' && (self.targetSide === 'ally' || self.targetSide === 'dead') && self.targets[self.targetSel] === u);
         E.text(c, u.name, 6, y + 2, { size: 10, color: dead ? GREY : (sel ? GOLD : '#fff') });
         const low = !dead && self.H(u) / u.hpMax < 0.3;
         E.text(c, String(self.H(u)), 8, y + 16, { size: 10, color: dead ? GREY : (low ? RED : '#fff') });
