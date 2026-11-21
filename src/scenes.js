@@ -535,11 +535,16 @@
     const t = Math.floor(E.time / 160) % 3;
     const K = '#1a1220';
     if (o.type === 'boat') {
-      const bob = t === 1 ? 1 : 0;
-      r(K, 1, 10 + bob, 14, 5); r('#8a5a34', 2, 10 + bob, 12, 3); r('#5a3820', 3, 13 + bob, 10, 1);
-      r(K, 7, 1 + bob, 2, 10); r('#6a4428', 7, 2 + bob, 1, 9);
-      r(K, 8, 2 + bob, 6, 7); r('#f0e8d0', 9, 3 + bob, 4, 5); r('#c8bea0', 9, 7 + bob, 4, 1);
-      r('#b03030', 3, 8 + bob, 4, 2);
+      // 自繪像素帆船 16x16：K 外框 m 桅杆 s/S 帆(亮/暗) r 紅條 b/B/d 船身(亮/中/暗) w 水花
+      const ROWS = ['.......K........', '.......mK.......', '.......msKK.....', '...K...mssSK....', '..KsK..msssSK...', '.KssK..mssssSK..',
+        '.KsSK..msrrrSK..', 'KsSSSK.mssssSK..', 'KKKKKK.mSSSSKK..', '.......mK.KKK...', 'KKKKKKKmKKKKKKKK', 'KbbbbbbmbbbbbbbK',
+        '.KBBBBBBBBBBBBK.', '..KddddddddddK..', 'wW.KKKKKKKKK.Ww.', '..w.........w...'];
+      const PAL = { K: K, m: '#6a4428', s: '#f4ecd4', S: '#c8bea0', r: '#b03030', b: '#c08848', B: '#8a5a34', d: '#5a3820', w: '#d8f0ff', W: '#9ccae8' };
+      const dy = t === 1 ? 1 : 0;
+      for (let j = 0; j < 16; j++) for (let i = 0; i < 16; i++) {
+        const ch = ROWS[j][i]; if (ch === '.') continue;
+        r(PAL[ch], i, j + (j < 14 ? dy : 0), 1, 1);
+      }
     } else if (o.type === 'torch') {
       r(K, 6, 6, 4, 9); r('#7a5232', 7, 7, 2, 7); r('#4a3020', 5, 13, 6, 2);
       r(K, 5, 1 + (t === 1 ? 1 : 0), 6, 6);
