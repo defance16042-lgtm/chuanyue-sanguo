@@ -80,7 +80,7 @@ check('every party character has a portrait index within the sheet', ['nyao', 'l
 {
   const names = (id, lv, flags) => { G.fresh(); const m = G.makeMember(id); m.level = lv; return BL.skillsFor(m, flags || {}).map(k => k.id).join(); };
   check('liubei Lv1 has mend, Lv8 mend2 replaces it, Lv16 mend3', names('liubei', 1) === 'inspire,mend' && names('liubei', 8) === 'inspire,mend2' && names('liubei', 16) === 'mend3,inspire2'.split(',').reverse().join() || names('liubei', 16).includes('mend3') && !names('liubei', 16).includes('mend2,'), [names('liubei', 1), names('liubei', 8), names('liubei', 16)]);
-  check('guanyu Lv8 qinglong2 replaces qinglong, Lv10 adds whirl, Lv14 adds wusheng', names('guanyu', 8) === 'qinglong2' && names('guanyu', 14) === 'qinglong2,whirl,wusheng', [names('guanyu', 8), names('guanyu', 14)]);
+  check('guanyu Lv8 qinglong2 replaces qinglong, Lv10 adds whirl, Lv14 adds wusheng', names('guanyu', 8) === 'qinglong2' && names('guanyu', 14) === 'qinglong2,whirl,execute,wusheng', [names('guanyu', 8), names('guanyu', 14)]);
   check('nyao wit route: fire at 3, fire2 at 10, fire3 at 18', names('nyao', 3, { route: 'wit' }).includes('fire') && names('nyao', 10, { route: 'wit' }).includes('fire2') && !names('nyao', 10, { route: 'wit' }).split(',').includes('fire') && names('nyao', 18, { route: 'wit' }).includes('fire3') && !names('nyao', 18, { route: 'wit' }).includes('fire2'), names('nyao', 18, { route: 'wit' }));
   check('nyao force route: breach2 at 16', names('nyao', 16, { route: 'force' }).includes('breach2') && !names('nyao', 16, { route: 'force' }).split(',').includes('breach'), names('nyao', 16, { route: 'force' }));
   const f1 = DATA.battle.skills.fire, f2 = DATA.battle.skills.fire2, f3 = DATA.battle.skills.fire3;

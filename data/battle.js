@@ -68,6 +68,20 @@ window.DATA.battle = {
     eight:    { name: '八陣圖',   tp: 7, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.6, turns: 4, fx: 'aura' },
     whirl:    { name: '旋風斬',   tp: 5, kind: 'phys', target: 'all', power: 0.95, fx: 'slash' },
     lunge:    { name: '突刺',     tp: 4, kind: 'phys', target: 'one', power: 2.1, fx: 'slash' },
+    // ---- 第二批新計謀：毒、持續回復、解除異狀、震暈、叫陣、吸血、斬將、水火連環 ----
+    poison:   { name: '毒煙計',   tp: 5, kind: 'dot', target: 'all', pct: 0.08, turns: 4, fx: 'fire' },
+    poison2:  { name: '蝕骨毒霧', tp: 8, kind: 'dot', target: 'all', pct: 0.14, turns: 4, fx: 'fire', replaces: 'poison' },
+    regen:    { name: '養息',     tp: 5, kind: 'hot', target: 'allAlly', pct: 0.1, turns: 4, fx: 'heal' },
+    cleanse:  { name: '清心訣',   tp: 4, kind: 'cleanse', target: 'ally', healPct: 0.15, fx: 'heal' },
+    cleanse2: { name: '回春妙手', tp: 7, kind: 'cleanse', target: 'allAlly', healPct: 0.3, fx: 'heal', replaces: 'cleanse' },
+    stun:     { name: '震懾',     tp: 5, kind: 'stun', target: 'one', turns: 1, fx: 'shock' },
+    stun2:    { name: '雷霆一喝', tp: 8, kind: 'stun', target: 'all', turns: 1, fx: 'shock', replaces: 'stun' },
+    taunt:    { name: '叫陣',     tp: 3, kind: 'taunt', target: 'self', turns: 2, stat: 'def', mult: 1.5, fx: 'aura' },
+    leech:    { name: '飲血刀',   tp: 5, kind: 'phys', target: 'one', power: 1.9, leech: 0.5, fx: 'slash' },
+    execute:  { name: '斬將',     tp: 6, kind: 'phys', target: 'one', power: 1.8, lowBonus: 1.2, fx: 'slash' },
+    rage:     { name: '狂怒',     tp: 6, kind: 'buff', target: 'self', stat: 'atk', mult: 1.7, turns: 3, extra: { stat: 'spd', mult: 1.3 }, fx: 'aura' },
+    flood:    { name: '水淹七軍', tp: 9, kind: 'tact', target: 'all', power: 1.5, rider: { stat: 'spd', mult: 0.6, turns: 3 }, fx: 'bolt' },
+    fireall:  { name: '火燒連營', tp: 11, kind: 'tact', target: 'all', power: 2.1, rider: { stat: 'def', mult: 0.75, turns: 3 }, fx: 'fire' },
     // ---- 軍師專屬計謀：只有被指定為軍師的人才能使用 ----
     adv_nyao_a: { name: '貓步連環計', tp: 9, kind: 'tact', target: 'all', power: 1.7, fx: 'bolt' },
     adv_nyao_b: { name: '喵之幻術',   tp: 6, kind: 'confuse', target: 'all', turns: 3, fx: 'star' },
@@ -89,12 +103,12 @@ window.DATA.battle = {
   // 角色技能：字串＝一開始就會；[等級, 技能]＝到該等級自動習得（有 replaces 的會取代較低階的同系技能）
   charSkills: {
     nyao: [],
-    liubei: ['inspire', 'mend', [8, 'mend2'], [10, 'inspire2'], [12, 'tpgive'], [16, 'mend3'], [20, 'tpgive2']],
-    guanyu: ['qinglong', [8, 'qinglong2'], [10, 'whirl'], [14, 'wusheng']],
-    zhangfei: ['roar', [8, 'roar2'], [10, 'lunge'], [12, 'spearstorm']],
+    liubei: ['inspire', 'mend', [8, 'mend2'], [10, 'inspire2'], [12, 'tpgive'], [14, 'regen'], [16, 'mend3'], [18, 'cleanse'], [20, 'tpgive2'], [24, 'cleanse2']],
+    guanyu: ['qinglong', [8, 'qinglong2'], [10, 'whirl'], [12, 'execute'], [14, 'wusheng'], [18, 'taunt']],
+    zhangfei: ['roar', [6, 'taunt'], [8, 'roar2'], [10, 'lunge'], [12, 'spearstorm'], [14, 'stun'], [18, 'rage'], [22, 'stun2']],
     zoujing: ['roar'],
-    caocao: ['strategy', 'inspire', [8, 'weaken'], [10, 'ambush'], [14, 'strategy2'], [16, 'revive'], [20, 'weaken2']],
-    luzhi: ['rally', 'strategy', [6, 'slowfoe'], [8, 'fire'], [10, 'revive'], [12, 'rally2'], [14, 'eight'], [20, 'revive2']]
+    caocao: ['strategy', 'inspire', [8, 'weaken'], [10, 'ambush'], [14, 'strategy2'], [12, 'leech'], [16, 'revive'], [18, 'poison'], [20, 'weaken2'], [24, 'fireall']],
+    luzhi: ['rally', 'strategy', [6, 'slowfoe'], [8, 'fire'], [10, 'revive'], [12, 'rally2'], [14, 'eight'], [16, 'cleanse'], [18, 'flood'], [20, 'revive2']]
   },
   // 軍師專屬計謀：被指定為軍師之後才能用。每項為 [解鎖等級, 技能]
   advisorSkills: {
@@ -108,8 +122,8 @@ window.DATA.battle = {
 
   // 選了路線之後才解鎖（只限諸葛貓妖）。每項為 [解鎖等級, 技能]
   routeSkills: {
-    force: [[1, 'smash'], [3, 'flurry'], [5, 'breach'], [7, 'haste'], [8, 'smash2'], [9, 'weaken'], [12, 'flurry2'], [16, 'breach2'], [18, 'revive'], [20, 'whirl'], [24, 'weaken2']],
-    wit:   [[1, 'discord'], [3, 'fire'], [5, 'rally'], [6, 'rockfall'], [7, 'haste'], [8, 'discord2'], [9, 'weaken'], [10, 'fire2'], [10, 'revive'], [12, 'rally2'], [14, 'ambush'], [16, 'empty'], [18, 'fire3'], [20, 'revive2'], [22, 'thunder']]
+    force: [[1, 'smash'], [3, 'flurry'], [5, 'breach'], [7, 'haste'], [8, 'smash2'], [9, 'weaken'], [12, 'flurry2'], [16, 'breach2'], [11, 'taunt'], [14, 'execute'], [18, 'revive'], [20, 'whirl'], [22, 'leech'], [24, 'weaken2'], [26, 'rage'], [28, 'stun']],
+    wit:   [[1, 'discord'], [3, 'fire'], [5, 'rally'], [6, 'rockfall'], [7, 'haste'], [8, 'discord2'], [9, 'weaken'], [10, 'fire2'], [10, 'revive'], [12, 'rally2'], [14, 'ambush'], [16, 'empty'], [18, 'fire3'], [20, 'revive2'], [11, 'poison'], [13, 'cleanse'], [15, 'regen'], [17, 'stun'], [19, 'flood'], [22, 'thunder'], [24, 'poison2'], [26, 'cleanse2'], [28, 'fireall']]
   },
 
 

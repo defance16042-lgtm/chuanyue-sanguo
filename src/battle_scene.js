@@ -21,7 +21,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       this.layout();
       const names = {}; this.b.enemies.forEach(function (e) { names[e.name] = (names[e.name] || 0) + 1; });
       const txt = Object.keys(names).map(function (n) { return n + (names[n] > 1 ? '×' + names[n] : ''); }).join('、');
-      this.say((opts.boss ? '強敵出現！' : '遭遇敵軍！') + txt, this.startRound);
+      this.say((opts.boss ? '強敵出現！' : '遭遇敵軍！') + txt + (this.b.formation ? '　擺出' + this.b.formation.name : ''), this.startRound);
     }
 
     // 版面：左邊我方、右邊敵方，各自一列一人，最多 5 對 5（仿紅白機戰鬥畫面），下方是頭像與訊息框
@@ -72,7 +72,11 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
 
     // ---- 回合流程 ----
     startRound() {
-      BL.beginRound(this.b);
+      const healed = BL.beginRound(this.b);
+      healed.forEach(function (x) {
+        const p = this.unitPos(x.u); x.u.dhp = x.u.hp;
+        this.floats.push({ x: p.x, y: p.y, text: String(x.h), color: GREEN, t: 0 });
+      }, this);
       this.plans = []; this.cur = -1;
       if (this.auto) {   // 全體攻擊：自動戰鬥到底，直到按鍵取消
         this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = { type: 'attack', auto: true }; }, this);
@@ -101,7 +105,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         const o = BL.outcome(b);
         if (o) return this.finish(o);
         if (this.oi >= this.order.length) {
-          const fe = BL.fireEvents(b);
+          const fe = BL.fireEvents(b).concat(BL.statusEvents(b));
           if (fe.length) { this.queue = fe; break; }
           BL.endRound(b);
           const o2 = BL.outcome(b);

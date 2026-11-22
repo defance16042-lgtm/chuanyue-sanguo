@@ -54,33 +54,60 @@
     // 統率：各陣營中最高的統率讓全隊傷害提高（每點 +0.3%）
     const top = function (l) { return l.reduce(function (s, u) { return Math.max(s, u.lead || 0); }, 0) * 0.003; };
     b.leadBonus = top(b.party); b.leadBonusEnemy = top(b.enemies);
+    const G1 = root.Game;
+    BL.applyFormation(b, opts.formation !== undefined ? opts.formation : (G1 && G1.formation) || 'none');
     return b;
   };
 
   BL.eff = function (u, stat) {
     const bf = u.buffs[stat];
-    return u[stat] * (bf ? bf.mult : 1);
+    return u[stat] * (bf ? bf.mult : 1) * ((u.fm && u.fm[stat]) || 1);   // fm＝陣形加成
+  };
+  // 陣形：誰能擺、套用到戰鬥單位
+  BL.formationUsable = function (id, party) {
+    const f = root.DATA.formations && root.DATA.formations[id]; if (!f) return false;
+    const ny = (party || []).filter(function (m) { return m.id === 'nyao'; })[0];
+    if (f.only) { if (!party.some(function (m) { return m.id === f.only; })) return false; }
+    return f.unlock <= 0 || (ny ? ny.level >= f.unlock : false);
+  };
+  BL.applyFormation = function (b, id) {
+    const f = root.DATA.formations && root.DATA.formations[id];
+    b.formation = null; if (!f || id === 'none') return;
+    b.formation = Object.assign({ id: id }, f);
+    b.party.forEach(function (u, i) {
+      const fm = {}, add = function (o) { Object.keys(o || {}).forEach(function (k) { fm[k] = (fm[k] || 1) * o[k]; }); };
+      add(f.all); add(i < 2 ? f.front : f.back);
+      u.fm = fm;
+    });
+    if (f.foe) b.enemies.forEach(function (u) { u.fm = Object.assign({}, f.foe); });
   };
   BL.alive = function (list) { return list.filter(function (u) { return u.hp > 0 && !u.escaped; }); };
 
   // 出手順序：速度加一點亂數
   BL.order = function (b) {
-    return BL.alive(b.party).concat(BL.alive(b.enemies)).map(function (u) { return { u: u, k: BL.eff(u, 'spd') + rnd(b, 0, 4) }; })
+    return BL.alive(b.party).concat(BL.alive(b.enemies)).map(function (u) { return { u: u, k: BL.eff(u, 'spd') + rnd(b, 0, 4) + (b.formation && b.formation.first && b.round === 1 && u.side === 'party' ? 100 : 0) }; })
       .sort(function (x, y) { return y.k - x.k; }).map(function (o) { return o.u; });
   };
 
   BL.beginRound = function (b) {
     b.round++;
     b.party.concat(b.enemies).forEach(function (u) { u.defending = false; });
+    const f = b.formation, healed = [];
+    if (f && f.heal && b.round > 1) b.party.forEach(function (u) {
+      if (u.hp > 0 && u.hp < u.hpMax) { const h = Math.max(1, Math.min(u.hpMax - u.hp, Math.round(u.hpMax * f.heal))); u.hp += h; healed.push({ u: u, h: h }); }
+    });
+    return healed;
   };
 
   BL.endRound = function (b) {
     b.party.concat(b.enemies).forEach(function (u) {
       Object.keys(u.buffs).forEach(function (k) { if (--u.buffs[k].turns <= 0) delete u.buffs[k]; });
       if (u.confused > 0) u.confused--;
+      if (u.stun > 0) u.stun--;
+      if (u.taunt > 0) u.taunt--;
     });
     // 每回合回復 1 點戰術點
-    b.party.forEach(function (u) { if (u.hp > 0) u.tp = Math.min(u.tpMax, u.tp + 1 + (u.isAdvisor ? 1 : 0)); });
+    b.party.forEach(function (u) { if (u.hp > 0) u.tp = Math.min(u.tpMax, u.tp + 1 + (u.isAdvisor ? 1 : 0) + ((b.formation && b.formation.tp) || 0)); });
   };
 
   BL.outcome = function (b) {
@@ -101,10 +128,16 @@
     return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a) * crit(b, a)));
   }
   function tactDamage(b, a, t, power) {
-    const base = a.int * 2.2 * BL.terrMul(b, a) - BL.eff(t, 'def') * 0.6 * BL.terrMul(b, t);
+    const base = BL.eff(a, 'int') * 2.2 * BL.terrMul(b, a) - BL.eff(t, 'def') * 0.6 * BL.terrMul(b, t);
     return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a)));
   }
 
+  // 附帶效果：打中之後順便削弱對手（水淹七軍會讓敵軍行動遲緩）
+  function rider(skill, t, ev) {
+    if (!skill || !skill.rider || t.hp <= 0) return;
+    t.buffs[skill.rider.stat] = { mult: skill.rider.mult, turns: skill.rider.turns + 1 };
+    ev.push({ type: 'status', target: t, text: t.name + ({ spd: '行動遲緩', def: '防禦崩潰', atk: '攻擊下降' }[skill.rider.stat] || '能力下降') });
+  }
   function hurt(t, dmg, ev) {
     if (t.luck && curB && curB.rng() < t.luck * 0.003) { ev.push({ type: 'msg', text: t.name + '閃過了攻擊！' }); return; }
     t.hp = Math.max(0, t.hp - dmg);
@@ -218,14 +251,42 @@
       fxEv.push({ type: 'fx', fx: fxName, target: t, level: level });
       if (kind === 'phys') {
         const hits = (skill && skill.hits) || 1;
-        for (let i = 0; i < hits && t.hp > 0; i++) hurt(t, physDamage(b, a, t, power0), resEv);
+        for (let i = 0; i < hits && t.hp > 0; i++) {
+          const hp0 = t.hp, pw = power0 * (1 + ((skill && skill.lowBonus) || 0) * (1 - t.hp / t.hpMax));   // 斬將：對方兵力越少越痛
+          hurt(t, physDamage(b, a, t, pw), resEv);
+          if (skill && skill.leech && hp0 > t.hp && a.hp > 0) {   // 飲血：把造成傷害的一部分吸回自己
+            const g = Math.min(Math.round((hp0 - t.hp) * skill.leech), a.hpMax - a.hp);
+            if (g > 0) { a.hp += g; resEv.push({ type: 'heal', target: a, amount: g, hpAfter: a.hp }); }
+          }
+        }
+        rider(skill, t, resEv);
       } else if (kind === 'tact') {
         hurt(t, tactDamage(b, a, t, power0), resEv);
+        rider(skill, t, resEv);
+      } else if (kind === 'dot') {
+        t.dot = { pct: skill.pct, turns: skill.turns };
+        resEv.push({ type: 'status', target: t, text: t.name + '中毒了' });
+      } else if (kind === 'hot') {
+        t.hot = { pct: skill.pct, turns: skill.turns };
+        resEv.push({ type: 'status', target: t, text: t.name + '開始持續回復' });
+      } else if (kind === 'cleanse') {
+        t.confused = 0; t.stun = 0; t.dot = null;
+        Object.keys(t.buffs).forEach(function (k) { if (t.buffs[k].mult < 1) delete t.buffs[k]; });
+        resEv.push({ type: 'status', target: t, text: t.name + '的異狀被解除了' });
+        if (skill.healPct) { const h = Math.min(Math.round(t.hpMax * skill.healPct), t.hpMax - t.hp); if (h > 0) { t.hp += h; resEv.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp }); } }
+      } else if (kind === 'stun') {
+        const chance = clamp(0.7 + (a.int - t.def) * 0.01 - (t.boss ? 0.4 : 0), 0.15, 0.9);
+        if (b.rng() < chance) { t.stun = skill.turns + 1; resEv.push({ type: 'status', target: t, text: t.name + '被震暈了' }); }
+        else resEv.push({ type: 'msg', text: t.name + '穩住了身形' });
+      } else if (kind === 'taunt') {
+        t.taunt = skill.turns + 1;
+        if (skill.stat) t.buffs[skill.stat] = { mult: skill.mult, turns: skill.turns + 1 };
+        resEv.push({ type: 'status', target: t, text: t.name + '大聲叫陣，敵軍的目光都被吸引過來' });
       } else if (kind === 'heal') {
         const h = Math.min(Math.round(a.int * power0), t.hpMax - t.hp);
         t.hp += h; resEv.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp });
       } else if (kind === 'revive') {
-        const h = Math.max(1, Math.round(t.hpMax * skill.pct)); t.hp = h; t.confused = 0; t.buffs = {}; t.defending = false;
+        const h = Math.max(1, Math.round(t.hpMax * skill.pct)); t.hp = h; t.confused = 0; t.buffs = {}; t.defending = false; t.stun = 0; t.dot = null;
         resEv.push({ type: 'msg', text: t.name + '復活了！' }); resEv.push({ type: 'heal', target: t, amount: h, hpAfter: t.hp });
       } else if (kind === 'tpgive') {
         const g = Math.max(1, Math.min(Math.round(a.int * power0), t.tpMax - t.tp)); t.tp += g;
@@ -233,6 +294,7 @@
       } else if (kind === 'buff') {
         t.buffs[skill.stat] = { mult: 1 + (skill.mult - 1) * (1 + (a.cha || 0) / 100), turns: skill.turns + 1 };   // 統率讓鼓舞更有效
         resEv.push({ type: 'status', target: t, text: t.name + ({ atk: '氣勢大振', def: '防禦提升', spd: '行動加快' }[skill.stat] || '能力提升') });
+        if (skill.extra) t.buffs[skill.extra.stat] = { mult: skill.extra.mult, turns: skill.turns + 1 };
       } else if (kind === 'debuff') {
         t.buffs[skill.stat] = { mult: Math.max(0.4, 1 - (1 - skill.mult) * (1 + (a.cha || 0) / 100)), turns: skill.turns + 1 };
         resEv.push({ type: 'status', target: t, text: t.name + ({ atk: '被震懾，攻擊下降', def: '防禦崩潰', spd: '行動遲緩' }[skill.stat] || '能力下降') });
@@ -262,6 +324,8 @@
     let t = pick(b, targets);
     if (b.rng() < 0.4) t = targets.slice().sort(function (x, y) { return x.hp - y.hp; })[0];
     if (u.confused > 0) return { type: 'attack', target: pick(b, BL.alive(b.enemies)) };
+    const bait = targets.filter(function (x) { return x.taunt > 0; });
+    if (bait.length && b.rng() < 0.85) t = bait[0];   // 被叫陣的敵人多半衝著他來
     if (u.ai === 'boss') {
       const roll = b.rng();
       if (roll < 0.25) return { type: 'boss_all' };
@@ -274,6 +338,7 @@
   const oldPerform = BL.perform;
   BL.perform = function (b, a, action) {
     curB = b;
+    if (a.stun > 0) return [{ type: 'msg', text: a.name + '被震暈，無法行動！' }];
     if (action.type === 'boss_all') {
       const ev = [{ type: 'msg', text: a.name + '揮軍衝鋒！' }];
       BL.alive(b.party).forEach(function (t) { ev.push({ type: 'fx', fx: 'slash', target: t, level: 1 }); });
@@ -314,6 +379,25 @@
       expCache[k] = expCache[k - 1] + d;
     }
     return expCache[n];
+  };
+
+  // 回合結束：中毒扣兵力、持續回復加兵力
+  BL.statusEvents = function (b) {
+    const ev = [];
+    b.party.concat(b.enemies).forEach(function (u) {
+      if (u.hp <= 0 || u.escaped) return;
+      if (u.dot) {
+        let d = Math.max(1, Math.round(u.hpMax * u.dot.pct)); if (u.boss) d = Math.min(d, u.hp - 1);
+        if (d > 0) { u.hp = Math.max(0, u.hp - d); ev.push({ type: 'dmg', target: u, amount: d, dead: u.hp <= 0, hpAfter: u.hp }); }
+        if (--u.dot.turns <= 0) u.dot = null;
+      }
+      if (u.hot && u.hp > 0) {
+        const h = Math.min(Math.max(1, Math.round(u.hpMax * u.hot.pct)), u.hpMax - u.hp);
+        if (h > 0) { u.hp += h; ev.push({ type: 'heal', target: u, amount: h, hpAfter: u.hp }); }
+        if (--u.hot.turns <= 0) u.hot = null;
+      }
+    });
+    return ev;
   };
 
   // 戰場事件「縱火」：指定回合結束時，場上所有敵人受到最大兵力一定比例的火燒傷害（可燒死雜兵，頭目最少留 1 兵力）

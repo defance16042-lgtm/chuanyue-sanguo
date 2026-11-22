@@ -263,26 +263,57 @@
   class MenuScene {
     constructor() { this.sel = 0; }
     update() {
-      const items = 7;
+      const items = 8;
       if (E.hit.up) this.sel = (this.sel + items - 1) % items;
       if (E.hit.down) this.sel = (this.sel + 1) % items;
       if (E.hit.cancel) { E.pop(); return; }
       if (E.hit.ok) {
         if (this.sel === 0) E.push(new StatusScene());
         else if (this.sel === 1) E.push(new FormationScene());
-        else if (this.sel === 2) E.push(new EquipScene());
-        else if (this.sel === 3) E.push(new ItemScene());
-        else if (this.sel === 4) E.push(new SaveScene('load'));
-        else if (this.sel === 5) E.replaceAll(new TitleScene());
+        else if (this.sel === 2) E.push(new BattleFormScene());
+        else if (this.sel === 3) E.push(new EquipScene());
+        else if (this.sel === 4) E.push(new ItemScene());
+        else if (this.sel === 5) E.push(new SaveScene('load'));
+        else if (this.sel === 6) E.replaceAll(new TitleScene());
         else E.pop();
       }
     }
     drawUI(c) {
-      E.panel(c, 168, 8, 80, 150);
-      E.menuList(c, ['角色資料', '隊伍編成', '裝備', '道具', '讀取', '回標題', '關閉'], this.sel, 178, 18, 14);
-      E.text(c, '金 ' + (G.gold || 0), 178, 120, { size: 9, color: GOLD });
-      E.text(c, '存檔請到', 178, 134, { size: 7, color: GREY });
-      E.text(c, '藍色水晶旁', 178, 142, { size: 7, color: GREY });
+      E.panel(c, 168, 8, 80, 172);
+      E.menuList(c, ['角色資料', '隊伍編成', '陣形', '裝備', '道具', '讀取', '回標題', '關閉'], this.sel, 178, 18, 14);
+      E.text(c, '金 ' + (G.gold || 0), 178, 134, { size: 9, color: GOLD });
+      E.text(c, '存檔請到', 178, 150, { size: 7, color: GREY });
+      E.text(c, '藍色水晶旁', 178, 160, { size: 7, color: GREY });
+    }
+  }
+
+  // ------------------------------------------------------------ 陣形：選擇戰鬥時擺的陣
+  class BattleFormScene {
+    constructor() { this.sel = Math.max(0, D.formationOrder.indexOf(G.formation || 'none')); this.msg = ''; }
+    update() {
+      const n = D.formationOrder.length;
+      if (E.hit.cancel) { E.pop(); return; }
+      if (E.hit.up) this.sel = (this.sel + n - 1) % n;
+      if (E.hit.down) this.sel = (this.sel + 1) % n;
+      if (E.hit.ok) {
+        const id = D.formationOrder[this.sel], f = D.formations[id];
+        if (!window.BattleLogic.formationUsable(id, G.party)) this.msg = f.only ? '只有諸葛孔明在隊伍裡、且達到 Lv' + f.unlock + '，才能擺這個陣。' : '諸葛貓妖到 Lv' + f.unlock + ' 才會這個陣形。';
+        else { G.formation = id; this.msg = f.name + (id === 'none' ? '：不擺陣形' : '：下一場戰鬥開始就會擺出') + '。'; }
+      }
+    }
+    drawUI(c) {
+      c.fillStyle = '#0c1030'; c.fillRect(8, 8, 240, 208);
+      E.panel(c, 8, 8, 240, 208);
+      E.text(c, '陣形', 20, 16, { size: 11, color: GOLD });
+      E.text(c, '目前：' + D.formations[G.formation || 'none'].name, 150, 18, { size: 8, color: GOLD });
+      D.formationOrder.forEach(function (id, i) {
+        const f = D.formations[id], ok = window.BattleLogic.formationUsable(id, G.party), sel = i === this.sel, y = 34 + i * 12;
+        E.text(c, (sel ? '▶ ' : '　') + f.name, 20, y, { size: 8, color: sel ? GOLD : ok ? '#f4f4ff' : '#6a6a80' });
+        E.text(c, (G.formation || 'none') === id ? '使用中' : ok ? '' : (f.only ? '僅孔明' : 'Lv' + f.unlock), 82, y, { size: 7, color: GREY });
+      }, this);
+      const f = D.formations[D.formationOrder[this.sel]];
+      E.wrap(c, f.desc, 8, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, 172 + i * 10, { size: 8, color: f.only ? GOLD : '#f4f4ff' }); });
+      E.text(c, this.msg || 'Z 選擇　X 返回　（前排＝隊伍前兩位）', 20, 204, { size: 7, color: this.msg ? GOLD : GREY });
     }
   }
 
@@ -400,36 +431,79 @@
     if (G.portraitOf(m) >= 0 && E.images.portraits) c.drawImage(E.images.portraits, G.portraitOf(m) * 48, 0, 48, 48, x, y, 48, 48);
     else c.drawImage(E.images.sprites, 0, m.sprite * 16, 16, 16, x + 16, y + 16, 16, 16);
   }
+  const STATUS_PAGES = ['能力', '地形', '計謀', '軍師計', '裝備'];
   class StatusScene {
-    constructor() { this.idx = 0; }
+    constructor() { this.idx = 0; this.page = 0; }
     update() {
       if (E.hit.cancel) { E.pop(); return; }
-      const n = G.party.length;
+      const n = G.party.length, np = STATUS_PAGES.length;
       if (n > 1) {
         if (E.hit.left) this.idx = (this.idx + n - 1) % n;
         if (E.hit.right) this.idx = (this.idx + 1) % n;
       }
+      if (E.hit.down || E.hit.ok) this.page = (this.page + 1) % np;
+      if (E.hit.up) this.page = (this.page + np - 1) % np;
     }
     drawUI(c) {
-      const m = G.party[this.idx], ch = D.characters[m.id] || {};
+      const m = G.party[this.idx], ch = D.characters[m.id] || {}, eq = m.equip || {};
       c.fillStyle = '#0c1030'; c.fillRect(8, 8, 240, 208);
       E.panel(c, 8, 8, 240, 208);
       drawFace(c, m, 196, 16);
       E.text(c, m.name + (m.guest ? '（助戰）' : ''), 20, 16, { size: 12, color: GOLD });
       E.text(c, (ch.zi ? '字' + ch.zi + '　' : '') + (ch.title || ''), 20, 32, { size: 8, color: GREY });
-      E.text(c, '職類 ' + (ch.cls || '－') + '　武器種類 ' + (ch.weapon || '－'), 20, 44, { size: 8 });
-      E.text(c, 'Lv ' + m.level + '　經驗 ' + m.exp + ' / 下一級 ' + window.BattleLogic.expFor(m.level + 1), 20, 58, { size: 8 });
-      E.text(c, '兵力 ' + m.hp + ' / ' + m.hpMax + '　戰術點 ' + m.tp + ' / ' + G.tpMaxOf(m), 20, 70, { size: 8 });
-      STAT_ROWS.forEach(function (r, i) { statCell(c, m, r[0], r[1], 20 + (i % 2) * 96, 82 + Math.floor(i / 2) * 12); });
-      if (ch.trait) E.text(c, '特性：' + ch.trait.name + '（' + ch.trait.desc + '）', 20, 141, { size: 8, color: GOLD });
-      const sk = window.BattleLogic.skillsFor(m, G.flags).map(function (x) { return x.name; });
-      E.text(c, '計謀：' + (sk.join('、') || '無'), 20, 151, { size: 8 });
-      const eq = m.equip || {};
-      E.text(c, '專屬地形：' + (D.terrainNames[ch.home] || '平地'), 20, 121, { size: 8, color: D.terrainColors[ch.home] || '#6ccf4a' });
-      E.text(c, '地形：' + Object.keys(D.terrainNames).map(function (k) { return D.terrainNames[k] + ((ch.terrain && ch.terrain[k]) || 'B'); }).join(' '), 20, 131, { size: 7 });
-      E.text(c, '裝備：' + Object.keys(D.slots).map(function (k) { return eq[k] ? D.equipment[eq[k]].name : '－'; }).join(' / '), 20, 161, { size: 7, color: GREY });
-      if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 171 + i * 9, { size: 7, color: GREY }); });
-      E.text(c, (G.party.length > 1 ? '左右換人　' : '') + 'X 返回　（升級時能力自動隨機成長）', 20, 204, { size: 7, color: GREY });
+      E.text(c, 'Lv ' + m.level + '　經驗 ' + m.exp + ' / ' + window.BattleLogic.expFor(m.level + 1), 20, 44, { size: 8 });
+      // 分頁標籤
+      STATUS_PAGES.forEach(function (name, i) {
+        const x = 20 + i * 43, on = i === this.page;
+        c.fillStyle = on ? '#3a3f8a' : '#171b44'; c.fillRect(x, 62, 41, 12);
+        E.text(c, name, x + 4, 64, { size: 8, color: on ? GOLD : GREY });
+      }, this);
+      const y0 = 82;
+      if (this.page === 0) {
+        E.text(c, '兵力 ' + m.hp + ' / ' + m.hpMax, 20, y0, { size: 9 });
+        E.text(c, '戰術點 ' + m.tp + ' / ' + G.tpMaxOf(m), 130, y0, { size: 9 });
+        STAT_ROWS.forEach(function (r, i) { statCell(c, m, r[0], r[1], 20 + (i % 2) * 110, y0 + 18 + Math.floor(i / 2) * 15); });
+        E.text(c, '綠色數字表示裝備加成，紅色表示減少', 20, y0 + 84, { size: 7, color: GREY });
+      } else if (this.page === 1) {
+        E.text(c, '職類 ' + (ch.cls || '－') + '　武器種類 ' + (ch.weapon || '－'), 20, y0, { size: 8 });
+        E.text(c, '專屬地形：' + (D.terrainNames[ch.home] || '平地'), 20, y0 + 14, { size: 9, color: D.terrainColors[ch.home] || '#6ccf4a' });
+        Object.keys(D.terrainNames).forEach(function (k, i) {
+          const g = (ch.terrain && ch.terrain[k]) || 'B';
+          E.text(c, D.terrainNames[k] + ' ' + g, 20 + (i % 3) * 70, y0 + 30 + Math.floor(i / 3) * 12, { size: 8, color: D.terrainColors[k] || '#f4f4ff' });
+        });
+        if (ch.trait) {
+          E.text(c, '特性：' + ch.trait.name, 20, y0 + 62, { size: 9, color: GOLD });
+          E.wrap(c, ch.trait.desc, 8, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, y0 + 76 + i * 11, { size: 8 }); });
+        } else E.text(c, '沒有特別的特性', 20, y0 + 62, { size: 8, color: GREY });
+      } else if (this.page === 2) {
+        const sk = window.BattleLogic.skillsFor(m, G.flags).filter(function (x) { return !x.adv; });
+        if (!sk.length) E.text(c, '還沒有學會計謀', 20, y0, { size: 8, color: GREY });
+        sk.slice(0, 18).forEach(function (x, i) {
+          E.text(c, x.name, 20 + (i % 2) * 110, y0 + Math.floor(i / 2) * 12, { size: 8 });
+          E.text(c, x.tp + 'TP', 82 + (i % 2) * 110, y0 + Math.floor(i / 2) * 12, { size: 7, color: GREY });
+        });
+      } else if (this.page === 3) {
+        const list = (D.battle.advisorSkills || {})[m.id] || [], isAdv = G.advisor === m.id;
+        if (!list.length) { E.text(c, m.name + '沒有專屬的軍師計謀。', 20, y0, { size: 8, color: GREY }); }
+        else {
+          E.text(c, isAdv ? '現任軍師：以下計謀戰鬥中可用' : '被任命為軍師後，才能用這些專屬計謀', 20, y0, { size: 8, color: isAdv ? GOLD : GREY });
+          list.forEach(function (e, i) {
+            const sk = D.battle.skills[e[1]], got = m.level >= e[0], y = y0 + 16 + i * 26;
+            E.text(c, sk.name, 20, y, { size: 9, color: got ? (isAdv ? GOLD : '#f4f4ff') : GREY });
+            E.text(c, sk.tp + 'TP　' + (got ? '已解鎖' : 'Lv' + e[0] + ' 解鎖'), 120, y, { size: 7, color: GREY });
+            E.text(c, ({ tact: '對敵造成計謀傷害', phys: '物理攻擊', heal: '回復兵力', buff: '強化我方', debuff: '削弱敵方', confuse: '使敵軍混亂', revive: '讓倒下的同伴復活', tpgive: '補充戰術點' })[sk.kind] + ((sk.target === 'all' || sk.target === 'allAlly') ? '（全體）' : ''), 20, y + 11, { size: 7, color: GREY });
+          });
+        }
+        E.text(c, '在選單「任命軍師」指定後生效', 20, 190, { size: 7, color: GREY });
+      } else {
+        Object.keys(D.slots).forEach(function (k, i) {
+          const it = eq[k] ? D.equipment[eq[k]] : null;
+          E.text(c, D.slots[k], 20, y0 + i * 12, { size: 8, color: GREY });
+          E.text(c, it ? it.name : '－', 56, y0 + i * 12, { size: 8 });
+        });
+        if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, y0 + 70 + i * 10, { size: 7, color: GREY }); });
+      }
+      E.text(c, (G.party.length > 1 ? '左右換人　' : '') + '上下／Z 換頁　X 返回', 20, 204, { size: 7, color: GREY });
     }
   }
 
@@ -500,34 +574,74 @@
   }
 
   // ------------------------------------------------------------ 裝備店
+  // 商店：武器店、防具店、雜貨店各自分開，每間都能買也能賣（賣價是原價的一半）
+  const SELL_SLOTS = { weapon: ['weapon'], armor: ['armor', 'helm', 'boots', 'charm'] };
   class ShopScene {
-    constructor(shopId) { this.ids = D.shops[shopId] || []; this.title = (D.shopNames && D.shopNames[shopId]) || '貨攤'; this.sel = 0; this.msg = ''; }
+    constructor(shopId) {
+      this.shopId = shopId; this.stock = D.shops[shopId] || [];
+      this.kind = (D.shopKinds && D.shopKinds[shopId]) || 'general';
+      this.title = (D.shopNames && D.shopNames[shopId]) || '貨攤';
+      this.mode = 'menu'; this.msel = 0; this.sel = 0; this.msg = '';
+    }
+    sellList() {
+      if (this.kind === 'general') return Object.keys(G.items || {}).filter(function (id) { return G.items[id] > 0 && D.battle.items[id] && D.battle.items[id].price > 0; }).map(function (id) { return { id: id, item: true, price: Math.floor(D.battle.items[id].price / 2), count: G.items[id], name: D.battle.items[id].name }; });
+      const slots = SELL_SLOTS[this.kind] || [];
+      return Object.keys(G.equipInv).filter(function (id) { const e = D.equipment[id]; return G.equipInv[id] > 0 && e && e.price > 0 && slots.indexOf(e.slot) >= 0; }).map(function (id) { const e = D.equipment[id]; return { id: id, item: false, price: Math.floor(e.price / 2), count: G.equipInv[id], name: e.name }; });
+    }
+    list() { return this.mode === 'sell' ? this.sellList() : this.stock.map(function (id) { return { id: id, item: !!D.battle.items[id] }; }); }
     update() {
-      const n = this.ids.length;
-      if (E.hit.cancel) { E.pop(); return; }
+      if (this.mode === 'menu') {
+        if (E.hit.cancel) { E.pop(); return; }
+        if (E.hit.up) this.msel = (this.msel + 2) % 3;
+        if (E.hit.down) this.msel = (this.msel + 1) % 3;
+        if (E.hit.ok) { if (this.msel === 2) { E.pop(); return; } this.mode = this.msel === 0 ? 'buy' : 'sell'; this.sel = 0; this.msg = ''; }
+        return;
+      }
+      const rows = this.list(), n = rows.length;
+      if (E.hit.cancel) { this.mode = 'menu'; this.msg = ''; return; }
+      if (!n) return;
+      if (this.sel >= n) this.sel = n - 1;
       if (E.hit.up) this.sel = (this.sel + n - 1) % n;
       if (E.hit.down) this.sel = (this.sel + 1) % n;
-      if (E.hit.ok) {
-        const id = this.ids[this.sel], isItem = !!D.battle.items[id], it = isItem ? D.battle.items[id] : D.equipment[id];
+      if (!E.hit.ok) return;
+      const r = rows[this.sel];
+      if (this.mode === 'buy') {
+        const it = r.item ? D.battle.items[r.id] : D.equipment[r.id];
         if ((G.gold || 0) < it.price) this.msg = '金錢不足。';
-        else if (isItem) { G.gold -= it.price; G.items[id] = (G.items[id] || 0) + 1; this.msg = '買了' + it.name + '（持有 ' + G.items[id] + '）。'; }
-        else { G.gold -= it.price; G.addGear(id); this.msg = '買了' + it.name + '，到「裝備」裡裝上。'; }
+        else if (r.item) { G.gold -= it.price; G.items[r.id] = (G.items[r.id] || 0) + 1; this.msg = '買了' + it.name + '（持有 ' + G.items[r.id] + '）。'; }
+        else { G.gold -= it.price; G.addGear(r.id); this.msg = '買了' + it.name + '，到「裝備」裡裝上。'; }
+      } else {
+        G.gold = (G.gold || 0) + r.price;
+        if (r.item) G.items[r.id]--; else { G.equipInv[r.id]--; if (G.equipInv[r.id] <= 0) delete G.equipInv[r.id]; }
+        this.msg = '賣掉了' + r.name + '，得到 ' + r.price + ' 金。';
       }
     }
     drawUI(c) {
       c.fillStyle = '#0c1030'; c.fillRect(8, 8, 240, 208);
       E.panel(c, 8, 8, 240, 208);
       E.text(c, this.title, 20, 16, { size: 11, color: GOLD });
-      const top = Math.max(0, Math.min(this.sel - 5, this.ids.length - 11));
-      this.ids.slice(top, top + 11).forEach(function (id, k) {
-        const i = top + k, isItem = !!D.battle.items[id], it = isItem ? D.battle.items[id] : D.equipment[id], sel = i === this.sel, y = 34 + k * 13, col = sel ? GOLD : '#f4f4ff';
+      E.text(c, '持有金 ' + (G.gold || 0), 150, 18, { size: 8, color: GOLD });
+      if (this.mode === 'menu') {
+        E.menuList(c, ['買東西', '賣東西', '離開'], this.msel, 20, 60, 16);
+        E.text(c, { weapon: '這裡賣武器，也收武器。', armor: '這裡賣護甲、頭盔、鞋靴和飾品，也收這些。', general: '這裡賣藥品和雜貨，也收藥品。' }[this.kind], 20, 130, { size: 8, color: GREY });
+        E.text(c, 'Z 決定　X 離開', 20, 200, { size: 7, color: GREY });
+        return;
+      }
+      const rows = this.list(), n = rows.length;
+      E.text(c, this.mode === 'buy' ? '【買】' : '【賣】', 20, 30, { size: 8, color: GREY });
+      if (!n) E.text(c, '沒有可以賣的東西。', 20, 60, { size: 8, color: GREY });
+      const top = Math.max(0, Math.min(this.sel - 5, n - 10));
+      rows.slice(top, top + 10).forEach(function (r, k) {
+        const i = top + k, sel = i === this.sel, y = 42 + k * 13, col = sel ? GOLD : '#f4f4ff';
+        const it = r.item ? D.battle.items[r.id] : D.equipment[r.id];
         E.text(c, (sel ? '▶ ' : '　') + it.name + (it.wtype ? '(' + it.wtype + ')' : ''), 20, y, { size: 8, color: col });
-        E.text(c, it.price + '金', 90, y, { size: 8, color: col });
-        E.text(c, isItem ? '持有' + (G.items[id] || 0) : Object.keys(it.mods).map(function (k2) { return ({ pow: '攻', atk: '武', int: '智', def: '防', spd: '速', lead: '統', luck: '運', grd: '守' })[k2] + (it.mods[k2] > 0 ? '+' : '') + it.mods[k2]; }).join(' '), 130, y, { size: 8, color: col });
+        E.text(c, (this.mode === 'buy' ? it.price : r.price) + '金', 92, y, { size: 8, color: col });
+        if (this.mode === 'sell') E.text(c, '×' + r.count, 130, y, { size: 8, color: col });
+        else E.text(c, r.item ? '持有' + (G.items[r.id] || 0) : Object.keys(it.mods).map(function (k2) { return ({ pow: '攻', atk: '武', int: '智', def: '防', spd: '速', lead: '統', luck: '運', grd: '守' })[k2] + (it.mods[k2] > 0 ? '+' : '') + it.mods[k2]; }).join(' '), 130, y, { size: 8, color: col });
       }, this);
-      const it = D.equipment[this.ids[this.sel]] || D.battle.items[this.ids[this.sel]];
-      E.text(c, this.msg || it.desc, 20, 184, { size: 8, color: this.msg ? GOLD : GREY });
-      E.text(c, '持有金 ' + (G.gold || 0) + '　Z 購買　X 離開', 20, 200, { size: 7, color: GREY });
+      const cur = rows[this.sel], curIt = cur && (cur.item ? D.battle.items[cur.id] : D.equipment[cur.id]);
+      E.text(c, this.msg || (curIt ? curIt.desc : ''), 20, 184, { size: 8, color: this.msg ? GOLD : GREY });
+      E.text(c, 'Z ' + (this.mode === 'buy' ? '購買' : '賣出') + '　X 返回', 20, 200, { size: 7, color: GREY });
     }
   }
 
@@ -618,7 +732,7 @@
     terrainHere() { return D.terrainOf[this.tileAt(this.p.x, this.p.y)] || 'plain'; }
     visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf]); }
     npcAt(x, y) { return this.npcs.find(function (n) { return n.x === x && n.y === y && this.visible(n); }, this); }
-    objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]); }); }
+    objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]); }); }
     blocked(x, y) {
       const t = this.tileAt(x, y);
       return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!this.objAt(x, y);
@@ -877,7 +991,7 @@
         items.push({ y: n.y * T, draw: function () { drawSprite(wc, n.sprite, n.dir, 0, n.x * T - cam.x, n.y * T - cam.y); } });
       });
       this.map.objects.forEach(function (o) {
-        if (o.type === 'gate' && G.flags[o.flag]) return;
+        if ((o.type === 'gate' && G.flags[o.flag]) || (o.type === 'urn' && G.flags['urn_' + o.id])) return;   // 開了的石門、碎了的陶罐都消失
         if (o.type !== 'save' && o.type !== 'chest' && o.type && drawCaveObj) { items.push({ y: o.y * T, draw: function () { drawCaveObj(wc, o.x * T - cam.x, o.y * T - cam.y, o); } }); return; }
         if (o.type === 'chest') { items.push({ y: o.y * T, draw: function () { drawChest(wc, o.x * T - cam.x, o.y * T - cam.y, !!G.flags['chest_' + o.id]); } }); return; }
         items.push({ y: o.y * T, draw: function () {
@@ -916,5 +1030,5 @@
   }
 
   window.Updater = Update;
-  window.Scenes = { Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene };
+  window.Scenes = { Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene, BattleForm: BattleFormScene };
 })();

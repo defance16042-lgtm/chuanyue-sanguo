@@ -100,7 +100,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // 回復道具：先讓某人受傷，從選單用傷藥
   await page.evaluate(() => { Game.party[1].hp = 10; });
-  await tap('Escape'); await tap('ArrowDown'); await tap('ArrowDown'); await tap('ArrowDown'); await tap('Enter');
+  await tap('Escape'); for (let i = 0; i < 4; i++) await tap('ArrowDown'); await tap('Enter');
   s = await S(); check('item screen opens', s.scene === 'ItemScene', s.scene);
   await tap('z'); await tap('ArrowDown'); await tap('z'); await shot('item_use');
   s = await S();
