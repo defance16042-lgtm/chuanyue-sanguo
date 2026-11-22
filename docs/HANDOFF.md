@@ -1,4 +1,4 @@
-# 穿越三國 諸葛貓妖傳：交接文件（v0.31.0）
+# 穿越三國 諸葛貓妖傳：交接文件（v0.32.0）
 
 給接手的 Claude 或開發者。請先讀完本文件和 README.md，再繼續開發。
 
@@ -52,11 +52,11 @@
 - 平衡：已用 tools/sim_ch2.js 模擬第二章 Boss、水軍與關口山口 Boss（呂布約 30000 HP，約 64 級可穩定取勝；模擬不含裝備，實際較容易）。
 - 第一、二章的所有城鎮與野外村落房子已補齊（v0.30.4）。
 - 第三章：需獨立大地圖、洞穴與村莊、章間渡河。
-- 使用者要手動發布 GitHub Releases：v0.25.0 到 v0.30.1。
+- 使用者要手動發布 GitHub Releases（發最新版 v0.32.0 即可）。
 
 ## 下一步（接手者請照這個順序做）
-目前進度：第一、二章完成；第一、二章所有城鎮房子已補齊；Boss 平衡已模擬調整；藥品、復活、軍師專屬計謀已加入。
-1. 先跑一遍全部測試，確認目前版本（v0.31.0）是綠的。
+目前進度：第一、二章完成；第一、二章所有城鎮房子已補齊；Boss 平衡已模擬調整；藥品、復活、軍師專屬計謀、分店與賣出、分頁角色資料、陣形（含八卦陣）、第二批計謀已加入（詳見 docs/REPORT_v0.32.0.md）。
+1. 先跑一遍全部測試，確認目前版本（v0.32.0）是綠的。
 2. 開發第三章：獨立大地圖、洞穴與村莊、章間渡河（或關口），沿用 tools/build_world.py 的流程；先給使用者看劇情大綱與地圖規劃，再分批做。
 3. 第三章的房子、Boss 平衡模擬（tools/sim_ch2.js 可改成 sim_ch3）也要一起補。
 4. 每完成一批：更新版本號（四處同步）、更新 update.json 與 README、跑測試、打包 zip、推送，並請使用者試玩給回饋。
@@ -73,3 +73,9 @@
 - 軍師專屬計謀：data/battle.js 的 advisorSkills；只有被指定為軍師的角色才有，id 以 adv_ 開頭，戰鬥選單以「軍・」標示。
 - 全體攻擊（自動戰鬥）時 BattleScene.update 的 dt 乘 2.3，所以動畫與等待整體加快。
 - 測試：tests/supplies_test.js（不開瀏覽器，直接測 BattleLogic）。
+
+## 店鋪、陣形與第二批計謀（v0.32.0）
+- 店鋪：data/shops.js（最後載入之一）。makeShop(地圖, 類型, 階級, 店名, 掌櫃, 精靈, 戶外NPC名) 把一間屋子或街上 NPC 變成武器／防具／雜貨店；**不要把有任務或寶箱的屋子拿來當店**（長社老學究書房、宛城工匠帳曾因此壞掉）。
+- 陣形：data/formations.js；BL.formationUsable / BL.applyFormation；Game.formation 會存檔；選單「陣形」。八卦陣 only:'nyao'，貓妖 45 級。
+- 新計謀 kind：dot（毒）、hot（持續回復）、cleanse、stun、taunt；phys 可帶 leech、lowBonus；tact 可帶 rider；buff 可帶 extra。回合結束由 BL.statusEvents 結算毒與回復。
+- 測試：tests/skills2_test.js、tests/formations_test.js（機制）；舊的 tests/formation_test.js 是隊伍編成。
