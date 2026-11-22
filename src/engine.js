@@ -28,6 +28,9 @@
       E.held[a] = true; E.hit[a] = true;
       if (DIRS.indexOf(a) >= 0) { E.dirStack = E.dirStack.filter(function (d) { return d !== a; }); E.dirStack.push(a); }
     });
+    window.addEventListener('keydown', function (ev) {   // F：全螢幕
+      if ((ev.key === 'f' || ev.key === 'F') && !ev.repeat) { try { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen(); } catch (e) { /* 不支援就算了 */ } }
+    });
     window.addEventListener('keyup', function (ev) {
       const a = KEYS[ev.key];
       if (!a) return;
@@ -38,9 +41,9 @@
   };
 
   E.resize = function () {
-    E.S = Math.max(1, Math.floor(Math.min(window.innerWidth / W, window.innerHeight / H)));
-    E.canvas.width = W * E.S; E.canvas.height = H * E.S;
-    E.canvas.style.width = (W * E.S) + 'px'; E.canvas.style.height = (H * E.S) + 'px';
+    E.S = Math.max(1, Math.min(window.innerWidth / W, window.innerHeight / H));   // 依視窗大小自動放到最大（可以是小數倍）
+    E.canvas.width = Math.round(W * E.S); E.canvas.height = Math.round(H * E.S);
+    E.canvas.style.width = E.canvas.width + 'px'; E.canvas.style.height = E.canvas.height + 'px';
   };
 
   E.load = function (list) {
@@ -81,7 +84,7 @@
     E.stack.forEach(function (s) { if (s.draw) s.draw(wc); });
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.imageSmoothingEnabled = false;
-    c.drawImage(E.world, 0, 0, W * E.S, H * E.S);
+    c.drawImage(E.world, 0, 0, E.canvas.width, E.canvas.height);
     c.setTransform(E.S, 0, 0, E.S, 0, 0);
     E.stack.forEach(function (s) { if (s.drawUI) s.drawUI(c); });
   }

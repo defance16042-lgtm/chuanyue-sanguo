@@ -223,9 +223,21 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }
     }
     updateSub() {
-      const n = this.sub.length;
+      const n = this.sub.length, PER = 6, pages = Math.ceil(n / PER);
       if (E.hit.up) this.subSel = (this.subSel + n - 1) % n;
       if (E.hit.down) this.subSel = (this.subSel + 1) % n;
+      // 左右：同一頁的兩欄之間移動；已在邊緣就翻到上一頁／下一頁
+      if (E.hit.left || E.hit.right) {
+        const pg = Math.floor(this.subSel / PER), col = Math.floor((this.subSel % PER) / 3);
+        if (E.hit.right) {
+          if (col === 0 && this.subSel + 3 < n && Math.floor((this.subSel + 3) / PER) === pg) this.subSel += 3;
+          else if (pages > 1) this.subSel = ((pg + 1) % pages) * PER;
+        } else {
+          if (col === 1) this.subSel -= 3;
+          else if (pages > 1) this.subSel = ((pg + pages - 1) % pages) * PER;
+        }
+        this.subSel = Math.min(this.subSel, n - 1);
+      }
       if (E.hit.cancel) { this.state = 'cmd'; return; }
       if (!E.hit.ok) return;
       const it = this.sub[this.subSel];
@@ -462,15 +474,19 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
           E.text(c, name, cx + 11, cy, { size: 9, color: on ? GOLD : '#f4f4ff' });
         });
       } else if (this.state === 'skill' || this.state === 'item') {
+        const PER = 6, nn = this.sub.length, pages = Math.ceil(nn / PER), pg = Math.floor(this.subSel / PER);
         E.text(c, this.state === 'skill' ? '計謀' : '道具', 74, 168, { size: 9, color: GOLD });
-        this.sub.forEach(function (it, i) {
-          const y = 182 + i * 11, sel = i === self.subSel;
+        if (pages > 1) E.text(c, '◀ ' + (pg + 1) + '/' + pages + ' ▶　左右翻頁', 248, 169, { size: 8, color: GREY, align: 'right' });
+        for (let k = 0; k < PER; k++) {
+          const i = pg * PER + k; if (i >= nn) break;
+          const it = this.sub[i], sel = i === this.subSel, cx = 74 + Math.floor(k / 3) * 88, y = 180 + (k % 3) * 11;
           const col = it.disabled ? GREY : (sel ? GOLD : '#f4f4ff');
-          if (sel) E.text(c, '▶', 74, y, { size: 9, color: GOLD });
-          E.text(c, it.label, 86, y, { size: 9, color: col });
-          E.text(c, it.right, 126, y, { size: 9, color: col });
-          if (sel) E.text(c, it.skill ? self.skillDesc(it.skill) : it.def.desc, 160, y + 1, { size: 8, color: GREY });
-        });
+          if (sel) E.text(c, '▶', cx, y, { size: 8, color: GOLD });
+          E.text(c, it.label, cx + 9, y, { size: 8, color: col });
+          E.text(c, String(it.right).replace('TP', ''), cx + 80, y, { size: 8, color: col, align: 'right' });
+        }
+        const cs = this.sub[this.subSel];
+        if (cs) E.text(c, (cs.skill ? '【' + cs.right + '】' + self.skillDesc(cs.skill) : cs.def.desc) || '', 74, 213, { size: 7, color: GREY });
       } else if (this.state === 'mode') {
         const sk = this.modeSkill;
         E.text(c, sk.name, 74, 168, { size: 9, color: GOLD });

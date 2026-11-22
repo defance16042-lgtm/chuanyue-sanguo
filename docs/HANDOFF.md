@@ -84,3 +84,7 @@
 - 特效：src/battle_scene.js 的 drawFx 依 fx 名稱各畫專屬像素動畫（rock、thunder、water、smoke、arrowrain、trap、crack、roar、dizzy、banner、rage、wind、bagua、up_r/b/g、whirl、flurry、execute、bloodslash、dragon、cross、multithrust、mist、confuse、cage、orb、purify、leaf、revive、bloom、paw 等）。新增計謀時在 data/battle.js 指定 fx，並在 playEvent 的 dur 表補持續時間。skill.fxLevel 可強制火焰等級。
 - 音樂：src/audio.js（window.Audio2），WebAudio 即時合成，曲目是 TRACKS 裡的音符記譜（每首 8 小節 128 格）。場景→曲目由 decide() 每 200ms 判斷：標題 title、城鎮／房屋 village、world* 大地圖 world、cave* 洞穴 cave、一般戰鬥 battle、boss 戰 boss、勝利 victory、戰敗 defeat。M 鍵靜音（存於 localStorage）。計謀音效 Audio2.sfx(fx名)，FXMAP/SFX 表對應。
 - 測試：tests/audio_test.js。新增曲目要讓每個聲部長度一致（128 格）。
+
+## 畫面縮放與選單翻頁（v0.34.0）
+- Engine.resize 依視窗取小數倍率（不再整數倍）；F 鍵全螢幕。
+- 戰鬥計謀／道具選單：每頁 6 項（兩欄×3），左右鍵換欄或翻頁，上下鍵逐項（跨頁）。測試：tests/paging_test.js。

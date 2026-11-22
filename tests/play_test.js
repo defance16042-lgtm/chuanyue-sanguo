@@ -125,7 +125,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // window resize keeps integer scaling
   await page.setViewportSize({ width: 1920, height: 1080 }); await sleep(300);
   const size = await page.evaluate(() => ({ S: Engine.S, w: Engine.canvas.width, h: Engine.canvas.height }));
-  check('1920x1080 uses integer scale 4 (1024x896)', size.S === 4 && size.w === 1024 && size.h === 896, size);
+  check('1920x1080 scales up to fill the window height (1080)', size.h >= 1070 && size.h <= 1080 && size.S > 4.5, size);
 
   check('no page errors or console errors', errors.length === 0, errors);
   console.log(`\n${pass} passed, ${fail} failed`);
