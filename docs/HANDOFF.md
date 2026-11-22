@@ -117,3 +117,12 @@
 - tools/build_hd_tiles.py 產生 assets/tiles_hd.png（每格 32px，編號與 tiles.png 相同，只做了 1,2,3,19,20,31,32,33,34,35,45；其餘留空）。TerrainArt.HD_IDS 列出有高清版的編號。MapScene.draw：map.world 為真時用高清圖塊＋TerrainArt.buildHD（32px 疊圖：湖岸三層描邊、浪、圓角／凹角、花叢、草叢、青苔）；城鎮與洞穴仍用 16px 圖塊與 TerrainArt.build。
 - Engine：E.K=2，世界畫布是 512x448，每幀 setTransform(K)，所以所有舊的繪圖程式照邏輯座標畫、自動放大兩倍；高清圖塊以 32px 來源畫到 16 邏輯格。
 - 要為其他圖塊（城堡、村莊）做高清版，就在 build_hd_tiles.py 加生成函式並把編號加到 HD_IDS。
+
+## 對話存檔：目前進度與下一步（2026-11-23 07:45，換帳號前）
+- 已發佈到 v0.39.0（最新 commit 1fef9cf 已推上 GitHub，壓縮檔已傳給使用者；Release 要使用者手動發佈）。
+- 使用者最新要求：畫質要像他貼的參考圖那樣高解析、不要太 8-bit。大地圖地形已做（v0.39.0）。使用者說「照著順序做」，順序＝① 城堡（大地圖城鎮圖示）② 村莊房屋與城鎮地面 ③ 角色。
+- ① 城堡：現有 tools/build_assets.py 的 castle_big()（48x48，3x3 格，tile 26-30、22、37-39 由 _castle_part 切出）。要做 96x96 的高清版（光從左上、磚縫、翹角歇山頂、鐵釘城門），輸出進 assets/tiles_hd.png 對應編號（q26 k27 p28 / e37 u38 j39 / l29 C22 r30），並把這些編號加進 TerrainArt.HD_IDS（src/terrain_art.js）。MapScene.draw 目前對城堡格會先鋪 groundFor() 的地面再貼城堡圖塊，高清圖塊同理（透明底）。注意 tools/build_hd_tiles.py 目前是 32px 一格；城堡每格也是 32px，所以只要畫 96x96 再切 9 塊。
+- ② 村莊：城鎮與洞穴仍是 16px 圖塊，Engine 世界畫布已是 2 倍解析（E.K=2），所以只要照同樣方式加 32px 圖塊並讓 MapScene.draw 對城鎮也啟用 hd（目前條件是 this.map.world）。
+- ③ 角色：sprites.png 16px；高清化要同步改 drawSprite 與戰鬥 bparty16/benemy16，工作量最大，建議最後做。
+- 每批做完照慣例：跑 tests（/tmp/run3.sh 的清單：tests/*_test.js 除 yingchuan，yingchuan 另跑背景約 5 分鐘）、升版本（package.json、package-lock.json 第 3、9 行、src/version.js、update.json）、更新 HANDOFF、推送（/tmp/pushcheck 複製 data src tests tools docs assets 與 index.html package*.json update.json README.md，commit 附署名行，git push origin HEAD:main）、打包 zip 傳給使用者。
+- 其他未完成：第三章（大綱還沒給使用者看，使用者尚未回覆）。長期規則見本檔前面各節（主角男性、不用 emoji、無「測試/製作中」字樣等）。
