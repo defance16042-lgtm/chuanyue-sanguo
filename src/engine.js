@@ -15,7 +15,8 @@
     E.canvas = document.getElementById(canvasId);
     E.ctx = E.canvas.getContext('2d');
     E.world = document.createElement('canvas');
-    E.world.width = W; E.world.height = H;
+    E.K = 2;   // 世界畫布是邏輯解析度的 K 倍：地圖用 32px 高清圖塊時細節才不會被縮掉
+    E.world.width = W * E.K; E.world.height = H * E.K;
     E.wctx = E.world.getContext('2d');
     E.wctx.imageSmoothingEnabled = false;
     E.resize();
@@ -79,7 +80,8 @@
 
   function draw() {
     const wc = E.wctx, c = E.ctx;
-    wc.setTransform(1, 0, 0, 1, 0, 0);
+    wc.setTransform(E.K, 0, 0, E.K, 0, 0);
+    wc.imageSmoothingEnabled = false;
     wc.fillStyle = '#000'; wc.fillRect(0, 0, W, H);
     E.stack.forEach(function (s) { if (s.draw) s.draw(wc); });
     c.setTransform(1, 0, 0, 1, 0, 0);

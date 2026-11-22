@@ -1114,19 +1114,27 @@
     draw(wc) {
       const cam = this.camera(), self = this;
       if (this.hidden) return;
+      const hd = !!(this.map.world && E.images.tiles_hd), hdIds = {};
+      if (hd) TerrainArt.HD_IDS.forEach(function (i) { hdIds[i] = true; });
       for (let y = 0; y < this.h; y++) {
         for (let x = 0; x < this.w; x++) {
           const sx = x * T - cam.x, sy = y * T - cam.y;
           if (sx < -T || sy < -T || sx > W || sy > H) continue;
           const tid = this.tileAt(x, y);
           if (tid >= 26 && tid <= 30 || tid === 22 || tid >= 37 && tid <= 39) wc.drawImage(E.images.tiles, this.groundFor(x, y) * 16, 0, 16, 16, sx, sy, 16, 16);   // 城堡圖塊底下先鋪地面
-          wc.drawImage(E.images.tiles, tid * 16, 0, 16, 16, sx, sy, 16, 16);
+          if (hd && hdIds[tid]) wc.drawImage(E.images.tiles_hd, tid * 32, 0, 32, 32, sx, sy, 16, 16);   // 大地圖：32px 高清地形
+          else wc.drawImage(E.images.tiles, tid * 16, 0, 16, 16, sx, sy, 16, 16);
         }
       }
       if (window.TerrainArt) {   // 地形細節：湖岸、深水、花叢、青苔
-        if (!this.map._art) this.map._art = TerrainArt.build(this.map, this.tileAt.bind(this));
         const ax = Math.max(0, Math.round(cam.x)), ay = Math.max(0, Math.round(cam.y));
-        wc.drawImage(this.map._art, ax, ay, W, H, ax - Math.round(cam.x), ay - Math.round(cam.y), W, H);
+        if (hd) {
+          if (!this.map._artHD) this.map._artHD = TerrainArt.buildHD(this.map, this.tileAt.bind(this));
+          wc.drawImage(this.map._artHD, ax * 2, ay * 2, W * 2, H * 2, ax - Math.round(cam.x), ay - Math.round(cam.y), W, H);
+        } else {
+          if (!this.map._art) this.map._art = TerrainArt.build(this.map, this.tileAt.bind(this));
+          wc.drawImage(this.map._art, ax, ay, W, H, ax - Math.round(cam.x), ay - Math.round(cam.y), W, H);
+        }
       }
       if (this.map.world) {
         this.drawBanners(wc, cam);

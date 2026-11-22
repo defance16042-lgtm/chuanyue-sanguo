@@ -112,3 +112,8 @@
 
 ## 地形美化（v0.38.0）
 - src/terrain_art.js：TerrainArt.build(map, tileAt) 依水（圖塊 2）的鄰格畫湖岸兩層描邊、圓角、深水、閃光；草地（31）依格座標雜湊畫花叢／草叢；山（20）的兩座山峰各有 40% 機會長青苔。結果存在 map._art（離屏畫布），MapScene.draw 在圖塊層之後整張貼上。不改 tiles.png。
+
+## 高解析地形（v0.39.0）
+- tools/build_hd_tiles.py 產生 assets/tiles_hd.png（每格 32px，編號與 tiles.png 相同，只做了 1,2,3,19,20,31,32,33,34,35,45；其餘留空）。TerrainArt.HD_IDS 列出有高清版的編號。MapScene.draw：map.world 為真時用高清圖塊＋TerrainArt.buildHD（32px 疊圖：湖岸三層描邊、浪、圓角／凹角、花叢、草叢、青苔）；城鎮與洞穴仍用 16px 圖塊與 TerrainArt.build。
+- Engine：E.K=2，世界畫布是 512x448，每幀 setTransform(K)，所以所有舊的繪圖程式照邏輯座標畫、自動放大兩倍；高清圖塊以 32px 來源畫到 16 邏輯格。
+- 要為其他圖塊（城堡、村莊）做高清版，就在 build_hd_tiles.py 加生成函式並把編號加到 HD_IDS。
