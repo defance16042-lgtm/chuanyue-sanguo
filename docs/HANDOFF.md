@@ -109,3 +109,6 @@
 - 舊存檔：MapScene.loadMap 進 world 時若落點在尚未開放的區域，改送到 lastTown 城外。
 - 第二章的區域含：黑山(heishan)、cave2、西關 guan_w、燕山北的幽州(youbei)、平原(pingyuan)、cave3。第一章陸地無法繞進去（tests/chapters_test.js 用 BFS 驗證）。
 - 因為是執行時修改，tools/build_world.py 重新產生 world.js 時不必跟著改。
+
+## 地形美化（v0.38.0）
+- src/terrain_art.js：TerrainArt.build(map, tileAt) 依水（圖塊 2）的鄰格畫湖岸兩層描邊、圓角、深水、閃光；草地（31）依格座標雜湊畫花叢／草叢；山（20）的兩座山峰各有 40% 機會長青苔。結果存在 map._art（離屏畫布），MapScene.draw 在圖塊層之後整張貼上。不改 tiles.png。

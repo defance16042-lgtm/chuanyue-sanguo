@@ -1123,6 +1123,11 @@
           wc.drawImage(E.images.tiles, tid * 16, 0, 16, 16, sx, sy, 16, 16);
         }
       }
+      if (window.TerrainArt) {   // 地形細節：湖岸、深水、花叢、青苔
+        if (!this.map._art) this.map._art = TerrainArt.build(this.map, this.tileAt.bind(this));
+        const ax = Math.max(0, Math.round(cam.x)), ay = Math.max(0, Math.round(cam.y));
+        wc.drawImage(this.map._art, ax, ay, W, H, ax - Math.round(cam.x), ay - Math.round(cam.y), W, H);
+      }
       if (this.map.world) {
         this.drawBanners(wc, cam);
       }
