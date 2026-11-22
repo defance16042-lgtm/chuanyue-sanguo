@@ -18,6 +18,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     });
     const reach = (m, sx, sy) => { const seen = new Set([sx + ',' + sy]), q = [[sx, sy]]; while (q.length) { const [x, y] = q.shift(); [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || ny >= m.tiles.length || nx >= m.tiles[0].length) return; if (solid.has(tid(m, nx, ny)) || seen.has(nx + ',' + ny)) return; seen.add(nx + ',' + ny); q.push([nx, ny]); }); } return seen; };
     ['world', 'world2'].forEach(wid => { const WM = D.maps[wid], r = reach(WM, WM.start.x, WM.start.y);
+      if (wid === 'world') [[19, 23], [62, 13], [3, 58]].forEach(p => reach(WM, p[0], p[1]).forEach(k => r.add(k)));   // 第二章的區域要穿過山口／關口才到，從山口另一側出發也算
       WM.warps.forEach(w => { if (!r.has((w.bx !== undefined ? w.bx : w.x) + ',' + (w.by !== undefined ? w.by : w.y + 1)) && !r.has(w.x + ',' + (w.y + 1)) && !r.has((w.x + 1) + ',' + w.y) && !r.has((w.x - 1) + ',' + w.y)) out.push('unreachable ' + wid + ' ' + w.to); });
       WM.npcs.forEach(n => { if (!D.dialogue[n.dialogue]) out.push('no dlg ' + n.id); (n.alts || []).forEach(a => { if (!D.dialogue[a.dialogue]) out.push('no alt ' + a.dialogue); }); });
       const d1 = WM.dock; if (!r.has(d1.arrive[0] + ',' + d1.arrive[1])) out.push('dock arrive unreachable ' + wid); });

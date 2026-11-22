@@ -849,6 +849,10 @@
       this.mapId = mapId; this.map = m; this.w = m.tiles[0].length; this.h = m.tiles.length;
       this.npcs = m.npcs.map(function (n) { return Object.assign({}, n); });
       spawn = spawn || m.start;
+      if (mapId === 'world' && D.chapterZoneAt) {   // 舊存檔：人還站在尚未開放的第二章區域裡，送回最近去過的城鎮外面
+        const z = D.chapterZoneAt(spawn.x, spawn.y);
+        if (z && !G.flags[z.need]) { const t = D.worldTowns[G.flags.lastTown] || D.worldTowns.zhuoxian; spawn = { x: t.x, y: t.y + 1, dir: 'down' }; }
+      }
       this.p = { x: spawn.x, y: spawn.y, dir: spawn.dir || 'down', moving: false, t: 0, tx: 0, ty: 0, step: 0 };
       this.banner = 2000; this.evCheck = true;
       G.mapId = mapId; this.syncPos();

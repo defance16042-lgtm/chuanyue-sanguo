@@ -36,7 +36,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const sk = await page.evaluate(() => ({ w1: DATA.maps.world.shankou, w2: DATA.maps.world2.shankou, p1: DATA.maps.world.pass, p2: DATA.maps.world2.pass }));
   check('three mountain passes placed', sk.w1.length === 2 && sk.w2.length === 1, [sk.w1.length, sk.w2.length]);
   // 世界地圖進入關口
-  await setup({ py_news: true }); await go('world', sk.p1.x + 1, sk.p1.y, 'left'); await sleep(300); await tap('ArrowLeft', 90, 1200);
+  await setup({ py_news: true, sanzhang_down: true, zhangyan_down: true }); await go('world', sk.p1.x + 1, sk.p1.y, 'left'); await sleep(300); await tap('ArrowLeft', 90, 1200);
   check('west pass gate leads into the fortress', (await page.evaluate(() => Game.mapId)) === 'guan_w');
   // 守將擋在缺口；打贏後走過去到另一張地圖
   await go('guan_w', 11, 13, 'up'); await sleep(300); await tap('z', 60, 500); await talk(); await sleep(900);
@@ -49,7 +49,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('east fortress general fights', (await top()) === 'BattleScene', await top());
   // 山口
   const s1 = sk.w1[0];
-  await setup({}); await go('world', s1.x - 2, s1.y, 'right'); await sleep(300); await tap('ArrowRight', 90, 1200);
+  await setup({ sanzhang_down: true, zhangyan_down: true }); await go('world', s1.x - 2, s1.y, 'right'); await sleep(300); await tap('ArrowRight', 90, 1200);
   check('mountain pass entrance leads into the pass map', (await page.evaluate(() => Game.mapId)) === 'shankou1', await page.evaluate(() => Game.mapId));
   await go('shankou1_2', 11, 15, 'right'); await sleep(300);
   await tap('z', 60, 500); await talk(); await sleep(900);

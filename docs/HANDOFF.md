@@ -102,3 +102,10 @@
 - 山口：守將站在山腳往前 warp 的唯一通道格 (10,2)，無法旁繞。大地圖山脈整段封牆「未做」（會把地圖切成兩半），若要做需另行規劃。
 - 計謀精簡：移除 regen、cleanse2、rally2、tpgive2、inspire2；BL.skillText 自動產生說明。
 - 測試：tests/quests_test.js。
+
+## 章間封鎖（v0.37.0）
+- data/chapters.js（在 quests.js 之後）：執行時直接改 D.maps.world 的 tiles，把 x=21（太行）整條、x=60（燕山）y1-28、y=28 往東到海邊補成 'Q' 山牆（已是水或山壁的格子不動）；D.maps.world.chapterZones 兩片第二章區域：太行山以西 x1-20（need sanzhang_down）、燕山以北東 x61+ y1-27（need zhangyan_down）。D.chapterZoneAt(x,y) 查所在區域。
+- 山口傳送點加 need/deny/bx/by：(20,23)(22,23) 需 sanzhang_down，(59,13)(61,13) 需 zhangyan_down；對話 pass_sealed1/2。
+- 舊存檔：MapScene.loadMap 進 world 時若落點在尚未開放的區域，改送到 lastTown 城外。
+- 第二章的區域含：黑山(heishan)、cave2、西關 guan_w、燕山北的幽州(youbei)、平原(pingyuan)、cave3。第一章陸地無法繞進去（tests/chapters_test.js 用 BFS 驗證）。
+- 因為是執行時修改，tools/build_world.py 重新產生 world.js 時不必跟著改。
