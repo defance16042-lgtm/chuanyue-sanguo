@@ -246,7 +246,7 @@
       if (nm === 'BattleScene') {
         if (s.result === 'win') return 'victory';
         if (s.result === 'lose') return 'defeat';
-        return s.opts && s.opts.boss ? 'boss' : 'battle';
+        return (s.opts && s.opts.boss) || (s.b && s.b.enemies.some(function (e) { return e.boss; })) ? 'boss' : 'battle';   // 遇到敵將（含野外捲土重來的頭目）就換激昂的曲子
       }
       if (nm === 'MapScene' && !map) map = s;
       if (nm === 'TitleScene') title = true;

@@ -312,8 +312,19 @@
         E.text(c, (G.formation || 'none') === id ? '使用中' : ok ? '' : (f.only ? '僅孔明' : 'Lv' + f.unlock), 82, y, { size: 7, color: GREY });
       }, this);
       const f = D.formations[D.formationOrder[this.sel]];
-      E.wrap(c, f.desc, 8, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, 172 + i * 10, { size: 8, color: f.only ? GOLD : '#f4f4ff' }); });
-      E.text(c, this.msg || 'Z 選擇　X 返回　（前排＝隊伍前兩位）', 20, 204, { size: 7, color: this.msg ? GOLD : GREY });
+      // 站位示意：左邊是後排、右邊是前排（敵人在更右邊）；位置只看「隊伍第幾位」
+      c.fillStyle = '#10204a'; c.fillRect(108, 30, 132, 136); c.strokeStyle = '#4a5a9a'; c.strokeRect(108.5, 30.5, 131, 135);
+      ['後排', '中排', '前排'].forEach(function (nm, k) { E.text(c, nm, 130 + k * 43, 33, { size: 7, color: GREY, align: 'center' }); });
+      E.text(c, '敵軍 ▶', 238, 158, { size: 7, color: GREY, align: 'right' });
+      for (let i = 0; i < 5; i++) {
+        const r = f.rows ? (f.rows[i] == null ? 1 : f.rows[i]) : 1, bx = f.rows ? 111 + (2 - r) * 43 : 154, by = 44 + i * 23, m = G.party[i];
+        c.fillStyle = f.rows ? (r === 0 ? '#7a2a2a' : r === 1 ? '#6a5a20' : '#2a4a7a') : '#3a3a50'; c.fillRect(bx, by, 40, 19);
+        c.strokeStyle = '#fff'; c.strokeRect(bx + 0.5, by + 0.5, 39, 18);
+        E.text(c, '第' + (i + 1) + '位', bx + 3, by + 2, { size: 7, color: GOLD });
+        E.text(c, m ? m.name : '－', bx + 3, by + 10, { size: 7, color: m ? '#fff' : GREY });
+      }
+      E.wrap(c, f.desc, 8, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 172 + i * 10, { size: 8, color: f.only ? GOLD : '#f4f4ff' }); });
+      E.text(c, this.msg || 'Z 選擇　X 返回　（站位依隊伍順序，到「隊伍編成」調整）', 20, 204, { size: 7, color: this.msg ? GOLD : GREY });
     }
   }
 

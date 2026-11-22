@@ -8,6 +8,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
   // 戰鬥小人（24×24，有武器與揮砍／施法動作）所在的列；沒有的人暫時用地圖小人
   const BATTLE_ROW = { nyao: 0, liubei: 1, guanyu: 2, zhangfei: 3, caocao: 4, luzhi: 5 };
 
+  const ROW_X = [94, 68, 44];   // 前排、中排、後排的小人 x 座標
   class BattleScene {
     // group：敵人 id 陣列；opts：{ boss, canFlee, onEnd(result) }，result 為 'win'|'lose'|'flee'
     constructor(group, opts) {
@@ -35,7 +36,10 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       });
       this.b.party.forEach(function (u, i) {
         u.dhp = u.hp; u.cw = 24; u.top = 0;   // 戰鬥小人的格是 24×16：身體 16×16，右邊留給武器
-        u.x = 70 - 12; u.y = self.rowY(i) + 2; u.shake = 0; u.row = i;
+        u.x = 70 - 12; u.y = self.rowY(i) + 2; u.shake = 0; u.row = i; u.tx = u.x;
+        // 陣形：站位只看第幾位。前排衝到場中央，後排退到最左邊（相差約 3 個人身寬）
+        const f = self.b.formation;
+        if (f && f.rows) u.tx = ROW_X[f.rows[i] == null ? 1 : f.rows[i]];
       });
     }
 
@@ -160,6 +164,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     update(dt) {
       if (this.auto && this.state === 'exec') dt *= 2.3;   // 全體攻擊：動畫與等待整體加快
       this.time += dt;
+      this.b.party.forEach(function (u) { if (u.tx != null && u.x !== u.tx) { u.x += (u.tx - u.x) * Math.min(1, dt / 160); if (Math.abs(u.tx - u.x) < 0.5) u.x = u.tx; } });   // 滑進陣形站位
       const self0 = this; this.b.party.concat(this.b.enemies).forEach(function (u) {
         if (u.shake > 0) u.shake -= dt;
         if (u.side === 'enemy' && self0.H(u) <= 0 && u.fade > 0) u.fade = Math.max(0, u.fade - dt / 400);
@@ -394,6 +399,12 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }
     }
 
+    // 兵力條長度依兵力「範圍」分級（仿吞食天地）：這場戰鬥裡最小的那一級最短，往上每一級加長；全場都破千就從短的開始
+    barLen(u) {
+      const T = [60, 150, 400, 1000, 2500, 6000, 15000, 40000], rank = function (h) { let r = 0; T.forEach(function (t) { if (h >= t) r++; }); return r; };
+      if (this.minRank == null) { const all = this.b.party.concat(this.b.enemies); this.minRank = Math.min.apply(null, all.map(function (x) { return rank(x.hpMax); })); }
+      return Math.min(60, 24 + (rank(u.hpMax) - this.minRank) * 9);
+    }
     bar(c, x, y, w, ratio, col) {
       c.fillStyle = '#fff'; c.fillRect(x, y, w, 5);
       c.fillStyle = '#d8d0b8'; c.fillRect(x + 1, y + 1, w - 2, 3);
@@ -412,7 +423,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         E.text(c, u.name, 6, y + 2, { size: 10, color: dead ? GREY : (sel ? GOLD : '#fff') });
         const low = !dead && self.H(u) / u.hpMax < 0.3;
         E.text(c, String(self.H(u)), 8, y + 16, { size: 10, color: dead ? GREY : (low ? RED : '#fff') });
-        self.bar(c, 40, y + 19, 60, self.H(u) / u.hpMax, window.DATA.terrainColors[u.home] || '#6ccf4a');
+        self.bar(c, 40, y + 19, self.barLen(u), self.H(u) / u.hpMax, window.DATA.terrainColors[u.home] || '#6ccf4a');
         const bf = [];
         if (u.buffs.atk) bf.push(u.buffs.atk.mult > 1 ? '攻+' : '攻-');
         if (u.buffs.def) bf.push('守+');
@@ -426,7 +437,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         const sel = self.state === 'target' && self.targetSide === 'enemy' && self.targets[self.targetSel] === e;
         E.text(c, e.name, 250, y + 2, { size: 10, align: 'right', color: dead ? GREY : (sel ? GOLD : '#fff') });
         E.text(c, String(self.H(e)), 250, y + 16, { size: 10, align: 'right', color: dead ? GREY : '#fff' });
-        self.bar(c, 156, y + 19, 60, self.H(e) / e.hpMax, window.DATA.terrainColors[e.home] || '#6ccf4a');
+        self.bar(c, 216 - self.barLen(e), y + 19, self.barLen(e), self.H(e) / e.hpMax, window.DATA.terrainColors[e.home] || '#6ccf4a');
         const bf = [];
         if (e.confused > 0) bf.push('亂');
         if (e.buffs.atk) bf.push('攻-');
