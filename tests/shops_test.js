@@ -74,9 +74,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.evaluate(() => { Game.party.forEach(m => BattleLogic.gainExp(m, BattleLogic.expFor(14))); Game.advisor = 'nyao'; Engine.replaceAll(new Scenes.Map('zhuoxian', { x: 10, y: 12, dir: 'down' })); Engine.push(new Scenes.Status()); });
   await sleep(100);
   const pages = [];
-  for (let i = 0; i < 5; i++) { pages.push(await page.evaluate(() => Engine.top().page)); await page.screenshot({ path: '/tmp/status_p' + i + '.png' }); await hit('down'); }
+  for (let i = 0; i < 5; i++) { pages.push(await page.evaluate(() => Engine.top().page)); await page.screenshot({ path: '/tmp/status_p' + i + '.png' }); await hit('ok'); }
   check('status has 5 pages that cycle', pages.join() === '0,1,2,3,4' && (await page.evaluate(() => Engine.top().page)) === 0, pages);
-  await hit('right'); await hit('right'); await hit('down'); await hit('down'); await hit('down');
+  await hit('right'); await hit('right'); await hit('ok'); await hit('ok'); await hit('ok');
   check('pages work for another member (guanyu advisor page)', (await page.evaluate(() => [Engine.top().idx, Engine.top().page])).join() === '2,3');
   check('no page errors', errors.length === 0, errors);
   await b.close(); console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);

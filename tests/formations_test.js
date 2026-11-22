@@ -31,7 +31,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     BL.perform(b, a, { type: 'skill', skill: 'poison' });
     out.dotSet = !!t.dot; const ev = BL.statusEvents(b); out.dotDmg = 1000 - t.hp;
     // 養息
-    a.hp = 1; BL.perform(b, a, { type: 'skill', skill: 'regen' }); const ev2 = BL.statusEvents(b); out.hot = a.hp > 1;
+    a.hp = 1; a.hot = { pct: 0.1, turns: 3 }; const ev2 = BL.statusEvents(b); out.hot = a.hp > 1;
     // 震懾
     t.stun = 0; b.rng = () => 0.01; BL.perform(b, a, { type: 'skill', skill: 'stun', target: t }); out.stun = t.stun > 0;
     out.stunBlocks = BL.perform(b, t, { type: 'attack', target: a }).some(e => /震暈/.test(e.text || ''));

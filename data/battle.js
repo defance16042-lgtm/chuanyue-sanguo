@@ -36,7 +36,6 @@ window.DATA.battle = {
     discord:  { name: '離間',   tp: 3, kind: 'confuse', target: 'one', turns: 2, fx: 'confuse' },
     rally:    { name: '激勵',   tp: 4, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.3, turns: 3, fx: 'up_b' },
     // ---- 隨等級進化的計謀（replaces：學會後取代較低階的同系計謀）----
-    inspire2: { name: '仁德鼓舞', tp: 4, kind: 'buff', target: 'allAlly', stat: 'atk', mult: 1.4, turns: 4, fx: 'up_r', replaces: 'inspire' },
     mend2:    { name: '大撫慰',   tp: 4, allTp: 7, kind: 'heal', target: 'ally', choice: true, power: 3.4, allPower: 2.0, fx: 'heal', replaces: 'mend' },
     mend3:    { name: '仁者無敵', tp: 6, allTp: 10, kind: 'heal', target: 'ally', choice: true, power: 4.6, allPower: 2.8, fx: 'heal', replaces: 'mend2' },
     qinglong2: { name: '偃月斬',  tp: 5, kind: 'phys', target: 'one', power: 2.4, fx: 'dragon', replaces: 'qinglong' },
@@ -50,12 +49,10 @@ window.DATA.battle = {
     discord2: { name: '連環離間', tp: 5, kind: 'confuse', target: 'all', turns: 2, fx: 'confuse', replaces: 'discord' },
     fire2:    { name: '烈火計',   tp: 7, allTp: 10, kind: 'tact', target: 'one', choice: true, power: 3.4, allPower: 2.0, fx: 'fire', replaces: 'fire' },
     fire3:    { name: '業火計',   tp: 10, allTp: 14, kind: 'tact', target: 'one', choice: true, power: 4.6, allPower: 2.7, fx: 'fire', replaces: 'fire2' },
-    rally2:   { name: '全軍激勵', tp: 5, kind: 'buff', target: 'allAlly', stat: 'def', mult: 1.45, turns: 4, fx: 'up_b', replaces: 'rally' },
     // ---- 復活與輔助（kind: revive 讓倒下的同伴站起來；tpgive 補給戰術點）----
     revive:   { name: '復活術',   tp: 8, kind: 'revive', target: 'deadAlly', pct: 0.35, fx: 'revive' },
     revive2:  { name: '起死回生', tp: 14, kind: 'revive', target: 'deadAlly', pct: 0.8, fx: 'revive', replaces: 'revive' },
     tpgive:   { name: '調息',     tp: 3, kind: 'tpgive', target: 'ally', power: 0.4, fx: 'orb' },
-    tpgive2:  { name: '聚氣陣',   tp: 6, kind: 'tpgive', target: 'allAlly', power: 0.28, fx: 'orb' },
     // ---- 新增計謀 ----
     haste:    { name: '疾風令',   tp: 4, kind: 'buff', target: 'allAlly', stat: 'spd', mult: 1.5, turns: 3, fx: 'wind' },
     weaken:   { name: '破甲計',   tp: 4, kind: 'debuff', target: 'all', stat: 'def', mult: 0.7, turns: 3, fx: 'crack' },
@@ -71,9 +68,7 @@ window.DATA.battle = {
     // ---- 第二批新計謀：毒、持續回復、解除異狀、震暈、叫陣、吸血、斬將、水火連環 ----
     poison:   { name: '毒煙計',   tp: 5, kind: 'dot', target: 'all', pct: 0.08, turns: 4, fx: 'smoke' },
     poison2:  { name: '蝕骨毒霧', tp: 8, kind: 'dot', target: 'all', pct: 0.14, turns: 4, fx: 'smoke', replaces: 'poison' },
-    regen:    { name: '養息',     tp: 5, kind: 'hot', target: 'allAlly', pct: 0.1, turns: 4, fx: 'leaf' },
     cleanse:  { name: '清心訣',   tp: 4, kind: 'cleanse', target: 'ally', healPct: 0.15, fx: 'purify' },
-    cleanse2: { name: '回春妙手', tp: 7, kind: 'cleanse', target: 'allAlly', healPct: 0.3, fx: 'purify', replaces: 'cleanse' },
     stun:     { name: '震懾',     tp: 5, kind: 'stun', target: 'one', turns: 1, fx: 'dizzy' },
     stun2:    { name: '雷霆一喝', tp: 8, kind: 'stun', target: 'all', turns: 1, fx: 'dizzy', replaces: 'stun' },
     taunt:    { name: '叫陣',     tp: 3, kind: 'taunt', target: 'self', turns: 2, stat: 'def', mult: 1.5, fx: 'banner' },
@@ -103,12 +98,12 @@ window.DATA.battle = {
   // 角色技能：字串＝一開始就會；[等級, 技能]＝到該等級自動習得（有 replaces 的會取代較低階的同系技能）
   charSkills: {
     nyao: [],
-    liubei: ['inspire', 'mend', [8, 'mend2'], [10, 'inspire2'], [12, 'tpgive'], [14, 'regen'], [16, 'mend3'], [18, 'cleanse'], [20, 'tpgive2'], [24, 'cleanse2']],
+    liubei: ['inspire', 'mend', [8, 'mend2'], [12, 'tpgive'], [16, 'mend3'], [18, 'cleanse']],
     guanyu: ['qinglong', [8, 'qinglong2'], [10, 'whirl'], [12, 'execute'], [14, 'wusheng'], [18, 'taunt']],
     zhangfei: ['roar', [6, 'taunt'], [8, 'roar2'], [10, 'lunge'], [12, 'spearstorm'], [14, 'stun'], [18, 'rage'], [22, 'stun2']],
     zoujing: ['roar'],
     caocao: ['strategy', 'inspire', [8, 'weaken'], [10, 'ambush'], [14, 'strategy2'], [12, 'leech'], [16, 'revive'], [18, 'poison'], [20, 'weaken2'], [24, 'fireall']],
-    luzhi: ['rally', 'strategy', [6, 'slowfoe'], [8, 'fire'], [10, 'revive'], [12, 'rally2'], [14, 'eight'], [16, 'cleanse'], [18, 'flood'], [20, 'revive2']]
+    luzhi: ['rally', 'strategy', [6, 'slowfoe'], [8, 'fire'], [10, 'revive'], [14, 'eight'], [16, 'cleanse'], [18, 'flood'], [20, 'revive2']]
   },
   // 軍師專屬計謀：被指定為軍師之後才能用。每項為 [解鎖等級, 技能]
   advisorSkills: {
@@ -123,7 +118,7 @@ window.DATA.battle = {
   // 選了路線之後才解鎖（只限諸葛貓妖）。每項為 [解鎖等級, 技能]
   routeSkills: {
     force: [[1, 'smash'], [3, 'flurry'], [5, 'breach'], [7, 'haste'], [8, 'smash2'], [9, 'weaken'], [12, 'flurry2'], [16, 'breach2'], [11, 'taunt'], [14, 'execute'], [18, 'revive'], [20, 'whirl'], [22, 'leech'], [24, 'weaken2'], [26, 'rage'], [28, 'stun']],
-    wit:   [[1, 'discord'], [3, 'fire'], [5, 'rally'], [6, 'rockfall'], [7, 'haste'], [8, 'discord2'], [9, 'weaken'], [10, 'fire2'], [10, 'revive'], [12, 'rally2'], [14, 'ambush'], [16, 'empty'], [18, 'fire3'], [20, 'revive2'], [11, 'poison'], [13, 'cleanse'], [15, 'regen'], [17, 'stun'], [19, 'flood'], [22, 'thunder'], [24, 'poison2'], [26, 'cleanse2'], [28, 'fireall']]
+    wit:   [[1, 'discord'], [3, 'fire'], [5, 'rally'], [6, 'rockfall'], [7, 'haste'], [8, 'discord2'], [9, 'weaken'], [10, 'fire2'], [10, 'revive'], [14, 'ambush'], [16, 'empty'], [18, 'fire3'], [20, 'revive2'], [11, 'poison'], [13, 'cleanse'], [17, 'stun'], [19, 'flood'], [22, 'thunder'], [24, 'poison2'], [28, 'fireall']]
   },
 
 

@@ -20,7 +20,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       const m = D.maps[id]; if (!m) { out.push('missing ' + id); return; }
       m.tiles.forEach((row, y) => { if (row.length !== 24) out.push(id + ' row ' + y + ' len ' + row.length); });
       const H = m.tiles.length, W = 24, obst = new Set();
-      m.npcs.forEach(n => { if (!/boss$/.test(n.id)) obst.add(n.x + ',' + n.y); if (!D.dialogue[n.dialogue]) out.push(id + ' no dlg ' + n.dialogue); (n.alts || []).forEach(a => { if (!D.dialogue[a.dialogue]) out.push(id + ' no alt ' + a.dialogue); }); });
+      m.npcs.forEach(n => { if (!/boss$/.test(n.id) && !/^gen_/.test(n.id)) obst.add(n.x + ',' + n.y); if (!D.dialogue[n.dialogue]) out.push(id + ' no dlg ' + n.dialogue); (n.alts || []).forEach(a => { if (!D.dialogue[a.dialogue]) out.push(id + ' no alt ' + a.dialogue); }); });
       m.objects.forEach(o => obst.add(o.x + ',' + o.y));
       const free = (x, y) => { const c = m.tiles[y] && m.tiles[y][x]; return c !== undefined && !solid.has(D.legend[c]) && !obst.has(x + ',' + y); };
       const seen = new Set([m.start.x + ',' + m.start.y]), q = [[m.start.x, m.start.y]];

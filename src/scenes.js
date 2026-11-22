@@ -263,27 +263,142 @@
   class MenuScene {
     constructor() { this.sel = 0; }
     update() {
-      const items = 8;
+      const items = 10;
       if (E.hit.up) this.sel = (this.sel + items - 1) % items;
       if (E.hit.down) this.sel = (this.sel + 1) % items;
       if (E.hit.cancel) { E.pop(); return; }
       if (E.hit.ok) {
-        if (this.sel === 0) E.push(new StatusScene());
-        else if (this.sel === 1) E.push(new FormationScene());
-        else if (this.sel === 2) E.push(new BattleFormScene());
-        else if (this.sel === 3) E.push(new EquipScene());
-        else if (this.sel === 4) E.push(new ItemScene());
-        else if (this.sel === 5) E.push(new SaveScene('load'));
-        else if (this.sel === 6) E.replaceAll(new TitleScene());
+        const k = this.sel;
+        if (k === 0) E.push(new StatusScene());
+        else if (k === 1) E.push(new FormationScene());
+        else if (k === 2) E.push(new BattleFormScene());
+        else if (k === 3) E.push(new EquipScene());
+        else if (k === 4) E.push(new ItemScene());
+        else if (k === 5) E.push(new FieldSkillScene());
+        else if (k === 6) E.push(new QuestScene());
+        else if (k === 7) E.push(new SaveScene('load'));
+        else if (k === 8) E.replaceAll(new TitleScene());
         else E.pop();
       }
     }
     drawUI(c) {
       E.panel(c, 168, 8, 80, 172);
-      E.menuList(c, ['角色資料', '隊伍編成', '陣形', '裝備', '道具', '讀取', '回標題', '關閉'], this.sel, 178, 18, 14);
-      E.text(c, '金 ' + (G.gold || 0), 178, 134, { size: 9, color: GOLD });
-      E.text(c, '存檔請到', 178, 150, { size: 7, color: GREY });
-      E.text(c, '藍色水晶旁', 178, 160, { size: 7, color: GREY });
+      E.menuList(c, ['角色資料', '隊伍編成', '陣形', '裝備', '道具', '計謀', '任務', '讀取', '回標題', '關閉'], this.sel, 178, 16, 13);
+      E.text(c, '金 ' + (G.gold || 0), 178, 152, { size: 9, color: GOLD });
+      E.text(c, '存檔請到', 178, 164, { size: 7, color: GREY });
+      E.text(c, '藍色水晶旁', 178, 172, { size: 7, color: GREY });
+    }
+  }
+
+  // ------------------------------------------------------------ 計謀（地圖上用）：縮地脫出
+  function isDungeon(id) { return /^(cave|shankou)/.test(id); }
+  class FieldSkillScene {
+    constructor() { this.msg = ''; this.sel = 0; }
+    update() {
+      if (E.hit.cancel) { E.pop(); return; }
+      if (E.hit.ok) {
+        const cost = D.fieldSkill.tp, lead = G.party[0];
+        if (!isDungeon(G.mapId)) { this.msg = '這裡不是洞穴或山口，用不上。'; return; }
+        if (lead.tp < cost) { this.msg = lead.name + '的戰術點不夠（需要 ' + cost + '）。'; return; }
+        const town = G.flags.lastTown || 'zhuoxian', tm = D.maps[town];
+        lead.tp -= cost;
+        E.replaceAll(new MapScene(town, tm.start));
+      }
+    }
+    drawUI(c) {
+      c.fillStyle = '#0c1030'; c.fillRect(16, 16, 224, 192);
+      E.panel(c, 16, 16, 224, 192);
+      E.text(c, '計謀（地圖上使用）', 28, 24, { size: 11, color: GOLD });
+      const f = D.fieldSkill, ok = isDungeon(G.mapId);
+      E.text(c, '▶ ' + f.name + '　TP ' + f.tp, 28, 46, { size: 9, color: ok ? GOLD : '#6a6a80' });
+      f.desc.forEach(function (ln, i) { E.text(c, ln, 36, 62 + i * 12, { size: 8, color: '#f4f4ff' }); });
+      const t = G.flags.lastTown && D.maps[G.flags.lastTown] ? D.maps[G.flags.lastTown].name : '';
+      E.text(c, '目前可回到的城鎮：' + (t || '涿縣'), 28, 120, { size: 8, color: GREY });
+      E.text(c, '消耗：' + G.party[0].name + ' 的戰術點（現有 ' + G.party[0].tp + '）', 28, 134, { size: 8, color: GREY });
+      E.text(c, ok ? '按決定鍵使用' : '（要在洞穴或山口裡才能用）', 28, 154, { size: 8, color: ok ? '#9ef59e' : GREY });
+      if (this.msg) E.text(c, this.msg, 28, 176, { size: 8, color: '#ff9a9a' });
+      E.text(c, '其他戰鬥用的計謀，請到「角色資料」查看說明。', 28, 192, { size: 7, color: GREY });
+    }
+  }
+
+  // ------------------------------------------------------------ 任務：主線下一步 + 支線清單
+  const DIRS = ['東', '東南', '南', '西南', '西', '西北', '北', '東北'];
+  function compass(from, to) {
+    const dx = to.x - from.x, dy = to.y - from.y, a = Math.atan2(dy, dx), k = (Math.round(a / (Math.PI / 4)) + 8) % 8;
+    const d = Math.abs(dx) + Math.abs(dy);
+    return DIRS[k] + '方，約 ' + d + ' 步';
+  }
+  function mainStep() {
+    const fl = G.flags;
+    for (let i = 0; i < D.mainQuest.length; i++) { const q = D.mainQuest[i]; if (!(typeof q.done === 'function' ? q.done(fl) : fl[q.done])) return q; }
+    return null;
+  }
+  function questDirection(q) {
+    const t = D.worldTowns && D.worldTowns[q.to];
+    if (!t) return '';
+    const cur = D.maps[G.mapId];
+    if (cur && cur.world && G.mapId === t.world && G.pos) return '從這裡往' + compass(G.pos, t);
+    if (G.mapId !== t.world) return t.world === 'world' ? '（目標在北方大地圖）' : '（目標在關東大地圖）';
+    return '';
+  }
+  function wrap(text, n) { const out = []; for (let i = 0; i < text.length; i += n) out.push(text.slice(i, i + n)); return out; }
+  class QuestScene {
+    constructor() { this.tab = 0; this.sel = 0; }
+    sideState(q) {
+      const fl = G.flags;
+      if (fl[q.id + '_done']) return 2;
+      if (fl[q.id + '_start']) return fl[q.kind === 'bounty' ? q.target + '_down' : 'chest_' + q.chest.id] ? 3 : 1;
+      return 0;
+    }
+    update() {
+      if (E.hit.cancel) { E.pop(); return; }
+      if (E.hit.left || E.hit.right) this.tab = 1 - this.tab;
+      if (this.tab === 1) {
+        const n = D.sideQuests.length;
+        if (E.hit.up) this.sel = (this.sel + n - 1) % n;
+        if (E.hit.down) this.sel = (this.sel + 1) % n;
+      }
+    }
+    drawUI(c) {
+      c.fillStyle = '#0c1030'; c.fillRect(8, 8, 240, 208);
+      E.panel(c, 8, 8, 240, 208);
+      E.text(c, '任務', 20, 16, { size: 11, color: GOLD });
+      E.text(c, '主線', 90, 18, { size: 9, color: this.tab === 0 ? GOLD : GREY });
+      E.text(c, '支線', 130, 18, { size: 9, color: this.tab === 1 ? GOLD : GREY });
+      E.text(c, '左右鍵切換', 190, 19, { size: 7, color: GREY });
+      if (this.tab === 0) {
+        const q = mainStep();
+        if (!q) { wrap(D.mainQuestEnd, 22).forEach(function (ln, i) { E.text(c, ln, 20, 44 + i * 14, { size: 9, color: '#f4f4ff' }); }); return; }
+        E.text(c, '現在的目標', 20, 38, { size: 8, color: GREY });
+        wrap(q.title, 22).forEach(function (ln, i) { E.text(c, ln, 20, 52 + i * 14, { size: 10, color: GOLD }); });
+        let y = 52 + wrap(q.title, 22).length * 14 + 8;
+        E.text(c, '去哪裡：' + q.where, 20, y, { size: 9, color: '#9ef59e' }); y += 14;
+        const dir = questDirection(q);
+        if (dir) { E.text(c, dir, 20, y, { size: 9, color: '#9ef59e' }); y += 14; }
+        y += 6;
+        wrap(q.hint || '', 22).forEach(function (ln, i) { E.text(c, ln, 20, y + i * 12, { size: 8, color: '#f4f4ff' }); });
+        const n = D.mainQuest.indexOf(q);
+        E.text(c, '主線進度：' + n + ' / ' + D.mainQuest.length, 20, 196, { size: 8, color: GREY });
+      } else {
+        const names = ['未接受', '進行中', '已完成', '可回報'], cols = [GREY, '#f4f4ff', '#6ac86a', GOLD];
+        D.sideQuests.forEach(function (q, i) {
+          const st = this.sideState(q), y = 34 + i * 12, sel = i === this.sel, known = st > 0;
+          E.text(c, (sel ? '▶ ' : '　') + (known ? (q.kind === 'bounty' ? '討伐' + q.targetName : '尋找' + q.itemName) : '？？？（到' + D.maps[q.giver].name + '找人）'), 16, y, { size: 7, color: sel ? GOLD : '#f4f4ff' });
+          E.text(c, names[st], 214, y, { size: 7, color: cols[st], align: 'right' });
+        }, this);
+        const q = D.sideQuests[this.sel], st = this.sideState(q);
+        c.strokeStyle = '#4a5a9a'; c.strokeRect(14.5, 136.5, 227, 74);
+        if (st === 0) { E.text(c, '委託人在' + D.maps[q.giver].name + '。', 20, 142, { size: 8, color: GREY }); }
+        else {
+          E.text(c, '地點：' + q.where, 20, 142, { size: 8, color: '#9ef59e' });
+          const rw = (q.gear ? q.gear.map(function (g) { return D.equipment[g].name; }).join('、') : '兵書《' + D.battle.bookNames[q.book] + '》') + '＋' + q.gold + '金';
+          E.text(c, '報酬：' + rw, 20, 154, { size: 8, color: GOLD });
+          E.text(c, st === 3 ? '目標已完成，回去找委託人（' + D.maps[q.giver].name + '）。' : st === 2 ? '已經領過報酬。' : '委託人：' + D.maps[q.giver].name, 20, 166, { size: 8, color: '#f4f4ff' });
+          const eq = q.gear ? D.equipment[q.gear[0]] : null;
+          if (eq) wrap(eq.desc, 24).forEach(function (ln, i) { E.text(c, ln, 20, 180 + i * 10, { size: 7, color: GREY }); });
+          else { const sk = D.battle.skills[D.battle.bookSkills[q.book]]; E.text(c, '學會：' + sk.name, 20, 180, { size: 7, color: GREY }); }
+        }
+      }
     }
   }
 
@@ -383,7 +498,7 @@
   // ------------------------------------------------------------ 道具（地圖上使用）
   class ItemScene {
     constructor() { this.sel = 0; this.target = -1; this.msg = ''; }
-    list() { const inv = G.items || {}, B = D.battle; return Object.keys(B.items).filter(function (k) { return inv[k] > 0 && !B.items[k].escape; }); }
+    list() { const inv = G.items || {}, B = D.battle; return Object.keys(B.items).filter(function (k) { return inv[k] > 0 && !B.items[k].escape && !B.items[k].quest; }); }
     update() {
       const list = this.list();
       if (this.target < 0) {
@@ -444,16 +559,30 @@
   }
   const STATUS_PAGES = ['能力', '地形', '計謀', '軍師計', '裝備'];
   class StatusScene {
-    constructor() { this.idx = 0; this.page = 0; }
+    constructor() { this.idx = 0; this.page = 0; this.cur = 0; }
     update() {
       if (E.hit.cancel) { E.pop(); return; }
       const n = G.party.length, np = STATUS_PAGES.length;
+      const skillPage = this.page === 2 || this.page === 3;
+      if (E.hit.left || E.hit.right) this.cur = 0;
       if (n > 1) {
         if (E.hit.left) this.idx = (this.idx + n - 1) % n;
         if (E.hit.right) this.idx = (this.idx + 1) % n;
       }
-      if (E.hit.down || E.hit.ok) this.page = (this.page + 1) % np;
-      if (E.hit.up) this.page = (this.page + np - 1) % np;
+      if (skillPage) {   // 計謀頁：上下移動游標看說明，Z 換下一頁
+        const cnt = this.skillList().length;
+        if (cnt) { if (E.hit.down) this.cur = (this.cur + 1) % cnt; if (E.hit.up) this.cur = (this.cur + cnt - 1) % cnt; }
+        if (E.hit.ok) { this.page = (this.page + 1) % np; this.cur = 0; }
+        return;
+      }
+      if (E.hit.down || E.hit.ok) { this.page = (this.page + 1) % np; this.cur = 0; }
+      if (E.hit.up) { this.page = (this.page + np - 1) % np; this.cur = 0; }
+    }
+    // 計謀頁 / 軍師計頁要列出的計謀：[{ sk, got, lv }]
+    skillList() {
+      const m = G.party[this.idx], BL = window.BattleLogic;
+      if (this.page === 2) return BL.skillsFor(m, G.flags).filter(function (x) { return !x.adv; }).map(function (x) { return { sk: x, got: true }; });
+      return (((D.battle.advisorSkills || {})[m.id]) || []).map(function (e) { return { sk: D.battle.skills[e[1]], got: m.level >= e[0], lv: e[0] }; });
     }
     drawUI(c) {
       const m = G.party[this.idx], ch = D.characters[m.id] || {}, eq = m.equip || {};
@@ -486,26 +615,21 @@
           E.text(c, '特性：' + ch.trait.name, 20, y0 + 62, { size: 9, color: GOLD });
           E.wrap(c, ch.trait.desc, 8, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, y0 + 76 + i * 11, { size: 8 }); });
         } else E.text(c, '沒有特別的特性', 20, y0 + 62, { size: 8, color: GREY });
-      } else if (this.page === 2) {
-        const sk = window.BattleLogic.skillsFor(m, G.flags).filter(function (x) { return !x.adv; });
-        if (!sk.length) E.text(c, '還沒有學會計謀', 20, y0, { size: 8, color: GREY });
-        sk.slice(0, 18).forEach(function (x, i) {
-          E.text(c, x.name, 20 + (i % 2) * 110, y0 + Math.floor(i / 2) * 12, { size: 8 });
-          E.text(c, x.tp + 'TP', 82 + (i % 2) * 110, y0 + Math.floor(i / 2) * 12, { size: 7, color: GREY });
+      } else if (this.page === 2 || this.page === 3) {
+        const list = this.skillList(), isAdv = G.advisor === m.id, self = this;
+        if (this.page === 3) E.text(c, !list.length ? m.name + '沒有專屬的軍師計謀。' : isAdv ? '現任軍師：以下計謀戰鬥中可用' : '被任命為軍師後，才能用這些專屬計謀（選單「隊伍編成」任命）', 20, y0 - 2, { size: 7, color: isAdv ? GOLD : GREY });
+        else if (!list.length) E.text(c, '還沒有學會計謀', 20, y0, { size: 8, color: GREY });
+        const top = this.page === 3 ? y0 + 9 : y0, ROWS = this.page === 3 ? 6 : 7, off = Math.max(0, Math.min(this.cur - ROWS + 1, list.length - ROWS));
+        list.slice(off, off + ROWS).forEach(function (e, k) {
+          const i = off + k, y = top + k * 11, on = i === self.cur;
+          if (on) { c.fillStyle = '#3a3f8a'; c.fillRect(18, y - 1, 212, 11); }
+          E.text(c, e.sk.name, 22, y, { size: 8, color: !e.got ? GREY : on ? GOLD : '#f4f4ff' });
+          E.text(c, e.sk.tp + 'TP', 112, y, { size: 7, color: GREY });
+          E.text(c, e.got ? '' : 'Lv' + e.lv + ' 解鎖', 150, y, { size: 7, color: GREY });
         });
-      } else if (this.page === 3) {
-        const list = (D.battle.advisorSkills || {})[m.id] || [], isAdv = G.advisor === m.id;
-        if (!list.length) { E.text(c, m.name + '沒有專屬的軍師計謀。', 20, y0, { size: 8, color: GREY }); }
-        else {
-          E.text(c, isAdv ? '現任軍師：以下計謀戰鬥中可用' : '被任命為軍師後，才能用這些專屬計謀', 20, y0, { size: 8, color: isAdv ? GOLD : GREY });
-          list.forEach(function (e, i) {
-            const sk = D.battle.skills[e[1]], got = m.level >= e[0], y = y0 + 16 + i * 26;
-            E.text(c, sk.name, 20, y, { size: 9, color: got ? (isAdv ? GOLD : '#f4f4ff') : GREY });
-            E.text(c, sk.tp + 'TP　' + (got ? '已解鎖' : 'Lv' + e[0] + ' 解鎖'), 120, y, { size: 7, color: GREY });
-            E.text(c, ({ tact: '對敵造成計謀傷害', phys: '物理攻擊', heal: '回復兵力', buff: '強化我方', debuff: '削弱敵方', confuse: '使敵軍混亂', revive: '讓倒下的同伴復活', tpgive: '補充戰術點' })[sk.kind] + ((sk.target === 'all' || sk.target === 'allAlly') ? '（全體）' : ''), 20, y + 11, { size: 7, color: GREY });
-          });
-        }
-        E.text(c, '在選單「任命軍師」指定後生效', 20, 190, { size: 7, color: GREY });
+        if (list.length > ROWS) E.text(c, (off > 0 ? '▲' : '　') + ((off + ROWS) < list.length ? '▼' : ''), 224, top, { size: 7, color: GREY, align: 'right' });
+        const cs = list[this.cur];
+        if (cs) E.wrap(c, window.BattleLogic.skillText(cs.sk), 7, 212).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 164 + i * 9, { size: 7, color: '#d8d8f0' }); });
       } else {
         Object.keys(D.slots).forEach(function (k, i) {
           const it = eq[k] ? D.equipment[eq[k]] : null;
@@ -514,7 +638,7 @@
         });
         if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, y0 + 70 + i * 10, { size: 7, color: GREY }); });
       }
-      E.text(c, (G.party.length > 1 ? '左右換人　' : '') + '上下／Z 換頁　X 返回', 20, 204, { size: 7, color: GREY });
+      E.text(c, (G.party.length > 1 ? '左右換人　' : '') + ((this.page === 2 || this.page === 3) ? '上下看說明　Z 下一頁　X 返回' : '上下／Z 換頁　X 返回'), 20, 204, { size: 7, color: GREY });
     }
   }
 
@@ -728,6 +852,7 @@
       this.p = { x: spawn.x, y: spawn.y, dir: spawn.dir || 'down', moving: false, t: 0, tx: 0, ty: 0, step: 0 };
       this.banner = 2000; this.evCheck = true;
       G.mapId = mapId; this.syncPos();
+      if (mapId === 'world2') G.flags.ch2_arrived = true;
       if (D.townIds && D.townIds.indexOf(mapId) >= 0) { G.flags['seen_' + mapId] = true; G.flags.lastTown = mapId; }
       if (m.world && !G.flags['world_init_' + mapId] && !(mapId === 'world' && G.flags.world_init)) {   // 舊存檔：已經走過的城，大地圖上也進得去
         G.flags['world_init_' + mapId] = true; if (mapId === 'world') G.flags.world_init = true;
@@ -900,6 +1025,7 @@
       const got = [];
       if (a.gold) { G.gold = (G.gold || 0) + a.gold; got.push(a.gold + '金'); }
       if (a.gear) a.gear.forEach(function (id) { G.addGear(id); got.push(D.equipment[id].name); });
+      if (a.book) { G.flags['book_' + a.book] = true; const bs = D.battle.skills[D.battle.bookSkills[a.book]]; got.push('兵書《' + D.battle.bookNames[a.book] + '》（全隊學會「' + bs.name + '」）'); }
       if (a.give) Object.keys(a.give).forEach(function (id) { G.items[id] = (G.items[id] || 0) + a.give[id]; got.push(D.battle.items[id].name + '×' + a.give[id]); });
       if (a.heal) { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('隊伍的兵力與戰術點全部恢復了。'); }
       if (got.length) this.say((a.pay ? '付出 ' + a.pay + ' 金。' : '') + '獲得：' + got.join('、') + '。');
@@ -1041,5 +1167,5 @@
   }
 
   window.Updater = Update;
-  window.Scenes = { Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene, BattleForm: BattleFormScene };
+  window.Scenes = { Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene, BattleForm: BattleFormScene, FieldSkill: FieldSkillScene, Quest: QuestScene };
 })();

@@ -8,7 +8,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
 const B = root.DATA ? root.DATA.battle : null;
 check('battle data loaded', !!B);
 if (B) {
-  ['poison', 'poison2', 'regen', 'cleanse', 'cleanse2', 'stun', 'stun2', 'taunt', 'leech', 'execute', 'rage', 'flood', 'fireall'].forEach(id => check('skill ' + id, !!B.skills[id] && !!B.skills[id].name));
+  ['poison', 'poison2', 'cleanse', 'stun', 'stun2', 'taunt', 'leech', 'execute', 'rage', 'flood', 'fireall'].forEach(id => check('skill ' + id, !!B.skills[id] && !!B.skills[id].name));
   const all = new Set();
   Object.values(B.routeSkills).forEach(l => l.forEach(e => all.add(e[1])));
   Object.values(B.charSkills).forEach(l => l.forEach(e => all.add(Array.isArray(e) ? e[1] : e)));

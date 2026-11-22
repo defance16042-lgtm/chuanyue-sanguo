@@ -18,6 +18,7 @@
     if (member.id === 'nyao' && flags && flags.route && B.routeSkills[flags.route]) B.routeSkills[flags.route].forEach(add);
     const G0 = root.Game;
     if (G0 && G0.advisor === member.id && B.advisorSkills && B.advisorSkills[member.id]) B.advisorSkills[member.id].forEach(add);   // 軍師專屬計謀
+    if (G0 && G0.flags && B.bookSkills) Object.keys(B.bookSkills).forEach(function (k) { if (G0.flags['book_' + k]) add(B.bookSkills[k]); });   // 兵書：全隊都會
     const gone = {};   // 高階技能取代低階技能
     ids.forEach(function (id) { let r = B.skills[id] && B.skills[id].replaces; while (r && !gone[r]) { gone[r] = 1; r = B.skills[r] && B.skills[r].replaces; } });
     return ids.filter(function (id) { return !gone[id]; }).map(function (id) { return Object.assign({ id: id, adv: /^adv_/.test(id) }, B.skills[id]); });
@@ -381,6 +382,33 @@
       expCache[k] = expCache[k - 1] + d;
     }
     return expCache[n];
+  };
+
+  // 計謀說明：把實際效果寫清楚（對誰、多強、持續幾回合），給戰鬥選單與角色資料使用
+  const STAT_NAME = { atk: '攻擊', def: '防禦', spd: '速度', int: '智力' };
+  const TARGET_NAME = { one: '單一敵人', all: '全體敵人', ally: '一名同伴', allAlly: '全體同伴', self: '自己', deadAlly: '一名倒下的同伴' };
+  BL.skillText = function (s) {
+    const pc = function (x) { return Math.round(x * 100) + '%'; };
+    const who = TARGET_NAME[s.target] || '';
+    const rider = s.rider ? '，並使其' + STAT_NAME[s.rider.stat] + '降低' + pc(1 - s.rider.mult) + '（' + s.rider.turns + '回合）' : '';
+    let t;
+    switch (s.kind) {
+      case 'phys': t = '以武力攻擊' + who + '，威力×' + s.power + (s.hits > 1 ? '，連擊' + s.hits + '次' : '') + (s.leech ? '，並吸回傷害的' + pc(s.leech) + '當兵力' : '') + (s.lowBonus ? '，對方兵力越少傷害越高（最多+' + pc(s.lowBonus) + '）' : '') + rider; break;
+      case 'tact': t = '以智力施計傷害' + who + '，威力×' + s.power + rider; break;
+      case 'heal': t = '用智力回復' + (s.choice ? '單體或全體' : who) + '的兵力，威力×' + s.power + (s.choice ? '（全體時每人×' + s.allPower + '）' : ''); break;
+      case 'buff': t = who + '的' + STAT_NAME[s.stat] + '提高' + pc(s.mult - 1) + '，持續' + s.turns + '回合' + (s.extra ? '；' + STAT_NAME[s.extra.stat] + '也提高' + pc(s.extra.mult - 1) : ''); break;
+      case 'debuff': t = who + '的' + STAT_NAME[s.stat] + '降低' + pc(1 - s.mult) + '，持續' + s.turns + '回合'; break;
+      case 'confuse': t = '使' + who + '混亂' + s.turns + '回合，會亂打、可能打到自己人；看智力，頭目較難中'; break;
+      case 'stun': t = '震暈' + who + '，' + s.turns + '回合無法行動；成功率看智力，頭目很難中'; break;
+      case 'dot': t = who + '中毒，每回合損失最大兵力的' + pc(s.pct) + '，持續' + s.turns + '回合'; break;
+      case 'hot': t = who + '每回合回復最大兵力的' + pc(s.pct) + '，持續' + s.turns + '回合'; break;
+      case 'cleanse': t = '解除' + who + '的混亂、震暈、中毒與能力下降' + (s.healPct ? '，並回復最大兵力的' + pc(s.healPct) : ''); break;
+      case 'taunt': t = s.turns + '回合內敵人多半會攻擊自己，防禦提高' + pc(s.mult - 1); break;
+      case 'revive': t = '讓' + who + '復活，兵力回復到最大的' + pc(s.pct); break;
+      case 'tpgive': t = '把戰術點分給' + who + '，' + (s.target === 'allAlly' ? '每人' : '') + '約智力×' + s.power; break;
+      default: t = '';
+    }
+    return t;
   };
 
   // 回合結束：中毒扣兵力、持續回復加兵力

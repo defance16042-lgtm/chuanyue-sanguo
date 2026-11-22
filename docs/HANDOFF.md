@@ -94,3 +94,11 @@
 - 兵力條：BattleScene.barLen 依 hpMax 分級（60/150/400/1000/2500/6000/15000/40000），以全場最小級為最短。
 - 守關將領：data/gens.js，24 張洞穴／山口各一名（gen_<地圖id>），兵力約為該區頭目 2～5 成，帶該區小兵。座標由工具算出，可手調。測試 tests/gens_test.js。
 - 升級經驗：BL.expFor 增量 = 23 + 10j + 0.9j² + 0.02j³（j=級數-2）。若覺得太難或太易，調這條公式。
+
+## 任務系統與縮地脫出（v0.36.0）
+- data/quests.js（在 gens.js 之後載入）：D.mainQuest 主線目標清單（依序，第一個 done 旗標未成立者就是「現在的目標」；to＝D.worldTowns 的城鎮 id，用來算大地圖方向）；D.sideQuests 八個支線（bounty 討伐／fetch 尋物），自動把委託人 NPC（id＝<qid>_giver，alts 依序：完成、可回報、進行中）、對話與藏物寶箱加進地圖。
+- 獎勵：討伐給專屬裝備（q_ 開頭，data 裡加進 D.equipment）；尋物給兵書。兵書：act `book`→旗標 book_<id>→BL.skillsFor 全隊加入 D.battle.bookSkills[id]。任務道具 quest:true，不顯示在道具選單。
+- 選單：角色資料／隊伍編成／陣形／裝備／道具／計謀／任務／讀取／回標題／關閉（共 10 項）。FieldSkillScene＝縮地脫出（D.fieldSkill，cave*/shankou* 地圖內使用，回 G.flags.lastTown）；QuestScene 有主線、支線兩頁。進入 world2 時設 ch2_arrived 旗標。
+- 山口：守將站在山腳往前 warp 的唯一通道格 (10,2)，無法旁繞。大地圖山脈整段封牆「未做」（會把地圖切成兩半），若要做需另行規劃。
+- 計謀精簡：移除 regen、cleanse2、rally2、tpgive2、inspire2；BL.skillText 自動產生說明。
+- 測試：tests/quests_test.js。
