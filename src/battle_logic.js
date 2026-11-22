@@ -243,10 +243,11 @@
     let fxName = skill ? (skill.fx || (kind === 'tact' ? 'bolt' : kind === 'heal' ? 'heal' : 'slash')) : 'slash';
     if (fxName === 'slash') fxName = BL.weaponFx(a.wtype);
     // 特效等級：計謀／回復看「智力×威力」，越高越強（火焰越高）；物理看威力
-    const level = kind === 'tact' ? clamp(1 + Math.floor(a.int * power0 / 22), 1, 5)
+    let level = kind === 'tact' ? clamp(1 + Math.floor(a.int * power0 / 22), 1, 5)
       : kind === 'heal' ? clamp(1 + Math.floor(a.int * power0 / 40), 1, 4)
       : clamp(1 + Math.floor((power0 - 0.7) / 0.5), 1, 3);
     const fxEv = [], resEv = [];
+    if (skill && skill.fxLevel) level = skill.fxLevel;
     targets.forEach(function (t) {
       fxEv.push({ type: 'fx', fx: fxName, target: t, level: level });
       if (kind === 'phys') {

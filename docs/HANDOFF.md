@@ -79,3 +79,8 @@
 - 陣形：data/formations.js；BL.formationUsable / BL.applyFormation；Game.formation 會存檔；選單「陣形」。八卦陣 only:'nyao'，貓妖 45 級。
 - 新計謀 kind：dot（毒）、hot（持續回復）、cleanse、stun、taunt；phys 可帶 leech、lowBonus；tact 可帶 rider；buff 可帶 extra。回合結束由 BL.statusEvents 結算毒與回復。
 - 測試：tests/skills2_test.js、tests/formations_test.js（機制）；舊的 tests/formation_test.js 是隊伍編成。
+
+## 特效與音樂（v0.33.0）
+- 特效：src/battle_scene.js 的 drawFx 依 fx 名稱各畫專屬像素動畫（rock、thunder、water、smoke、arrowrain、trap、crack、roar、dizzy、banner、rage、wind、bagua、up_r/b/g、whirl、flurry、execute、bloodslash、dragon、cross、multithrust、mist、confuse、cage、orb、purify、leaf、revive、bloom、paw 等）。新增計謀時在 data/battle.js 指定 fx，並在 playEvent 的 dur 表補持續時間。skill.fxLevel 可強制火焰等級。
+- 音樂：src/audio.js（window.Audio2），WebAudio 即時合成，曲目是 TRACKS 裡的音符記譜（每首 8 小節 128 格）。場景→曲目由 decide() 每 200ms 判斷：標題 title、城鎮／房屋 village、world* 大地圖 world、cave* 洞穴 cave、一般戰鬥 battle、boss 戰 boss、勝利 victory、戰敗 defeat。M 鍵靜音（存於 localStorage）。計謀音效 Audio2.sfx(fx名)，FXMAP/SFX 表對應。
+- 測試：tests/audio_test.js。新增曲目要讓每個聲部長度一致（128 格）。

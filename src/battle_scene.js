@@ -50,7 +50,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       else if (ev.type === 'act') { ev.actor.anim = { kind: ev.kind, t: 0 }; this.wait = 0; }
       else if (ev.type === 'fx') {
         const p = this.unitPos(ev.target), h = ev.target.ch || 32;
-        const dur = { fire: 620 + ev.level * 70, bolt: 520, heal: 560, slash: 230, chop: 280, thrust: 230, axe: 300, arrow: 260, wave: 320, aura: 520, star: 520, shock: 400 }[ev.fx] || 400;
+        const dur = { fire: 620 + ev.level * 70, bolt: 520, heal: 560, slash: 230, chop: 280, thrust: 230, axe: 300, arrow: 260, wave: 320, aura: 520, star: 520, shock: 400, rock: 900, thunder: 700, water: 900, smoke: 900, arrowrain: 800, trap: 700, crack: 800, roar: 700, dizzy: 800, banner: 800, rage: 800, wind: 600, bagua: 900, up_r: 700, up_b: 700, up_g: 700, up_y: 700, whirl: 600, flurry: 700, execute: 600, bloodslash: 500, dragon: 520, cross: 520, multithrust: 600, mist: 900, confuse: 800, cage: 800, orb: 800, purify: 800, leaf: 800, revive: 1000, bloom: 900, paw: 900 }[ev.fx] || 400;
+        if (window.Audio2) window.Audio2.sfx(ev.fx);
         this.fxs.push({ fx: ev.fx, x: p.x, y: p.y + (ev.target.ch ? ev.target.ch * 0.5 : 14), level: ev.level, t: 0, dur: dur, seed: Math.random() * 1000 });
         this.wait = 0;
       }
@@ -577,6 +578,182 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         c.globalAlpha = 1 - k; ring(x, y + 8, 5 + k * 12, 2 + k * 5, col);
         if (f.fx === 'star') for (let i = 0; i < 4; i++) { const a = f.t / 150 + i * 1.57; R('#fff', x + Math.cos(a) * 9, y - 12 + Math.sin(a) * 3, 2, 2); }
         if (f.fx === 'aura') for (let i = 0; i < 5; i++) { const t2 = (k + i / 5) % 1; R(col, x + (rnd(i) - 0.5) * 16, y + 10 - t2 * 22, 1, 2); }
+      } else if (f.fx === 'rock') {   // 落石：幾塊大石頭從天上砸下來，砸出碎石與塵土
+        for (let i = 0; i < 3; i++) {
+          const t = (k - i * 0.16) / 0.42, bx = x + (i - 1) * 9 + Math.round((rnd(i) - 0.5) * 3), r = i === 1 ? 4 : 3;
+          if (t > 0 && t < 1) {
+            const by = Math.round(y - 46 + t * t * 52); c.globalAlpha = 1;
+            R('#5a4a3c', bx - r, by - r + 1, r * 2 + 1, r * 2 - 1); R('#8a7a68', bx - r + 1, by - r, r * 2 - 1, r * 2 + 1);
+            R('#c0b098', bx - r + 1, by - r + 1, 2, 1); R('#4a3c30', bx - r + 1, by + r - 1, r * 2 - 1, 1);
+          } else if (t >= 1) {
+            const u = Math.min(1, (t - 1) * 1.7); c.globalAlpha = 1 - u;
+            ring(bx, y + 9, 3 + u * 11, 1 + u * 3, '#d8c8a0');
+            for (let j = 0; j < 6; j++) R(j % 2 ? '#8a7a68' : '#5a4a3c', bx + (rnd(j + i * 7) - 0.5) * u * 26, y + 8 - Math.sin(u * 3.14) * (6 + rnd(j + 5) * 12), 2, 2);
+          }
+        }
+      } else if (f.fx === 'thunder') {   // 天雷：天空劈下粗大的閃電，地面炸出火花
+        if (k < 0.18) { c.globalAlpha = (0.18 - k) / 0.18 * 0.55; R('#ffffff', x - 34, y - 60, 68, 90); }
+        c.globalAlpha = k < 0.7 ? 1 : (1 - k) / 0.3;
+        const n = Math.min(3, 1 + Math.floor(L / 2));
+        for (let j = 0; j < n; j++) {
+          let px = x + (j - (n - 1) / 2) * 10, py = y - 58;
+          const fr = Math.floor(f.t / 70);
+          while (py < y + 6) {
+            const nx = x + (j - (n - 1) / 2) * 8 + (rnd(py + j * 31 + fr) - 0.5) * 12, ny = py + 6;
+            R('#60b0ff', Math.min(px, nx) - 1, py, Math.abs(nx - px) + 3, 7); R('#fff', Math.min(px, nx), py, Math.abs(nx - px) + 1, 7);
+            px = nx; py = ny;
+          }
+        }
+        for (let i = 0; i < 8; i++) R(i % 2 ? '#ffe040' : '#fff', x + (rnd(i) - 0.5) * 30, y + 6 - Math.abs(Math.sin(k * 6 + i)) * 9, 2, 1);
+      } else if (f.fx === 'water') {   // 水淹七軍：一道大浪從腳下湧起淹過來
+        const h = Math.sin(Math.min(1, k * 1.15) * 3.14) * 30, base = y + 14; c.globalAlpha = k > 0.85 ? (1 - k) / 0.15 : 1;
+        for (let i = -16; i <= 16; i++) {
+          const top = Math.round(base - h + Math.sin(i * 0.7 + f.t / 70) * 2 + Math.abs(i) * 0.15);
+          if (top >= base) continue;
+          R(i % 3 === 0 ? '#2060c0' : '#3a80e0', x + i, top, 1, base - top); R('#d8f4ff', x + i, top, 1, 1);
+          if (rnd(i + 40) > 0.8) R('#fff', x + i, top - 2 - Math.round(rnd(i) * 3), 1, 1);
+        }
+      } else if (f.fx === 'smoke') {   // 毒煙：紫綠色毒霧一團團冒出來
+        for (let i = 0; i < 9; i++) {
+          const t2 = (k * 1.2 + rnd(i)) % 1, sz = 4 + Math.floor(rnd(i + 5) * 4), px = x + (rnd(i + 3) - 0.5) * 20 + Math.sin(t2 * 5 + i) * 3, py = y + 12 - t2 * 32;
+          c.globalAlpha = Math.min(0.85, (1 - t2) * 1.2) * (k > 0.85 ? (1 - k) / 0.15 : 1);
+          R(i % 2 ? '#5a2a80' : '#3a7a3a', px - sz / 2, py - sz / 2, sz, sz); R(i % 2 ? '#8a50b8' : '#70b050', px - sz / 2 + 1, py - sz / 2 + 1, sz - 2, sz - 2);
+        }
+        c.globalAlpha = 1; if (k > 0.2) for (let i = 0; i < 3; i++) R('#e0ffc0', x - 5 + i * 5, y - 14 - Math.round(((k * 3 + i) % 1) * 6), 1, 1);
+      } else if (f.fx === 'arrowrain') {   // 伏兵：亂箭從天空密密麻麻落下
+        for (let i = 0; i < 12; i++) {
+          const t = k * 1.5 - i * 0.07, ax = x - 22 + i * 4 + Math.round(rnd(i) * 3);
+          if (t <= 0) continue; const ay = Math.min(y + 10, Math.round(y - 44 + t * 54)); c.globalAlpha = k > 0.85 ? (1 - k) / 0.15 : 1;
+          R('#a07040', ax, ay - 7, 1, 7); R('#e8e8f0', ax, ay, 1, 2); R('#d03030', ax - 1, ay - 8, 3, 1);
+          if (ay >= y + 10 && t < 0.9) R('#d8c8a0', ax - 1, ay + 2, 3, 1);
+        }
+      } else if (f.fx === 'trap') {   // 絆馬索：一條繩索橫拉，猛然繃起絆倒
+        const w = Math.min(1, k * 3) * 36, lift = Math.max(0, k - 0.4) * 20; c.globalAlpha = k > 0.85 ? (1 - k) / 0.15 : 1;
+        for (let i = 0; i < w; i++) { const yy = y + 10 - Math.round(lift * Math.sin(i / 36 * 3.14)); R('#c8a060', x - 18 + i, yy, 1, 1); R('#7a5028', x - 18 + i, yy + 1, 1, 1); }
+        if (k > 0.45) for (let i = 0; i < 6; i++) R(i % 2 ? '#fff' : '#ffe070', x - 14 + i * 5 + Math.round((rnd(i) - 0.5) * 3), y + 4 - Math.round((k - 0.45) * 14 * rnd(i + 4)), 1, 1);
+      } else if (f.fx === 'crack') {   // 破甲：盾牌裂成兩半碎開
+        const sp = Math.max(0, k - 0.5) * 16, fade = k > 0.8 ? (1 - k) / 0.2 : 1; c.globalAlpha = fade;
+        const shield = function (ox) {
+          R('#e0e8ff', ox - 6, y - 9, 13, 11); R('#e0e8ff', ox - 5, y + 2, 11, 3); R('#e0e8ff', ox - 3, y + 5, 7, 2); R('#e0e8ff', ox - 1, y + 7, 3, 1);
+          R('#7080a8', ox - 5, y - 8, 11, 9); R('#7080a8', ox - 4, y + 1, 9, 3); R('#7080a8', ox - 2, y + 4, 5, 2);
+          R('#d0a040', ox - 1, y - 6, 3, 8); R('#d0a040', ox - 4, y - 3, 9, 3);
+        };
+        c.save(); c.beginPath(); c.rect(x - 20, y - 20, 20, 40); c.clip(); shield(x - Math.round(sp)); c.restore();
+        c.save(); c.beginPath(); c.rect(x, y - 20, 20, 40); c.clip(); shield(x + Math.round(sp)); c.restore();
+        if (k > 0.25 && k < 0.6) for (let i = 0; i < 8; i++) R('#202030', x - 1 + Math.round((rnd(i) - 0.5) * 4), y - 9 + i * 2, 2, 2);
+        if (k > 0.5) for (let i = 0; i < 6; i++) R('#e0e8ff', x + (rnd(i) - 0.5) * 24, y + (k - 0.5) * 30 * (0.5 + rnd(i + 3)) - 4, 2, 2);
+      } else if (f.fx === 'roar') {   // 怒吼：一圈圈聲波轟出去，周圍帶放射線
+        for (let i = 0; i < 3; i++) {
+          const t = k * 1.3 - i * 0.2; if (t <= 0 || t >= 1) continue; c.globalAlpha = 1 - t;
+          ring(x, y, 5 + t * 24, 4 + t * 19, i % 2 ? '#ffd060' : '#fff6c0');
+        }
+        c.globalAlpha = k > 0.7 ? (1 - k) / 0.3 : 1;
+        for (let i = 0; i < 8; i++) { const a = i * 0.785, rr = 8 + k * 14; R('#fff', x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.8, 2, 1); }
+      } else if (f.fx === 'dizzy') {   // 震懾：頭上一圈星星打轉
+        c.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1;
+        if (k < 0.2) { R('#fff', x - 1, y - 12, 3, 24); R('#fff', x - 12, y - 1, 25, 3); }
+        for (let i = 0; i < 4; i++) { const a = f.t / 130 + i * 1.57, px = x + Math.cos(a) * 9, py = y - 16 + Math.sin(a) * 3; R('#ffe040', px - 1, py, 3, 1); R('#ffe040', px, py - 1, 1, 3); R('#fff', px, py, 1, 1); }
+      } else if (f.fx === 'banner') {   // 叫陣：高舉一面紅色戰旗
+        const rise = Math.min(1, k * 3); c.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1;
+        const top = Math.round(y + 12 - 34 * rise); R('#704020', x + 5, top, 1, y + 12 - top);
+        for (let i = 0; i < 11; i++) { const wv = Math.round(Math.sin(f.t / 90 + i * 0.6) * 1.5); R('#d02020', x + 6 + i, top + wv, 1, 7 - Math.floor(i / 4)); R('#ffd060', x + 6 + i, top + wv + 3, 1, 1); }
+        ring(x, y + 12, 5 + k * 8, 2 + k * 3, '#ff8040');
+      } else if (f.fx === 'rage') {   // 狂怒：身上冒出紅色火氣
+        c.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1; ring(x, y + 10, 6 + Math.sin(f.t / 80) * 2, 3, '#ff3020');
+        for (let i = 0; i < 16; i++) { const t2 = (k * 1.8 + rnd(i)) % 1; R(i % 3 === 0 ? '#ffe040' : i % 2 ? '#ff3020' : '#ff8020', x + (rnd(i + 8) - 0.5) * 18, y + 10 - t2 * 30, 2, 3 + (i % 2)); }
+      } else if (f.fx === 'wind') {   // 疾風：一道道速度線從身旁掠過
+        c.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1;
+        for (let i = 0; i < 7; i++) { const lx = x - 26 + ((k * 1.7 + rnd(i)) % 1) * 52; R(i % 2 ? '#d0ffe0' : '#ffffff', lx, y - 14 + i * 4, 7 + Math.round(rnd(i + 2) * 6), 1); }
+      } else if (f.fx === 'bagua') {   // 八陣圖：地上浮出轉動的八卦陣
+        c.globalAlpha = k < 0.2 ? k / 0.2 : k > 0.8 ? (1 - k) / 0.2 : 1; const rot = f.t / 260;
+        ring(x, y + 8, 16, 7, '#ffd060'); ring(x, y + 8, 10, 4.5, '#ffe9a0'); ring(x, y + 8, 3, 1.5, '#fff');
+        for (let i = 0; i < 8; i++) {
+          const a = rot + i * 0.785, px = x + Math.cos(a) * 16, py = y + 8 + Math.sin(a) * 7, v = (i * 5 + 3) & 7;
+          for (let b = 0; b < 3; b++) { if ((v >> b) & 1) R('#fff0b0', px - 2, py - 3 + b * 2, 5, 1); else { R('#fff0b0', px - 2, py - 3 + b * 2, 2, 1); R('#fff0b0', px + 1, py - 3 + b * 2, 2, 1); } }
+        }
+      } else if (f.fx.slice(0, 3) === 'up_') {   // 強化：三枚箭頭往上飄（紅＝攻擊、藍＝防禦、綠＝速度）
+        const col = { r: '#ff6040', b: '#60a0ff', g: '#60ff90', y: '#ffd060' }[f.fx[3]], fade = k > 0.75 ? (1 - k) / 0.25 : 1; c.globalAlpha = fade;
+        ring(x, y + 10, 5 + k * 9, 2 + k * 4, col);
+        for (let i = 0; i < 3; i++) {
+          const t2 = (k * 1.4 + i / 3) % 1, px = x + (i - 1) * 8, py = Math.round(y + 10 - t2 * 26); c.globalAlpha = (1 - t2) * fade + 0.15;
+          R(col, px, py, 1, 1); R(col, px - 1, py + 1, 3, 1); R(col, px - 2, py + 2, 5, 1); R('#fff', px, py + 3, 1, 4); R(col, px - 1, py + 3, 1, 3); R(col, px + 1, py + 3, 1, 3);
+        }
+      } else if (f.fx === 'whirl') {   // 旋風斬：刀光繞著身體轉一圈
+        for (let i = 0; i < 14; i++) {
+          const a = f.t / 55 - i * 0.28; c.globalAlpha = (1 - i / 14) * (k > 0.8 ? (1 - k) / 0.2 : 1);
+          R(i < 2 ? '#fff' : '#a0c8ff', x + Math.cos(a) * 15 - 1, y + Math.sin(a) * 9 - 1, i < 3 ? 3 : 2, i < 3 ? 3 : 2);
+        }
+        c.globalAlpha = 1; if (k > 0.5) { R('#fff', x - 1, y - 5, 3, 11); R('#fff', x - 5, y - 1, 11, 3); }
+      } else if (f.fx === 'flurry') {   // 連斬：三道刀光接連劈出
+        const dirs = [[1, 1], [-1, 1], [1, 0]];
+        for (let j = 0; j < 3; j++) {
+          const t = Math.min(1, Math.max(0, k * 3 - j) * 1.8); if (t <= 0) continue; c.globalAlpha = k * 3 - j > 1.2 ? 0.4 : 1;
+          for (let i = 0; i < Math.round(14 * t); i++) { const d = dirs[j]; R('#fff', x - 7 * d[0] + i * d[0], y - 7 + i * d[1] + (d[1] ? 0 : 7 + (j - 1) * 3), 2, 1); R('#c8c8ff', x - 7 * d[0] + i * d[0], y - 6 + i * d[1] + (d[1] ? 0 : 7 + (j - 1) * 3), 1, 1); }
+        }
+      } else if (f.fx === 'execute') {   // 斬將：一道豎直重斬，把人劈成兩半
+        const w = Math.min(1, k * 3); c.globalAlpha = k < 0.7 ? 1 : (1 - k) / 0.3;
+        if (k < 0.2) { c.globalAlpha = 0.4; R('#fff', x - 22, y - 26, 44, 44); c.globalAlpha = 1; }
+        const hh = Math.round(40 * w); R('#ff3030', x - 3, y - 24, 7, hh); R('#fff', x - 1, y - 24, 3, hh); R('#ffe0a0', x - 2, y - 24, 1, hh);
+        if (w >= 1) for (let i = 0; i < 8; i++) R(i % 2 ? '#ffe040' : '#ff6030', x + (rnd(i) - 0.5) * 28, y + (rnd(i + 5) - 0.5) * 30, 2, 1);
+      } else if (f.fx === 'bloodslash') {   // 飲血刀：紅色刀光，血珠飛向使用者
+        const w = Math.min(1, k * 2.4); c.globalAlpha = k < 0.75 ? 1 : (1 - k) / 0.25;
+        for (let i = 0; i < Math.round(16 * w); i++) { R('#c01020', x - 8 + i, y - 8 + i, 3, 2); R('#fff', x - 8 + i, y - 8 + i, 1, 1); }
+        if (k > 0.3) for (let i = 0; i < 6; i++) { const t2 = Math.min(1, (k - 0.3) * 1.5); R('#ff3040', x - t2 * 30 * (0.4 + rnd(i)), y + (rnd(i + 3) - 0.5) * 12 - t2 * 10, 2, 2); }
+      } else if (f.fx === 'dragon') {   // 青龍偃月：弧形的青綠色大刀光
+        const w = Math.min(1, k * 2.2); c.globalAlpha = k < 0.7 ? 1 : (1 - k) / 0.3;
+        for (let i = 0; i <= Math.round(22 * w); i++) {
+          const a = -2.5 + i * 0.14, px = x + Math.cos(a) * 17, py = y + 4 + Math.sin(a) * 15;
+          R('#28c070', px - 1, py - 1, 3, 3); R('#d8fff0', px, py, 1, 1);
+        }
+        if (w >= 1) for (let i = 0; i < 5; i++) R('#a0ffd0', x + (rnd(i) - 0.5) * 24, y + (rnd(i + 4) - 0.5) * 20, 1, 2);
+      } else if (f.fx === 'cross') {   // 破陣：叉形交錯的兩道劈斬加衝擊波
+        const w = Math.min(1, k * 2.6); c.globalAlpha = k < 0.7 ? 1 : (1 - k) / 0.3;
+        for (let i = 0; i < Math.round(16 * w); i++) { R('#fff', x - 8 + i, y - 8 + i, 2, 1); R('#fff', x + 8 - i, y - 8 + i, 2, 1); R('#ff9040', x - 8 + i, y - 7 + i, 1, 1); R('#ff9040', x + 8 - i, y - 7 + i, 1, 1); }
+        if (k > 0.5) ring(x, y, 4 + (k - 0.5) * 30, 3 + (k - 0.5) * 20, '#ffd060');
+      } else if (f.fx === 'multithrust') {   // 蛇矛亂舞：數道槍影連刺
+        for (let j = 0; j < 4; j++) {
+          const t = Math.min(1, Math.max(0, k * 3.2 - j * 0.55) * 2.2); if (t <= 0) continue; c.globalAlpha = 1;
+          const yy = y - 9 + j * 6, len = Math.round(26 * t);
+          R('#8890a8', x - 18, yy + 1, len, 1); R('#fff', x - 18, yy, len, 1); if (t >= 1) { R('#fff', x + 8, yy - 2, 1, 5); R('#ffe070', x + 7, yy, 3, 1); }
+        }
+      } else if (f.fx === 'mist') {   // 空城計：濃霧飄過，頭上冒出問號
+        c.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1;
+        for (let i = 0; i < 9; i++) { const px = x - 24 + ((k * 0.9 + rnd(i)) % 1) * 48, py = y - 6 + (rnd(i + 5) - 0.5) * 24; c.globalAlpha *= 1; R('#d0d4e0', px, py, 8, 3); R('#f0f2f8', px + 1, py, 5, 1); }
+        c.globalAlpha = 1; R('#fff', x - 1, y - 24, 4, 1); R('#fff', x + 2, y - 23, 1, 3); R('#fff', x, y - 20, 2, 1); R('#fff', x, y - 19, 1, 2); R('#fff', x, y - 16, 1, 1);
+      } else if (f.fx === 'confuse') {   // 離間：問號與星星繞著腦袋打轉
+        c.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1;
+        for (let i = 0; i < 4; i++) { const a = f.t / 110 + i * 1.57, px = x + Math.cos(a) * 10, py = y - 14 + Math.sin(a) * 4; R('#e090ff', px - 1, py, 3, 1); R('#e090ff', px, py - 1, 1, 3); R('#fff', px, py, 1, 1); }
+        R('#fff', x - 1, y - 26, 3, 1); R('#fff', x + 1, y - 25, 1, 2); R('#fff', x, y - 23, 1, 2); R('#fff', x, y - 20, 1, 1);
+        ring(x, y + 8, 5 + k * 10, 2 + k * 4, '#c070ff');
+      } else if (f.fx === 'cage') {   // 長圍困獸：木柵欄從天而降圍住
+        const t = Math.min(1, k * 2.2); c.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1;
+        for (let i = 0; i < 5; i++) { const bx = x - 9 + i * 4.5, top = Math.round(y - 30 + t * 12); R('#8a6030', bx, top, 2, 30); R('#d8b070', bx, top, 1, 30); R('#fff', bx, top, 2, 1); }
+        if (t >= 1) { R('#6a4020', x - 11, y - 14, 24, 2); R('#6a4020', x - 11, y + 4, 24, 2); }
+      } else if (f.fx === 'orb') {   // 調息：藍色光球往身上匯聚
+        for (let i = 0; i < 6; i++) {
+          const t = Math.min(1, Math.max(0, k * 1.3 - i * 0.07)), a = i * 1.05 + t * 3, rr = 24 * (1 - t); c.globalAlpha = t < 1 ? 1 : 0;
+          R('#3090e0', x + Math.cos(a) * rr - 1, y + Math.sin(a) * rr * 0.7 - 1, 3, 3); R('#d8f4ff', x + Math.cos(a) * rr, y + Math.sin(a) * rr * 0.7, 1, 1);
+        }
+        if (k > 0.75) { c.globalAlpha = (1 - k) / 0.25; ring(x, y, 4 + (k - 0.75) * 40, 4 + (k - 0.75) * 30, '#80d0ff'); }
+      } else if (f.fx === 'purify') {   // 清心訣：白藍色的亮光閃閃升起
+        c.globalAlpha = k > 0.75 ? (1 - k) / 0.25 : 1; ring(x, y + 10, 6 + k * 6, 2 + k * 3, '#a0e8ff');
+        for (let i = 0; i < 7; i++) { const t2 = (k * 1.3 + rnd(i)) % 1, px = x + (rnd(i + 9) - 0.5) * 20, py = y + 10 - t2 * 28; R('#fff', px - 1, py, 3, 1); R('#fff', px, py - 1, 1, 3); R('#80d8ff', px, py, 1, 1); }
+      } else if (f.fx === 'leaf') {   // 養息：綠色葉片盤旋飄升
+        c.globalAlpha = k > 0.75 ? (1 - k) / 0.25 : 1;
+        for (let i = 0; i < 9; i++) { const t2 = (k * 1.2 + rnd(i)) % 1, px = x + Math.sin(t2 * 6 + i) * 9, py = y + 12 - t2 * 30; R('#40c050', px, py, 3, 2); R('#a0ff90', px, py, 1, 1); }
+      } else if (f.fx === 'revive') {   // 復活：一道光柱從天降下，羽毛般的光點升起
+        const lw = 8 + Math.round(Math.sin(f.t / 90) * 2); c.globalAlpha = (k < 0.2 ? k / 0.2 : k > 0.8 ? (1 - k) / 0.2 : 1) * 0.55;
+        R('#fff8c0', x - lw / 2, y - 50, lw, 66); c.globalAlpha = (k < 0.2 ? k / 0.2 : k > 0.8 ? (1 - k) / 0.2 : 1) * 0.9; R('#ffffff', x - 2, y - 50, 4, 66);
+        for (let i = 0; i < 8; i++) { const t2 = (k * 1.2 + rnd(i)) % 1; R('#ffe9a0', x + (rnd(i + 3) - 0.5) * 20, y + 12 - t2 * 40, 1, 2); }
+        ring(x, y + 12, 8 + k * 6, 3 + k * 2, '#fff0b0');
+      } else if (f.fx === 'bloom') {   // 桃園之誓：桃花瓣紛紛飄落
+        c.globalAlpha = k > 0.8 ? (1 - k) / 0.2 : 1;
+        for (let i = 0; i < 16; i++) { const t2 = (k * 1.2 + rnd(i)) % 1, px = x + (rnd(i + 8) - 0.5) * 30 + Math.sin(t2 * 6 + i) * 4, py = y - 28 + t2 * 44; R(i % 2 ? '#ff90b8' : '#ffc8dc', px, py, 2, 2); R('#fff', px, py, 1, 1); }
+        ring(x, y + 12, 6 + k * 10, 2 + k * 4, '#ff90b8');
+      } else if (f.fx === 'paw') {   // 貓步連環計：一個個貓掌印踩下，最後炸開
+        const paw = function (px, py, col) { R(col, px - 1, py + 2, 4, 3); R(col, px - 3, py, 1, 2); R(col, px - 1, py - 1, 1, 2); R(col, px + 1, py - 1, 1, 2); R(col, px + 3, py, 1, 2); };
+        for (let i = 0; i < 3; i++) { const t = k * 3.2 - i * 0.7; if (t < 0) continue; c.globalAlpha = t > 1.3 ? Math.max(0, 1 - (t - 1.3)) : 1; paw(x - 12 + i * 12, y - 8 + (i % 2) * 8, '#fff'); paw(x - 12 + i * 12, y - 7 + (i % 2) * 8, '#ff90c0'); }
+        if (k > 0.75) { c.globalAlpha = (1 - k) / 0.25; ring(x, y, 4 + (k - 0.75) * 50, 4 + (k - 0.75) * 40, '#ff90c0'); }
       }
       c.restore();
     }
