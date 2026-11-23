@@ -153,3 +153,6 @@
 
 ## v0.44.0 隊伍 8 人
 - Game.MAX_PARTY=8；BattleLogic.newBattle 只取前 5 位活著的出戰（slice(0,5)）；battle_scene finish() 後備隊員拿一半經驗。FormationScene 8 列（第 6 位起標「後備」）、ItemScene 目標列表縮距、HallScene 標後備。
+
+## v0.45.0 人物造型
+- tools/char_styles.py：每個角色的造型表（armor 鎧甲、helm 盔、cap 文官冠巾、face calm/fierce/grin/wise、wide 加寬、scar、band 頭帶）；build_char_hd.py person_hd 依此繪製；戰鬥敵方小人用 auto() 由顏色自動套鎧甲與盔。重新產圖：python3 tools/build_char_hd.py（16px 備援圖未改）。
