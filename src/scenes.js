@@ -1094,6 +1094,11 @@
       for (let i = 0; i < o.length; i++) { const t = this.tileAt(x + o[i][0], y + o[i][1]); if (t === 31 || t === 33 || t === 32) return t; }
       return 31;
     }
+    decorGround(x, y) {   // 桶子、箱子、告示牌這類擺設：旁邊是室內地板就鋪地板，否則鋪草地
+      const o = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+      for (let i = 0; i < o.length; i++) if (this.tileAt(x + o[i][0], y + o[i][1]) === 5) return 5;
+      return this.map.world ? 31 : 0;
+    }
     drawBanners(c, cam) {
       const gar = D.worldGarrison || {}, cols = { yellow: '#f0d020', purple: '#9a40c8', black: '#303038', blue: '#3a6ad8', darkred: '#8a1820', own: '#38b860' };
       const here = this.mapId;
@@ -1114,14 +1119,15 @@
     draw(wc) {
       const cam = this.camera(), self = this;
       if (this.hidden) return;
-      const hd = !!(this.map.world && E.images.tiles_hd), hdIds = {};
+      const hd = !!E.images.tiles_hd, hdIds = {};   // 有高清圖塊的編號一律用 32px 版（大地圖、城鎮、房屋）
       if (hd) TerrainArt.HD_IDS.forEach(function (i) { hdIds[i] = true; });
       for (let y = 0; y < this.h; y++) {
         for (let x = 0; x < this.w; x++) {
           const sx = x * T - cam.x, sy = y * T - cam.y;
           if (sx < -T || sy < -T || sx > W || sy > H) continue;
           const tid = this.tileAt(x, y);
-          if (tid >= 26 && tid <= 30 || tid === 22 || tid >= 37 && tid <= 39) wc.drawImage(E.images.tiles, this.groundFor(x, y) * 16, 0, 16, 16, sx, sy, 16, 16);   // 城堡圖塊底下先鋪地面
+          const under = (tid >= 26 && tid <= 30 || tid === 22 || tid >= 37 && tid <= 39) ? this.groundFor(x, y) : ((tid >= 9 && tid <= 15 || tid === 17 || tid === 18) ? this.decorGround(x, y) : -1);   // 城堡、擺設底下先鋪地面
+          if (under >= 0) { if (hd && hdIds[under]) wc.drawImage(E.images.tiles_hd, under * 32, 0, 32, 32, sx, sy, 16, 16); else wc.drawImage(E.images.tiles, under * 16, 0, 16, 16, sx, sy, 16, 16); }
           if (hd && hdIds[tid]) wc.drawImage(E.images.tiles_hd, tid * 32, 0, 32, 32, sx, sy, 16, 16);   // 大地圖：32px 高清地形
           else wc.drawImage(E.images.tiles, tid * 16, 0, 16, 16, sx, sy, 16, 16);
         }

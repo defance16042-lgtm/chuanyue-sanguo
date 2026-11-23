@@ -126,3 +126,7 @@
 - ③ 角色：sprites.png 16px；高清化要同步改 drawSprite 與戰鬥 bparty16/benemy16，工作量最大，建議最後做。
 - 每批做完照慣例：跑 tests（/tmp/run3.sh 的清單：tests/*_test.js 除 yingchuan，yingchuan 另跑背景約 5 分鐘）、升版本（package.json、package-lock.json 第 3、9 行、src/version.js、update.json）、更新 HANDOFF、推送（/tmp/pushcheck 複製 data src tests tools docs assets 與 index.html package*.json update.json README.md，commit 附署名行，git push origin HEAD:main）、打包 zip 傳給使用者。
 - 其他未完成：第三章（大綱還沒給使用者看，使用者尚未回覆）。長期規則見本檔前面各節（主角男性、不用 emoji、無「測試/製作中」字樣等）。
+
+## v0.40.0：高清城堡（已完成）
+- tools/build_hd_tiles.py 新增 castle_hd()（96x96，切成 9 格存入 tiles_hd.png：26 27 28 / 37 38 39 / 29 22 30），這些編號已加入 TerrainArt.HD_IDS。下一步：② 村莊房屋與城鎮地面（讓 MapScene.draw 的 hd 條件擴大到城鎮，並替城鎮用到的圖塊做 32px 版），③ 角色。
+- 同版（v0.40.0）也完成了 ② 村莊：build_hd_tiles.py 新增 town_grass/floor_planks/stone_wall_interior/roof_tiles/plaster_wall(門)/thatch_roof 與桶、箱、花、圍欄、灌木、草堆、攤位、告示牌、水井（編號 0 4-18）；擺設圖塊是透明底，MapScene.draw 先用 decorGround() 鋪地板（旁邊是 5＝室內木地板就鋪地板，否則草地）。MapScene 的 hd 現在對所有地圖啟用（有 HD 版的編號才用 32px，其餘仍是 16px）。尚未做：③ 角色（sprites.png、戰鬥 bparty16/benemy16、肖像），以及洞穴／山口／關口的專用圖塊（cave*、stairs、cliff 等）。
