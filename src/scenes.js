@@ -9,7 +9,8 @@
   const GOLD = '#ffd668', GREY = '#8a8aa0';
 
   function drawSprite(c, row, dir, step, x, y) {
-    c.drawImage(E.images.sprites, (FRAME0[dir] + (step ? 1 : 0)) * 16, row * 16, 16, 16, Math.round(x), Math.round(y), 16, 16);
+    const k = E.images.sprites_hd ? 32 : 16, im = E.images.sprites_hd || E.images.sprites;
+    c.drawImage(im, (FRAME0[dir] + (step ? 1 : 0)) * k, row * k, k, k, Math.round(x), Math.round(y), 16, 16);
   }
   function fmtTime(ms) {
     const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
@@ -567,7 +568,7 @@
   }
   function drawFace(c, m, x, y) {
     if (G.portraitOf(m) >= 0 && E.images.portraits) c.drawImage(E.images.portraits, G.portraitOf(m) * 48, 0, 48, 48, x, y, 48, 48);
-    else c.drawImage(E.images.sprites, 0, m.sprite * 16, 16, 16, x + 16, y + 16, 16, 16);
+    else { const k = E.images.sprites_hd ? 32 : 16; c.drawImage(E.images.sprites_hd || E.images.sprites, 0, m.sprite * k, k, k, x + 16, y + 16, 16, 16); }
   }
   const STATUS_PAGES = ['能力', '地形', '計謀', '軍師計', '裝備'];
   class StatusScene {

@@ -136,3 +136,9 @@
 - 洞穴／山口／關口高清：build_hd_tiles.py 新增 cave_floor、cave_wall、cave_mouth、snow_cave、stairs、peak_rock、trail、rockslope、chasm、boulder、steps、camp、pass_gate、guan_gate（編號 23 24 25 36 40-44 46-51）。現在 0-51 全部都有高清版（除 21 海、其餘沒用到的）。decorGround 現在會依周圍的道路鋪道路地面。
 - 道具頁：ItemScene.books() 列出已讀的兵書（旗標 book_<id>），按決定鍵顯示說明；不能使用。
 - 還沒做：③ 角色高清（使用者說先維持 32px；角色樣本在對話中給過，使用者還沒決定）、第三章。
+
+## v0.42.0 高清角色
+- tools/build_char_hd.py 產生 assets/sprites_hd.png（32px，8 欄，rows 0-36 含周倉）、battle_party_hd.png / battle_enemy_hd.png（48x32 格）。
+- scenes.js drawSprite/drawFace、battle_scene.js 繪製處優先用 *_hd，缺圖時退回 16px。
+- 立繪（portraits.png）維持 48px，尚未升級。
+- 戰鬥狀態特效：battle_scene.js statusFx（stun/confused/dot/hot/buffs）。

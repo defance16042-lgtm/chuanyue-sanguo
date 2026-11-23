@@ -363,10 +363,55 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         }
         if (hurt && !dead) frame = 6;
         if (dead) frame = 7;
-        wc.drawImage(E.images.benemy16, frame * 24, e.sprite * 16, 24, 16, e.x + dx, e.y, 24, 16);
+        { const k = E.images.benemy_hd ? 2 : 1; wc.drawImage(E.images.benemy_hd || E.images.benemy16, frame * 24 * k, e.sprite * 16 * k, 24 * k, 16 * k, e.x + dx, e.y, 24, 16); }
         wc.globalAlpha = 1;
+        if (!dead) self.statusFx(wc, e, e.x + 12 + dx, e.y);
       });
       this.b.party.forEach(function (u) { self.drawPartyUnit(wc, u); });
+    }
+
+
+    // 負面／正面狀態特效：暈眩星星、混亂漩渦、中毒氣泡、回復光點、增益／減益箭頭
+    statusFx(wc, u, cx, top) {
+      if (this.H(u) <= 0) return;
+      const t = E.time, R = Math.round;
+      const px = function (x, y, c) { wc.fillStyle = c; wc.fillRect(R(x), R(y), 1, 1); };
+      if (u.stun > 0) {
+        for (let i = 0; i < 3; i++) {
+          const a = t / 260 + i * 2.094, x = cx + Math.cos(a) * 8, y = top - 1 + Math.sin(a) * 2.5;
+          px(x, y - 1, '#fff27a'); px(x - 1, y, '#ffd040'); px(x, y, '#fff7b0'); px(x + 1, y, '#ffd040'); px(x, y + 1, '#fff27a');
+        }
+      }
+      if (u.confused > 0) {
+        for (let i = 0; i < 10; i++) {
+          const a = t / 180 + i * 0.63, r = 1 + i * 0.7;
+          { const qx = cx + Math.cos(a) * r, qy = top + 1 + Math.sin(a) * r * 0.5; px(qx, qy, i % 2 ? '#e0a0ff' : '#a050d8'); px(qx + 1, qy, '#7a30a8'); }
+        }
+      }
+      if (u.dot) {
+        for (let i = 0; i < 4; i++) {
+          const ph = ((t / 700 + i * 0.25) % 1), x = cx - 7 + i * 5 + Math.sin(t / 300 + i) * 1.5, y = top + 15 - ph * 16;
+          px(x, y, '#7aff6a'); px(x + 1, y, '#38b838'); px(x, y + 1, '#38b838');
+        }
+      }
+      if (u.hot) {
+        for (let i = 0; i < 3; i++) {
+          const ph = ((t / 800 + i / 3) % 1), x = cx - 6 + i * 6, y = top + 14 - ph * 14;
+          px(x, y - 1, '#9dffb8'); px(x - 1, y, '#9dffb8'); px(x, y, '#fff'); px(x + 1, y, '#9dffb8'); px(x, y + 1, '#9dffb8');
+        }
+      }
+      const B = u.buffs || {}, cols = { atk: '#ff6a5a', def: '#6ab4ff', spd: '#f4f4a0' };
+      let k = 0;
+      ['atk', 'def', 'spd'].forEach(function (s) {
+        const b = B[s]; if (!b || b.turns <= 0 || Math.abs(b.mult - 1) < 0.01) return;
+        const up = b.mult > 1, x = cx - 9 + k * 7, bob = Math.floor(t / 300) % 2, y = top - 8 + (up ? -bob : bob);
+        const c = up ? cols[s] : '#8a6aa8';
+        // 三角箭頭（上＝增益、下＝減益），底下一小格表示哪種能力
+        for (let r = 0; r < 3; r++) for (let q = -r; q <= r; q++) px(x + q, up ? y + r : y + 2 - r, c);
+        px(x, up ? y + 3 : y - 1, c);
+        wc.fillStyle = cols[s]; wc.fillRect(R(x - 1), R(top - 1), 3, 1);
+        k++;
+      });
     }
 
     // 我方小人：待命／輪到你／揮砍／施法／受傷／倒下
@@ -385,12 +430,15 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       if (dead) frame = 7;
       const row = BATTLE_ROW[u.id];
       if (row !== undefined) {
-        wc.drawImage(E.images.bparty16, frame * 24, row * 16, 24, 16, u.x + sx + off, u.y, 24, 16);
+        const k = E.images.bparty_hd ? 2 : 1;
+        wc.drawImage(E.images.bparty_hd || E.images.bparty16, frame * 24 * k, row * 16 * k, 24 * k, 16 * k, u.x + sx + off, u.y, 24, 16);
       } else {
         wc.globalAlpha = dead ? 0.35 : 1;
-        wc.drawImage(E.images.sprites, ((cmd || an) ? 7 : 6) * 16, u.ref.sprite * 16, 16, 16, u.x + sx + off, u.y, 16, 16);
+        const k2 = E.images.sprites_hd ? 32 : 16;
+        wc.drawImage(E.images.sprites_hd || E.images.sprites, ((cmd || an) ? 7 : 6) * k2, u.ref.sprite * k2, k2, k2, u.x + sx + off, u.y, 16, 16);
         wc.globalAlpha = 1;
       }
+      this.statusFx(wc, u, u.x + 12 + off + sx, u.y);
       if (an && an.kind === 'cast' && !dead) {   // 施法光圈
         const r = 4 + an.t / 60;
         wc.fillStyle = 'rgba(255,255,160,' + Math.max(0, 1 - an.t / 560) + ')';
@@ -463,7 +511,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       c.fillStyle = '#fff'; c.fillRect(6, 164, 56, 58); c.fillStyle = '#10204a'; c.fillRect(7, 165, 54, 56);
       const pi = who ? G.portraitOf(who.ref) : -1;
       if (pi >= 0) c.drawImage(E.images.portraits, pi * 48, 0, 48, 48, 10, 169, 48, 48);
-      else if (who) c.drawImage(E.images.sprites, 0, who.ref.sprite * 16, 16, 16, 26, 185, 16, 16);
+      else if (who) { const k = E.images.sprites_hd ? 32 : 16; c.drawImage(E.images.sprites_hd || E.images.sprites, 0, who.ref.sprite * k, k, k, 26, 185, 16, 16); }
       c.fillStyle = '#fff'; c.fillRect(66, 164, 184, 58); c.fillStyle = '#000'; c.fillRect(67, 165, 182, 56);
 
       if (this.state === 'scout') {
