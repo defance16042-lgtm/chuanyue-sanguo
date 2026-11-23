@@ -68,7 +68,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     return { before, blockedBefore, after: !!t.objAt(o.x, o.y), blockedAfter: t.blocked(o.x, o.y) };
   });
   check('an urn exists in cave1', !!u, u);
-  if (u) check('broken urn no longer blocks the way', u.blockedBefore && !u.blockedAfter, u);
+  if (u) check('urn never blocks the way (walk onto it to open)', !u.blockedBefore && !u.blockedAfter, u);
 
   // 角色資料分頁
   await page.evaluate(() => { Game.party.forEach(m => BattleLogic.gainExp(m, BattleLogic.expFor(14))); Game.advisor = 'nyao'; Engine.replaceAll(new Scenes.Map('zhuoxian', { x: 10, y: 12, dir: 'down' })); Engine.push(new Scenes.Status()); });

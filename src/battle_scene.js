@@ -227,7 +227,11 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }
       else if (c === '偵察') this.pickTarget('enemy', { type: 'scout' });
       else if (c === '防禦') this.commit({ type: 'defend' });
-      else if (c === '逃跑') this.commit({ type: 'flee' });
+      else if (c === '逃跑') {
+        // 一個人按逃跑，全隊一起逃：由這位嘗試，其餘人防禦
+        this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = { type: i === this.cur ? 'flee' : 'defend' }; }, this);
+        this.beginExec();
+      }
       else if (c === '計謀') {
         this.sub = BL.skillsFor(u.ref, G.flags).map(function (s) { return { label: (s.adv ? '軍・' : '') + s.name, right: s.tp + 'TP', disabled: u.tp < s.tp, skill: s }; });
         if (!this.sub.length) { this.msgText = '還沒有學會計謀'; return; }
@@ -309,7 +313,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       const n = this.targets.length;
       if (E.hit.up || E.hit.left) this.scoutIdx = (this.scoutIdx + n - 1) % n;
       if (E.hit.down || E.hit.right) this.scoutIdx = (this.scoutIdx + 1) % n;
-      if (E.hit.cancel || E.hit.ok) { this.targetSel = this.scoutIdx; this.state = 'cmd'; }
+      if (E.hit.ok) this.scoutPage = ((this.scoutPage || 0) + 1) % 2;
+      if (E.hit.cancel) { this.targetSel = this.scoutIdx; this.scoutPage = 0; this.state = 'cmd'; }
     }
     commit(action) {
       this.plans[this.cur] = action;
@@ -530,13 +535,22 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       c.fillStyle = '#fff'; c.fillRect(66, 164, 184, 58); c.fillStyle = '#000'; c.fillRect(67, 165, 182, 56);
 
       if (this.state === 'scout') {
-        const t = this.targets[this.scoutIdx], D = window.DATA, tbl = D.drops || {};
+        const t = this.targets[this.scoutIdx], D = window.DATA, tbl = D.drops || {}, pg = this.scoutPage || 0;
         E.text(c, t.name, 74, 168, { size: 10, color: GOLD });
-        E.text(c, (t.title && t.title !== t.name ? t.title + '　' : '') + (t.cls || '') + '　武器 ' + (t.weapon || '－'), 74, 181, { size: 8, color: GREY });
-        E.text(c, '兵力 ' + this.H(t) + '/' + t.hpMax + '　攻擊力 ' + (t.atk * 2) + '　防禦力 ' + t.def, 74, 192, { size: 8 });
-        E.text(c, '智 ' + t.int + '　速 ' + t.spd + '　統 ' + (t.lead || 0) + '　運 ' + (t.luck || 0), 74, 202, { size: 8 });
-        E.text(c, '地形 ' + Object.keys(window.DATA.terrainNames).map(function (k) { return window.DATA.terrainNames[k] + ((t.terr && t.terr[k]) || 'B'); }).join(' '), 190, 168, { size: 7, color: GREY });
-        E.wrap(c, (t.desc || '') + (tbl[t.id] ? '（身上帶著裝備）' : ''), 7, 172).slice(0, 1).forEach(function (l, i) { E.text(c, l, 74, 212, { size: 7, color: GREY }); });
+        E.text(c, '資料 ' + (pg + 1) + '/2　Z 換頁　X 返回', 248, 169, { size: 7, color: GREY, align: 'right' });
+        if (pg === 0) {
+          E.text(c, (t.cls || '') + '　武器 ' + (t.weapon || '－'), 74, 180, { size: 8, color: GREY });
+          E.text(c, '兵力 ' + this.H(t) + '/' + t.hpMax, 74, 190, { size: 8 });
+          E.text(c, '武力 ' + t.atk, 170, 190, { size: 8 });
+          E.text(c, '攻擊力 ' + (t.atk * 2), 74, 200, { size: 8 });
+          E.text(c, '防禦力 ' + t.def, 170, 200, { size: 8 });
+          E.text(c, '智力 ' + t.int + '　速度 ' + t.spd, 74, 210, { size: 8 });
+          E.text(c, '統率 ' + (t.lead || 0) + '　運氣 ' + (t.luck || 0), 170, 210, { size: 8 });
+        } else {
+          E.text(c, '地形適性', 74, 181, { size: 8, color: GREY });
+          E.text(c, Object.keys(D.terrainNames).map(function (k) { return D.terrainNames[k] + ((t.terr && t.terr[k]) || 'B'); }).join('　'), 74, 191, { size: 8 });
+          E.wrap(c, (t.desc || '') + (tbl[t.id] ? '（身上帶著裝備）' : ''), 8, 172).slice(0, 2).forEach(function (l, i) { E.text(c, l, 74, 202 + i * 10, { size: 8, color: GREY }); });
+        }
         this.targetMark = t;
       } else if (this.state === 'cmd') {
         const u = b.party[this.cur];

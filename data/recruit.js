@@ -64,3 +64,9 @@
     if (best) m.npcs.push({ id: 'hall_officer', name: '招賢官', sprite: 29, x: best.x, y: best.y, dir: 'down', dialogue: 'hall_officer' });
   });
 })();
+
+// 村莊與城鎮裡不會隨機遇敵（只有主線、支線的敵軍 NPC 才會開戰）
+(function () {
+  const D = window.DATA;
+  Object.keys(D.worldTowns || {}).forEach(function (id) { if (D.maps[id]) delete D.maps[id].encounter; });
+})();

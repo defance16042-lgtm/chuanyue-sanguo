@@ -156,3 +156,9 @@
 
 ## v0.45.0 人物造型
 - tools/char_styles.py：每個角色的造型表（armor 鎧甲、helm 盔、cap 文官冠巾、face calm/fierce/grin/wise、wide 加寬、scar、band 頭帶）；build_char_hd.py person_hd 依此繪製；戰鬥敵方小人用 auto() 由顏色自動套鎧甲與盔。重新產圖：python3 tools/build_char_hd.py（16px 備援圖未改）。
+
+## v0.46.0 戰鬥與資料小修（批次 A）
+- newBattle 敵方 slice(0,5)；逃跑＝全隊一次（battle_scene 逃跑指令把其餘隊員設為防禦，logic 以全隊最快速度算機率）；毒計 chance/（智力差、頭目-0.2）；關羽 sea A；偵察 2 頁（scoutPage）；data/recruit.js 末段移除 D.worldTowns 地圖的 encounter；寶箱/陶罐 blocked() 不擋、stepOnObj() 踩上去開。tests/fixes_test.js。
+## 待辦（使用者 11/24 清單）
+- 批次 B：道具→背包（道具/裝備/兵書分頁）、兵書需裝備才出現計謀、戰鬥中換陣形計謀頁、使用道具選人介面分開、全介面文字不超框。
+- 批次 C：店家招牌、助戰加入後 NPC 取消、行走跟隨前三位、招收武將 1 級開始、專屬計謀與軍師計。

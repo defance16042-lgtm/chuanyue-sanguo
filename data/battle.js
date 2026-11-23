@@ -66,8 +66,8 @@ window.DATA.battle = {
     whirl:    { name: '旋風斬',   tp: 5, kind: 'phys', target: 'all', power: 0.95, fx: 'whirl' },
     lunge:    { name: '突刺',     tp: 4, kind: 'phys', target: 'one', power: 2.1, fx: 'thrust' },
     // ---- 第二批新計謀：毒、持續回復、解除異狀、震暈、叫陣、吸血、斬將、水火連環 ----
-    poison:   { name: '毒煙計',   tp: 5, kind: 'dot', target: 'all', pct: 0.08, turns: 4, fx: 'smoke' },
-    poison2:  { name: '蝕骨毒霧', tp: 8, kind: 'dot', target: 'all', pct: 0.14, turns: 4, fx: 'smoke', replaces: 'poison' },
+    poison:   { name: '毒煙計',   tp: 5, kind: 'dot', target: 'all', pct: 0.05, turns: 3, chance: 0.6, fx: 'smoke' },
+    poison2:  { name: '蝕骨毒霧', tp: 8, kind: 'dot', target: 'all', pct: 0.08, turns: 3, chance: 0.7, fx: 'smoke', replaces: 'poison' },
     cleanse:  { name: '清心訣',   tp: 4, kind: 'cleanse', target: 'ally', healPct: 0.15, fx: 'purify' },
     stun:     { name: '震懾',     tp: 5, kind: 'stun', target: 'one', turns: 1, fx: 'dizzy' },
     stun2:    { name: '雷霆一喝', tp: 8, kind: 'stun', target: 'all', turns: 1, fx: 'dizzy', replaces: 'stun' },

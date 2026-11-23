@@ -28,7 +28,7 @@ window.DATA.characters = {
   },
   guanyu: {
     id: 'guanyu', name: '關羽', sprite: 2, portrait: 2, zi: '雲長', title: '亡命的猛將', cls: '猛將', weapon: '刀',
-    terrain: { plain: 'A', forest: 'B', mountain: 'A', sea: 'B' },
+    terrain: { plain: 'A', forest: 'B', mountain: 'A', sea: 'A' },
     hp: 150, tp: 6, atk: 20, int: 10, spd: 11, lead: 12, luck: 10, grd: 12,
     growth: { hp: 20, atk: 2.4, int: 0.7, spd: 0.3, lead: 0.8, luck: 0.4, grd: 0.9, tp: 0.5 },
     trait: { name: '義薄雲天', desc: '武力 +3', mods: { atk: 3 } },

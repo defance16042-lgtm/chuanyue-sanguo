@@ -46,7 +46,7 @@
     opts = opts || {};
     const b = {
       party: party.filter(function (m) { return m.hp > 0; }).slice(0, 5).map(unitFromMember),   // 出戰最多 5 位（隊伍最多 8 人，其餘後備）
-      enemies: group.map(unitFromEnemy),
+      enemies: group.slice(0, 5).map(unitFromEnemy),   // 戰鬥最多 5 對 5
       flags: opts.flags || {}, rng: opts.rng || Math.random, round: 0,
       terrain: opts.terrain || 'plain', fire: opts.fire ? { rounds: opts.fire.rounds.slice(), pct: opts.fire.pct, texts: (opts.fire.texts || []).slice(), n: 0 } : null, canFlee: opts.canFlee !== false, boss: !!opts.boss, allMembers: party
     };
@@ -190,7 +190,8 @@
       let ok = false;
       if (b.canFlee) {
         const foeSpd = BL.alive(b.enemies).reduce(function (s, u) { return Math.max(s, u.spd); }, 0);
-        const chance = clamp(0.5 + (a.spd - foeSpd) * 0.04 + (a.cha || 0) * 0.004, 0.25, 0.9);   // 魅力高的人更容易全身而退
+        const mySpd = BL.alive(b.party).reduce(function (s, u) { return Math.max(s, u.spd); }, 0);   // 全隊一起逃，以最快的人為準
+        const chance = clamp(0.5 + (mySpd - foeSpd) * 0.04 + (a.cha || 0) * 0.004, 0.25, 0.9);   // 魅力高的人更容易全身而退
         ok = b.rng() < chance;
       }
       ev.push({ type: 'msg', text: b.canFlee ? (ok ? '成功逃離了！' : '逃不掉！') : '這場戰鬥不能逃跑！' });
@@ -267,8 +268,12 @@
         hurt(t, tactDamage(b, a, t, power0), resEv);
         rider(skill, t, resEv);
       } else if (kind === 'dot') {
-        t.dot = { pct: skill.pct, turns: skill.turns };
-        resEv.push({ type: 'status', target: t, text: t.name + '中毒了' });
+        // 毒計不是必中：依施放者與目標的智力差，基礎機率 skill.chance；頭目更難中毒
+        const pc = clamp((skill.chance || 1) + (a.int - t.int) * 0.004 - (t.boss ? 0.2 : 0), 0.25, 0.9);
+        if (b.rng() < pc) {
+          t.dot = { pct: skill.pct, turns: skill.turns };
+          resEv.push({ type: 'status', target: t, text: t.name + '中毒了' });
+        } else resEv.push({ type: 'msg', text: t.name + '沒有中毒' });
       } else if (kind === 'hot') {
         t.hot = { pct: skill.pct, turns: skill.turns };
         resEv.push({ type: 'status', target: t, text: t.name + '開始持續回復' });
@@ -400,7 +405,7 @@
       case 'debuff': t = who + '的' + STAT_NAME[s.stat] + '降低' + pc(1 - s.mult) + '，持續' + s.turns + '回合'; break;
       case 'confuse': t = '使' + who + '混亂' + s.turns + '回合，會亂打、可能打到自己人；看智力，頭目較難中'; break;
       case 'stun': t = '震暈' + who + '，' + s.turns + '回合無法行動；成功率看智力，頭目很難中'; break;
-      case 'dot': t = who + '中毒，每回合損失最大兵力的' + pc(s.pct) + '，持續' + s.turns + '回合'; break;
+      case 'dot': t = who + '中毒，每回合損失最大兵力的' + pc(s.pct) + '，持續' + s.turns + '回合' + (s.chance ? '（約 ' + Math.round(s.chance * 100) + '% 會中毒）' : ''); break;
       case 'hot': t = who + '每回合回復最大兵力的' + pc(s.pct) + '，持續' + s.turns + '回合'; break;
       case 'cleanse': t = '解除' + who + '的混亂、震暈、中毒與能力下降' + (s.healPct ? '，並回復最大兵力的' + pc(s.healPct) : ''); break;
       case 'taunt': t = s.turns + '回合內敵人多半會攻擊自己，防禦提高' + pc(s.mult - 1); break;

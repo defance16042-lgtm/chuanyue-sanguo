@@ -889,7 +889,8 @@
     objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]); }); }
     blocked(x, y) {
       const t = this.tileAt(x, y);
-      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!this.objAt(x, y);
+      const o = this.objAt(x, y);   // 寶箱與陶罐可以直接走上去打開，不會擋路
+      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!(o && o.type !== 'chest' && o.type !== 'urn');
     }
     interact() {
       const p = this.p, v = DIRV[p.dir], tx = p.x + v[0], ty = p.y + v[1];
@@ -935,6 +936,13 @@
       Object.keys(o.item || {}).forEach(function (id) { G.items[id] = (G.items[id] || 0) + o.item[id]; got.push(D.battle.items[id].name + '×' + o.item[id]); });
       this.say(o.msg ? o.msg + (got.length ? '（得到：' + got.join('、') + '）' : '') : '打開了寶箱！得到：' + got.join('、') + '。');
     }
+    stepOnObj() {
+      const o = this.objAt(this.p.x, this.p.y);
+      if (!o) return false;
+      if (o.type === 'chest' && !G.flags['chest_' + o.id]) { this.openChest(o); return true; }
+      if (o.type === 'urn') { this.openUrn(o); return true; }
+      return false;
+    }
     arrive() {
       const p = this.p;
       const w = this.map.warps.find(function (k) { return k.x === p.x && k.y === p.y; });
@@ -944,6 +952,7 @@
         p.x = w.bx !== undefined ? w.bx : p.x; p.y = w.by !== undefined ? w.by : p.y - 1; p.dir = 'up';
       }
       else if (w) this.fade = { phase: 'out', t: 0, warp: w };
+      else if (this.stepOnObj()) { /* 踩到寶箱或陶罐：直接打開 */ }
       else if (this.map.encounter) this.stepEncounter();
       this.syncPos();
     }

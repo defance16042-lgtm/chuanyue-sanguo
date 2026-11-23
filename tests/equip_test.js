@@ -39,9 +39,9 @@ check('equipment data consistent', Object.values(D.equipment).every(e => D.slots
 // 地形
 check('forest/mountain/sea are walkable and mapped', [19, 20, 21].every(t => !D.solidTiles.includes(t)) && D.terrainOf[19] === 'forest' && D.terrainOf[20] === 'mountain' && D.terrainOf[21] === 'sea');
 check('every map tile letter exists in legend', Object.values(D.maps).every(m => m.tiles.every(r => [...r].every(ch => ch in D.legend))));
-const mk2 = terrain => { const bb = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5, terrain }); return bb; };
+const mk2 = terrain => { const bb = BL.newBattle([G.makeMember('liubei')], ['bandit'], { rng: () => 0.5, terrain }); return bb; };
 const dmg = terrain => { const bb = mk2(terrain); const ev = BL.perform(bb, bb.party[0], { type: 'attack', target: bb.enemies[0] }); return ev.find(e => e.type === 'dmg').amount; };
-check('terrain affects damage: 關羽 plain(A) > sea(B) vs bandit; bandit weak on plain(C)', dmg('plain') > dmg('sea'), [dmg('plain'), dmg('sea')]);
+check('terrain affects damage: 劉備 plain(A) > sea(B) vs bandit; bandit weak on plain(C)', dmg('plain') > dmg('sea'), [dmg('plain'), dmg('sea')]);
 const bb2 = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5, terrain: 'forest' });
 const hit = t => { const x = BL.newBattle([G.makeMember('guanyu')], ['bandit'], { rng: () => 0.5, terrain: t }); x.party[0].luck = 0; return BL.perform(x, x.enemies[0], { type: 'attack', target: x.party[0] }).find(e => e.type === 'dmg').amount; };
 check('bandit hits harder in forest(A) than on plain(C)', hit('forest') > hit('plain'), [hit('forest'), hit('plain')]);
