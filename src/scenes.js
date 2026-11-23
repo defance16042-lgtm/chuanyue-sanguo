@@ -499,15 +499,21 @@
   class ItemScene {
     constructor() { this.sel = 0; this.target = -1; this.msg = ''; }
     list() { const inv = G.items || {}, B = D.battle; return Object.keys(B.items).filter(function (k) { return inv[k] > 0 && !B.items[k].escape && !B.items[k].quest; }); }
+    books() { const bs = D.battle.bookSkills || {}; return Object.keys(bs).filter(function (k) { return G.flags['book_' + k]; }); }   // 已經讀過的兵書（全隊都會，不能使用，只能查看）
     update() {
-      const list = this.list();
+      const list = this.list(), books = this.books(), total = list.length + books.length;
       if (this.target < 0) {
-        if (!list.length) { if (E.hit.cancel || E.hit.ok) E.pop(); return; }
-        this.sel = Math.min(this.sel, list.length - 1);
-        if (E.hit.up) this.sel = (this.sel + list.length - 1) % list.length;
-        if (E.hit.down) this.sel = (this.sel + 1) % list.length;
+        if (!total) { if (E.hit.cancel || E.hit.ok) E.pop(); return; }
+        this.sel = Math.min(this.sel, total - 1);
+        if (E.hit.up) this.sel = (this.sel + total - 1) % total;
+        if (E.hit.down) this.sel = (this.sel + 1) % total;
         if (E.hit.cancel) { E.pop(); return; }
-        if (E.hit.ok) { this.target = 0; this.msg = ''; }
+        if (E.hit.ok) {
+          if (this.sel >= list.length) {
+            const b = books[this.sel - list.length], sk = D.battle.skills[D.battle.bookSkills[b]];
+            this.msg = '《' + D.battle.bookNames[b] + '》已讀過，全隊都會「' + sk.name + '」。'; this.bookText = window.BattleLogic.skillText(sk);
+          } else { this.target = 0; this.msg = ''; this.bookText = ''; }
+        }
       } else {
         const n = G.party.length;
         if (E.hit.up) this.target = (this.target + n - 1) % n;
@@ -527,8 +533,14 @@
       c.fillStyle = '#0c1030'; c.fillRect(16, 16, 224, 192);
       E.panel(c, 16, 16, 224, 192);
       E.text(c, '道具', 28, 24, { size: 11, color: GOLD });
-      const list = this.list(), B = D.battle;
-      if (!list.length) E.text(c, '沒有可以在這裡使用的道具', 32, 52, { color: GREY });
+      const list = this.list(), B = D.battle, books = this.books();
+      if (!list.length && !books.length) E.text(c, '沒有可以在這裡使用的道具', 32, 52, { color: GREY });
+      if (this.target < 0) books.forEach(function (b, i) {
+        const y = 48 + (list.length + i) * 16, sel = list.length + i === this.sel, sk = B.skills[B.bookSkills[b]];
+        E.text(c, (sel ? '▶ ' : '　') + '兵書《' + B.bookNames[b] + '》', 32, y, { color: sel ? GOLD : '#c8e8ff' });
+        E.text(c, '學會：' + sk.name, 140, y + 1, { size: 8, color: GREY });
+      }, this);
+      if (this.target < 0 && this.bookText) E.wrap(c, this.bookText, 7, 200).slice(0, 2).forEach(function (l, i) { E.text(c, l, 32, 164 + i * 9, { size: 7, color: '#d8d8f0' }); });
       list.forEach(function (k, i) {
         const y = 48 + i * 16, sel = i === this.sel && this.target < 0;
         E.text(c, (sel ? '▶ ' : '　') + B.items[k].name, 32, y, { color: sel ? GOLD : '#f4f4ff' });
@@ -1096,8 +1108,9 @@
     }
     decorGround(x, y) {   // 桶子、箱子、告示牌這類擺設：旁邊是室內地板就鋪地板，否則鋪草地
       const o = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-      for (let i = 0; i < o.length; i++) if (this.tileAt(x + o[i][0], y + o[i][1]) === 5) return 5;
-      return this.map.world ? 31 : 0;
+      let road = 0;
+      for (let i = 0; i < o.length; i++) { const t = this.tileAt(x + o[i][0], y + o[i][1]); if (t === 5) return 5; if (t === 1) road++; }
+      return road >= 2 ? 1 : (this.map.world ? 31 : 0);
     }
     drawBanners(c, cam) {
       const gar = D.worldGarrison || {}, cols = { yellow: '#f0d020', purple: '#9a40c8', black: '#303038', blue: '#3a6ad8', darkred: '#8a1820', own: '#38b860' };

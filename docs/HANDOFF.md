@@ -130,3 +130,9 @@
 ## v0.40.0：高清城堡（已完成）
 - tools/build_hd_tiles.py 新增 castle_hd()（96x96，切成 9 格存入 tiles_hd.png：26 27 28 / 37 38 39 / 29 22 30），這些編號已加入 TerrainArt.HD_IDS。下一步：② 村莊房屋與城鎮地面（讓 MapScene.draw 的 hd 條件擴大到城鎮，並替城鎮用到的圖塊做 32px 版），③ 角色。
 - 同版（v0.40.0）也完成了 ② 村莊：build_hd_tiles.py 新增 town_grass/floor_planks/stone_wall_interior/roof_tiles/plaster_wall(門)/thatch_roof 與桶、箱、花、圍欄、灌木、草堆、攤位、告示牌、水井（編號 0 4-18）；擺設圖塊是透明底，MapScene.draw 先用 decorGround() 鋪地板（旁邊是 5＝室內木地板就鋪地板，否則草地）。MapScene 的 hd 現在對所有地圖啟用（有 HD 版的編號才用 32px，其餘仍是 16px）。尚未做：③ 角色（sprites.png、戰鬥 bparty16/benemy16、肖像），以及洞穴／山口／關口的專用圖塊（cave*、stairs、cliff 等）。
+
+## v0.41.0
+- 周倉：tools/build_zhoucang.py 把周倉接在 sprites.png（第 36 列）、battle_enemy16.png（第 30 列，大刀）、portraits.png（第 57 格）後面，可重複執行。gens.js 的 gen_cave4_2：戰鬥 sprite 30、地圖 sprite 36；D.npcPortraits['周倉']=57。另外 gen_cave2_2／gen_shankou1_2／gen_shankou3_2 的戰鬥 sprite 原本是 34（戰鬥圖只有 0-29 列，等於看不到），改成 27（徐榮款）。注意：data/gens.js 的 enemy.sprite 是「戰鬥圖列」，NPC.sprite 是「地圖圖列」，兩張表不同。
+- 洞穴／山口／關口高清：build_hd_tiles.py 新增 cave_floor、cave_wall、cave_mouth、snow_cave、stairs、peak_rock、trail、rockslope、chasm、boulder、steps、camp、pass_gate、guan_gate（編號 23 24 25 36 40-44 46-51）。現在 0-51 全部都有高清版（除 21 海、其餘沒用到的）。decorGround 現在會依周圍的道路鋪道路地面。
+- 道具頁：ItemScene.books() 列出已讀的兵書（旗標 book_<id>），按決定鍵顯示說明；不能使用。
+- 還沒做：③ 角色高清（使用者說先維持 32px；角色樣本在對話中給過，使用者還沒決定）、第三章。

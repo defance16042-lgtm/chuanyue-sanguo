@@ -566,10 +566,246 @@ def well():
     return on_grass(d)
 
 
+# ---------------------------------------------------------------- 洞穴、山口、關口
+def cave_floor():
+    rng = random.Random(61)
+    im = Image.new("RGBA", (N, N), (86, 78, 94, 255))
+    noise(im, rng, [(76, 68, 84), (98, 90, 108), (66, 58, 74)], 130)
+    for _ in range(4):                                         # 石板裂縫（鋸齒折線，首尾相接不穿幫）
+        x, y = rng.randrange(N), rng.randrange(N)
+        for _ in range(rng.randrange(7, 12)):
+            put(im, x, y, (48, 42, 58)); put(im, x + 1, y + 1, (112, 104, 122))
+            x += rng.choice((-1, 0, 1, 1)); y += rng.choice((0, 1, 1))
+    for _ in range(9):                                         # 碎石
+        x, y = rng.randrange(N), rng.randrange(N)
+        put(im, x, y, (122, 114, 132)); put(im, x + 1, y, (54, 48, 62)); put(im, x, y + 1, (54, 48, 62))
+    return im
+
+
+def cave_wall():
+    rng = random.Random(67)
+    im = Image.new("RGBA", (N, N), (40, 34, 48, 255))
+    noise(im, rng, [(30, 26, 38), (50, 44, 62), (24, 20, 30)], 150)
+    for y0 in (0, 8, 16, 24):                                  # 一層一層的岩棱：上緣亮、下緣暗
+        off = rng.randrange(N)
+        for x in range(N):
+            j = int(1.5 * math.sin((x + off) * 0.7)) + rng.choice((0, 0, 1))
+            put(im, x, y0 + j, (66, 58, 80)); put(im, x, y0 + j + 1, (52, 46, 64))
+            put(im, x, y0 + j + 5, (22, 18, 28)); put(im, x, y0 + j + 6, (18, 14, 24))
+    for _ in range(12):
+        x, y = rng.randrange(N), rng.randrange(N)
+        put(im, x, y, (84, 74, 100)); put(im, x + 1, y, (60, 52, 74))
+    return im
+
+
+def cave_mouth(base_img):
+    """洞口：山壁上一個黑洞，洞緣受光、洞內越深越暗。"""
+    im = base_img.copy()
+    cx, cy, rx, ry = 16, 26, 10.5, 17.0
+    for y in range(8, N):
+        for x in range(N):
+            d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
+            if d <= 1.0:
+                k = max(0.0, min(1.0, d))
+                c = (int(10 + 26 * k), int(8 + 20 * k), int(14 + 30 * k))
+                put(im, x, y, c)
+            elif d <= 1.22:
+                lit = (x < cx)
+                put(im, x, y, (150, 112, 76) if lit and (x + y) % 3 else ((92, 66, 48) if lit else (60, 42, 34)))
+            elif d <= 1.38:
+                put(im, x, y, OLN)
+    return im
+
+
+def snow_cave():
+    return cave_mouth(snowmountain())
+
+
+def stairs(down=True):
+    im = cave_floor()
+    for y in range(3, 30):
+        for x in range(4, 28):
+            t = (y - 3) / 26
+            k = t if down else 1 - t
+            step = (y - 3) // 4
+            base = 108 - step * 12 if down else 70 + step * 14
+            c = (base, base - 6, base + 8)
+            if (y - 3) % 4 == 0: c = tuple(min(255, v + 34) for v in c)          # 每級踏面前緣
+            elif (y - 3) % 4 == 3: c = tuple(max(0, v - 30) for v in c)
+            put(im, x, y, c)
+    if not down:
+        for x in range(4, 28): put(im, x, 3, (252, 246, 206)); put(im, x, 4, (236, 224, 170))
+    for x in range(2, 30): put(im, x, 1, OLN); put(im, x, 2, (60, 54, 72)); put(im, x, 30, OLN)
+    for y in range(1, 31): put(im, 2, y, OLN); put(im, 3, y, (60, 54, 72)); put(im, 29, y, OLN); put(im, 28, y, (60, 54, 72))
+    return im
+
+
+def peak_rock():
+    """山巒：整格褐色岩山，兩座尖峰有光影，不能通過。"""
+    rng = random.Random(71)
+    im = Image.new("RGBA", (N, N), (112, 86, 62, 255))
+    noise(im, rng, [(100, 76, 54), (124, 98, 72), (92, 68, 48)], 130)
+    L = [(214, 172, 120), (176, 132, 88), (126, 90, 60), (88, 62, 46), (236, 200, 150)]
+    peak(im, 22, 12, 30, 8, L, OLN, rng)
+    peak(im, 9, 3, 30, 11, L, OLN, rng)
+    return im
+
+
+def trail():
+    rng = random.Random(73)
+    im = Image.new("RGBA", (N, N), (186, 152, 108, 255))
+    noise(im, rng, [(170, 136, 94), (202, 170, 124), (156, 124, 84)], 140)
+    for _ in range(10):
+        x, y = rng.randrange(4, 28), rng.randrange(N)
+        put(im, x, y, (130, 100, 70)); put(im, x + 1, y, (104, 78, 54)); put(im, x, y - 1, (214, 186, 140))
+    for y in range(N):                                      # 兩側的野草邊
+        for x in (0, 1, 30, 31):
+            if (y * 3 + x) % 4 != 0: put(im, x, y, (90, 150, 72) if x < 2 else (74, 130, 62))
+        if y % 5 == 0: put(im, 2, y, (104, 168, 82)); put(im, 29, y, (80, 140, 66))
+    return im
+
+
+def rockslope():
+    rng = random.Random(79)
+    im = Image.new("RGBA", (N, N), (138, 122, 108, 255))
+    noise(im, rng, [(124, 108, 96), (152, 136, 120), (112, 98, 86)], 150)
+    for _ in range(14):                                     # 碎石塊：左上亮、右下暗
+        x, y = rng.randrange(N), rng.randrange(N)
+        for dx, dy in ((0, 0), (1, 0), (2, 0), (0, 1), (1, 1), (2, 1), (1, 2)):
+            c = (176, 160, 142) if dy == 0 and dx < 2 else ((84, 72, 62) if dy == 2 or dx == 2 else (140, 124, 108))
+            put(im, x + dx, y + dy, c)
+    return im
+
+
+def chasm():
+    rng = random.Random(83)
+    im = Image.new("RGBA", (N, N), (22, 18, 30, 255))
+    noise(im, rng, [(14, 10, 22), (30, 26, 40)], 90)
+    for y in range(N):                                      # 上下兩側的岩壁，中間是深淵
+        top = 5 + int(1.5 * math.sin(y * 0.0)) 
+    for x in range(N):
+        h1 = 5 + int(2 * math.sin(x * 0.55)); h2 = 5 + int(2 * math.sin(x * 0.45 + 2))
+        for y in range(h1):
+            put(im, x, y, (92, 78, 70) if y < h1 - 1 else (50, 40, 40))
+            if y == 0: put(im, x, y, (132, 112, 96))
+        for y in range(N - h2, N):
+            put(im, x, y, (72, 60, 56) if y > N - h2 else (110, 92, 80))
+            if y == N - 1: put(im, x, y, (50, 40, 40))
+    return im
+
+
+def boulder():
+    rng = random.Random(89)
+    im = trail()
+    for y in range(4, 30):
+        for x in range(3, 29):
+            d = math.hypot((x - 16) / 12.5, (y - 18) / 12.0)
+            if d > 1.0:
+                continue
+            lit = (x - 16) * -0.5 + (y - 18) * -0.7
+            c = (206, 190, 170) if lit > 5 else ((168, 150, 130) if lit > -2 else ((124, 106, 92) if lit > -8 else (88, 74, 66)))
+            if (x * 3 + y * 5) % 11 == 0: c = tuple(v - 16 for v in c)
+            if d > 0.93: c = OLN
+            put(im, x, y, c)
+    for x in range(8, 24): put(im, x, 30, (90, 70, 50)); put(im, x, 31, (70, 52, 38))
+    return im
+
+
+def steps():
+    im = trail()
+    for r in range(5):
+        y0 = 2 + r * 6
+        for y in range(y0, y0 + 6):
+            for x in range(3, 29):
+                c = (206, 176, 128) if y == y0 else ((150, 118, 80) if y >= y0 + 4 else (186, 154, 108))
+                if (x + r * 3) % 9 == 0 and y == y0 + 2: c = (170, 138, 94)
+                put(im, x, y, c)
+        for x in range(3, 29): put(im, x, y0 + 5, (96, 70, 48))
+    for y in range(2, 32): put(im, 3, y, (110, 82, 56)); put(im, 28, y, (110, 82, 56))
+    return im
+
+
+def camp():
+    im = grass(4)
+    def tent(cx, top, h, light, dark):
+        for r in range(h):
+            y = top + r; half = int((r + 1) * 0.9)
+            for x in range(cx - half, cx + half + 1):
+                c = light if x < cx else dark
+                if x == cx: c = tuple(v - 24 for v in light)
+                if r % 5 == 4: c = tuple(v - 22 for v in c)
+                put(im, x, y, c)
+            put(im, cx - half - 1, y, OLN); put(im, cx + half + 1, y, OLN)
+        for x in range(cx - int(h * 0.9) - 1, cx + int(h * 0.9) + 2): put(im, x, top + h, OLN)
+        for r in range(h - 8, h):
+            for x in range(cx - 1 - (r - (h - 8)) // 3, cx + 1 + (r - (h - 8)) // 3): put(im, x, top + r, (40, 28, 28))
+        put(im, cx, top - 1, OLN); put(im, cx, top - 2, OLN)
+    tent(8, 14, 16, (232, 210, 154), (186, 160, 108))
+    tent(23, 18, 12, (222, 198, 140), (176, 150, 98))
+    for y in range(0, 16): put(im, 16, y, (96, 64, 42)); put(im, 17, y, (70, 46, 30))
+    for y in range(1, 8):                                   # 黃旗
+        for x in range(18, 29 - (y // 3)):
+            put(im, x, y, (244, 214, 50) if (x + y) % 6 else (226, 190, 36))
+    for x, y in ((14, 28), (15, 28), (16, 28), (15, 27), (14, 29), (17, 29)): put(im, x, y, (250, 140, 40))   # 營火
+    for x, y in ((15, 26), (16, 27)): put(im, x, y, (255, 220, 90))
+    for x in range(12, 20): put(im, x, 30, (70, 50, 40))
+    return im
+
+
+def pass_gate():
+    """山口：兩側岩壁、中間一條山徑，路口立著削尖的木柵與黃旗。"""
+    im = trail()
+    rng = random.Random(97)
+    for y in range(N):
+        for x in range(N):
+            if x < 7 or x >= 25:
+                base = (126, 96, 68) if (x < 7) else (96, 70, 50)
+                put(im, x, y, tuple(v + rng.choice((-6, 0, 6)) for v in base))
+                if (y + x) % 7 == 0: put(im, x, y, tuple(v - 24 for v in base))
+        put(im, 7, y, OLN); put(im, 24, y, OLN)
+    for x in range(8, 24, 3):                               # 木柵：尖頭圓木
+        for y in range(10, 26):
+            put(im, x, y, (176, 128, 80)); put(im, x + 1, y, (134, 92, 56))
+        put(im, x, 9, (176, 128, 80)); put(im, x + 1, 8, (134, 92, 56)); put(im, x, 8, OLN)
+    for x in range(8, 24): put(im, x, 14, (90, 60, 40)); put(im, x, 21, (90, 60, 40))
+    for y in range(0, 10): put(im, 10, y, (96, 64, 42))
+    for y in range(1, 6):
+        for x in range(11, 20 - y // 2): put(im, x, y, (244, 214, 50))
+    return im
+
+
+def guan_gate():
+    """關門：草地上一段石牆，中間木門拱洞，牆頭垛口與紅旗。"""
+    im = grass(6)
+    for y in range(8, 30):
+        for x in range(0, N):
+            row = (y - 8) // 5; off = 6 if row % 2 else 0
+            c = (160, 160, 174) if (x + off) % 12 else (92, 92, 108)
+            if (y - 8) % 5 == 4: c = (92, 92, 108)
+            elif (y - 8) % 5 == 0: c = (196, 196, 208)
+            put(im, x, y, c)
+    for x in range(0, N, 8):
+        for y in range(4, 8): put(im, x, y, (178, 178, 192)); put(im, x + 1, y, (178, 178, 192)); put(im, x + 2, y, (178, 178, 192)); put(im, x + 3, y, (118, 118, 134))
+        put(im, x, 3, OLN); put(im, x + 1, 3, OLN); put(im, x + 2, 3, OLN); put(im, x + 3, 3, OLN)
+    for y in range(12, 30):
+        for x in range(8, 24):
+            d = math.hypot(x - 16, y - 18) if y < 18 else abs(x - 16)
+            if (y < 18 and d <= 8) or (y >= 18 and abs(x - 16) <= 8):
+                put(im, x, y, (112, 70, 42) if (x // 3) % 2 else (126, 82, 50))
+        put(im, 16, y, (60, 36, 24)) if y >= 12 else None
+    for (x, y) in ((11, 22), (21, 22), (11, 27), (21, 27)): put(im, x, y, (214, 214, 226))
+    for y in range(0, 8): put(im, 27, y, (96, 64, 42))
+    for y in range(0, 4):
+        for x in range(28, 32): put(im, x, y, (210, 50, 44))
+    return im
+
+
 def main():
     sheet = Image.new("RGBA", (COUNT * N, N), (0, 0, 0, 0))
     tiles = {1: sand((198, 166, 110), True), 2: water(), 3: tree_border(), 19: forest(), 20: mountain(), 31: grass(1),
              32: sand(), 33: snowground(), 34: forest(True), 35: snowmountain(), 45: wall()}
+    tiles.update({23: cave_mouth(mountain()), 24: cave_floor(), 25: cave_wall(), 36: snow_cave(), 40: stairs(True), 41: stairs(False), 42: camp(), 43: guan_gate(),
+                  44: pass_gate(), 46: peak_rock(), 47: trail(), 48: rockslope(), 49: chasm(), 50: boulder(), 51: steps()})
     big = castle_hd()
     parts = {26: (0, 0), 27: (1, 0), 28: (2, 0), 37: (0, 1), 38: (1, 1), 39: (2, 1), 29: (0, 2), 22: (1, 2), 30: (2, 2)}
     tiles.update({0: town_grass(), 4: stone_wall_interior(), 5: floor_planks(), 6: roof_tiles(), 7: plaster_wall(), 8: plaster_wall(True),

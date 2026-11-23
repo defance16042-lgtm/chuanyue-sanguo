@@ -29,6 +29,10 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     out.bookFlag = !!Game.flags.book_wu;
     out.bookGained = BattleLogic.skillsFor(Game.party[1], Game.flags).length - before;
     out.hasWu = BattleLogic.skillsFor(Game.party[0], Game.flags).some(k => k.id === 'wu_charge');
+    // 兵書會顯示在道具頁
+    Engine.push(new Scenes.Item()); const it = Engine.top();
+    out.bookListed = it.books().indexOf('wu') >= 0; out.bookCursor = (function () { it.sel = it.list().length; Engine.hit = { ok: true }; it.update(0.016); Engine.hit = {}; return it.msg; })();
+    Engine.pop();
     // 支線獎勵：義勇劍
     const g0 = Object.keys(Game.gear || {}).length;
     s.runAct({ once: 't_gear', gear: ['q_yi_sword'], gold: 10 });
@@ -49,6 +53,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
   check('bounty targets and gear exist', r.bountyOk); check('fetch chests/items/books exist', r.chestOk);
   check('main quest towns are on the world map', r.worldTownsOk);
   check('book flag + skill for the whole party', r.bookFlag && r.hasWu && r.bookGained === 1);
+  check('read books are listed on the item page and show what they teach', r.bookListed && /吳子/.test(r.bookCursor) && /奮擊/.test(r.bookCursor), r.bookCursor);
   check('side-quest gear reward is added', r.gearGot);
   check('縮地脫出 warps to last town and costs TP', r.afterMap === 'zhuoxian' && r.tpAfter === 6, [r.afterMap, r.tpAfter]);
   check('no page errors', errors.length === 0, errors);
