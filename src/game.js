@@ -56,9 +56,9 @@
     });
   };
 
-  // ---- 招收館：寄放在館裡的角色（不在隊伍裡），隊伍最多 5 人 ----
+  // ---- 招收館：寄放在館裡的角色（不在隊伍裡），隊伍最多 8 人（出戰 5 位）----
   Game.roster = [];
-  Game.MAX_PARTY = 5;
+  Game.MAX_PARTY = 8;   // 隊伍最多 8 人；出戰只有前 5 位活著的，其餘在後備
   Game.topLevel = function () { return Math.max.apply(null, (Game.party || []).concat(Game.roster || []).map(function (m) { return m.level || 1; }).concat([1])); };
   Game.hasMember = function (id) { return (Game.party || []).concat(Game.roster || []).some(function (m) { return m.id === id; }); };
   // 招收一位將領：隊伍有空位就直接入隊，否則送進招收館。回傳 'party' 或 'hall'
@@ -81,7 +81,7 @@
     return null;
   };
   Game.withdraw = function (i) {
-    if (Game.party.length >= Game.MAX_PARTY) return '隊伍已滿（最多 5 人），先寄放一位吧。';
+    if (Game.party.length >= Game.MAX_PARTY) return '隊伍已滿（最多 8 人），先寄放一位吧。';
     const m = Game.roster.splice(i, 1)[0]; if (m) Game.party.push(m);
     return null;
   };

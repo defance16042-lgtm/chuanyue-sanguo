@@ -22,6 +22,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     // 招收：隊伍有空位入隊，滿了進招收館
     Game.fresh(); Game.flags = { intro_done: true };
     Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(Game.makeMember);
+    ['zhangliang', 'zhangbao', 'duyou'].forEach(i => Game.addRecruit(i));
     o.add1 = Game.addRecruit('zhangjiao'); o.partyLen = Game.party.length;
     o.add2 = Game.addRecruit('lubu'); o.rosterLen = Game.roster.length;
     o.flag = !!Game.flags.recruited_zhangjiao;
@@ -29,9 +30,16 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     o.dep1 = Game.deposit(0); o.leaderNow = Game.party[0].id;
     o.depLiu = Game.deposit(Game.party.findIndex(m => m.id === 'liubei'));
     o.wd = Game.withdraw(0); o.partyAfter = Game.party.length;
-    o.full = Game.party.length >= 5 ? Game.withdraw(0) : 'n/a';
+    while (Game.party.length < 8 && Game.roster.length) Game.withdraw(0);
+    o.full = Game.roster.length ? Game.withdraw(0) : 'n/a';
     while (Game.party.length > 1) Game.deposit(Game.party.length - 1);
     o.last = Game.deposit(0);
+    // 8 人隊伍：出戰只有前 5 位
+    Game.fresh(); Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei', 'zhangjiao', 'lubu', 'xurong', 'huaxiong'].map(id => { Game.makeMember.call(null, id); return Game.makeMember(id); });
+    o.fight = BattleLogic.newBattle(Game.party, ['turban'], {}).party.length;
+    Game.party[0].hp = 0; o.fightDead = BattleLogic.newBattle(Game.party, ['turban'], {}).party.map(u => u.id).join();
+    Game.fresh(); Game.flags = { intro_done: true };
+    Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(Game.makeMember); Game.roster = [];
     // 存檔往返
     const snap = Game.snapshot(); Game.fresh(); const ok = Game.restore(snap);
     o.restore = ok && Game.roster.length === snap.roster.length && Game.party.length === snap.party.length;
@@ -47,10 +55,11 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
   check('主線打倒過的頭目殘部都能招收，主線頭目本人不能', r.count >= 14 && r.defs && r.mainNo, r.count);
   check('投降機率不高（基本 10%、上限 25%）', r.rate);
   check('每座城鎮都有招賢官且不重疊', r.officers && r.officerOk);
-  check('招收：有空位入隊、滿了進招收館', r.add1 === 'party' && r.partyLen === 5 && r.add2 === 'hall' && r.rosterLen === 1 && r.flag);
+  check('招收：有空位入隊、滿了進招收館', r.add1 === 'party' && r.partyLen === 8 && r.add2 === 'hall' && r.rosterLen === 1 && r.flag);
   check('主角、劉備可寄放，隊首換人', r.dep1 === null && r.leaderNow === 'liubei' && r.depLiu === null);
   check('領人入隊、滿了不能領、至少留一人', r.wd === null && (r.full === 'n/a' || typeof r.full === 'string') && typeof r.last === 'string');
   check('存檔含招收館', r.restore);
+  check('隊伍 8 人，出戰前 5 位活著的', r.fight === 5 && r.fightDead === 'liubei,guanyu,zhangfei,zhangjiao,lubu', [r.fight, r.fightDead]);
   // 實際打一場：全員一擊倒下，檢查投降與選擇畫面
   await page.evaluate(() => { const b = Engine.top() && Engine.stack ? null : null; });
   const st = await page.evaluate(async () => {

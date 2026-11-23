@@ -45,7 +45,7 @@
   BL.newBattle = function (party, group, opts) {
     opts = opts || {};
     const b = {
-      party: party.filter(function (m) { return m.hp > 0; }).map(unitFromMember),
+      party: party.filter(function (m) { return m.hp > 0; }).slice(0, 5).map(unitFromMember),   // 出戰最多 5 位（隊伍最多 8 人，其餘後備）
       enemies: group.map(unitFromEnemy),
       flags: opts.flags || {}, rng: opts.rng || Math.random, round: 0,
       terrain: opts.terrain || 'plain', fire: opts.fire ? { rounds: opts.fire.rounds.slice(), pct: opts.fire.pct, texts: (opts.fire.texts || []).slice(), n: 0 } : null, canFlee: opts.canFlee !== false, boss: !!opts.boss, allMembers: party

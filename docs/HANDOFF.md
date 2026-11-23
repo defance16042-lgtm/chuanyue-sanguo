@@ -150,3 +150,6 @@
 - game.js：Game.roster（招收館）、addRecruit/deposit/withdraw/topLevel/hasMember，存檔含 roster；主角也可寄放，地圖人物圖用 party[0].sprite。
 - 遇敵頻率降低：stepEncounter 至少多走 6 步、機率×0.6。諸葛貓妖成長率提高（hp17 atk1.0 int1.9 spd.4 lead1 luck1 grd.7 tp1）。
 - tests/recruit_test.js（12 項）。第三章企劃：典韋不死。
+
+## v0.44.0 隊伍 8 人
+- Game.MAX_PARTY=8；BattleLogic.newBattle 只取前 5 位活著的出戰（slice(0,5)）；battle_scene finish() 後備隊員拿一半經驗。FormationScene 8 列（第 6 位起標「後備」）、ItemScene 目標列表縮距、HallScene 標後備。

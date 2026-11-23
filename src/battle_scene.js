@@ -159,6 +159,13 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
             BL.skillsFor(u.ref, G.flags).forEach(function (k) { if (before.indexOf(k.id) < 0) self.lines.push(u.ref.name + '習得計謀「' + k.name + '」！'); });
           }
         });
+        // 後備隊員（隊伍超過 5 人、沒上場的）也分到一半經驗
+        const inB = b.party.map(function (u) { return u.ref; }), half = Math.floor(v.share / 2);
+        const rest = G.party.filter(function (m) { return inB.indexOf(m) < 0 && m.hp > 0; });
+        if (rest.length && half > 0) {
+          this.lines.push('後備的' + rest.length + '位隊員獲得 ' + half + ' 經驗值');
+          rest.forEach(function (m) { BL.gainExp(m, half).forEach(function (g) { self.lines.push(g.name + '升到 Lv' + g.level + '！'); }); });
+        }
       } else if (outcome === 'lose') {
         this.lines.push('全軍覆沒……');
       } else {
