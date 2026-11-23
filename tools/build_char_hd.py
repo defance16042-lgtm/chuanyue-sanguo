@@ -11,6 +11,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageOps
 import build_assets as BA
 import build_battle16 as BB
 import build_zhoucang as ZC
+import recruit_chars as RCH
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "assets"
@@ -206,7 +207,7 @@ def person_hd(pal, direction, frame, cat=False, beard=None, wild=False, hat=None
 
 # ------------------------------------------------------------------ 地圖人物
 def sprite_rows():
-    rows = [dict(kw) for _n, kw in BA.CHARACTERS] + [dict(ZC.KW)]
+    rows = [dict(kw) for _n, kw in BA.CHARACTERS] + [dict(ZC.KW)] + [dict(k) for _i, k, _w in RCH.RC]
     sheet = Image.new("RGBA", (S * 8, S * len(rows)), (0, 0, 0, 0))
     for r, kw in enumerate(rows):
         col = 0
@@ -263,7 +264,7 @@ def battle_sheet(rows, mirror=False):
 def main():
     sprite_rows().save(OUT / "sprites_hd.png")
     battle_sheet(BB.PARTY).save(OUT / "battle_party_hd.png")
-    battle_sheet(BB.ENEMIES + [(dict(ZC.KW), "glaive")], mirror=True).save(OUT / "battle_enemy_hd.png")
+    battle_sheet(BB.ENEMIES + [(dict(ZC.KW), "glaive")] + [(dict(k), w) for _i, k, w in RCH.RC], mirror=True).save(OUT / "battle_enemy_hd.png")
     print("ok")
 
 

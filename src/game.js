@@ -56,6 +56,36 @@
     });
   };
 
+  // ---- 招收館：寄放在館裡的角色（不在隊伍裡），隊伍最多 5 人 ----
+  Game.roster = [];
+  Game.MAX_PARTY = 5;
+  Game.topLevel = function () { return Math.max.apply(null, (Game.party || []).concat(Game.roster || []).map(function (m) { return m.level || 1; }).concat([1])); };
+  Game.hasMember = function (id) { return (Game.party || []).concat(Game.roster || []).some(function (m) { return m.id === id; }); };
+  // 招收一位將領：隊伍有空位就直接入隊，否則送進招收館。回傳 'party' 或 'hall'
+  Game.addRecruit = function (id) {
+    const m = Game.makeMember(id), lv = Game.topLevel();
+    if (lv > 1 && window.BattleLogic) window.BattleLogic.gainExp(m, window.BattleLogic.expFor(lv));
+    m.hp = m.hpMax; Game.fullTp(m);
+    Game.flags['recruited_' + id] = true;
+    if (Game.party.length < Game.MAX_PARTY) { Game.party.push(m); return 'party'; }
+    Game.roster.push(m); return 'hall';
+  };
+  // 隊伍與招收館之間搬人。回傳 null 表示成功，否則是說明文字
+  Game.deposit = function (i) {
+    const m = Game.party[i];
+    if (!m) return '沒有這個人。';
+    if (m.guest) return m.name + '是助戰的客將，不能寄放。';
+    if (Game.party.length <= 1) return '隊伍裡至少要留一個人。';
+    Game.party.splice(i, 1); Game.roster.push(m);
+    if (Game.advisor === m.id) Game.advisor = null;
+    return null;
+  };
+  Game.withdraw = function (i) {
+    if (Game.party.length >= Game.MAX_PARTY) return '隊伍已滿（最多 5 人），先寄放一位吧。';
+    const m = Game.roster.splice(i, 1)[0]; if (m) Game.party.push(m);
+    return null;
+  };
+
   Game.fresh = function () {
     const start = D.maps.zhuoxian.start;
     Game.flags = {};
@@ -63,6 +93,7 @@
     Game.mapId = 'zhuoxian';
     Game.pos = { x: start.x, y: start.y, dir: start.dir };
     Game.party = [Game.makeMember('nyao')];
+    Game.roster = [];
     Game.gold = 50;
     Game.items = { herb: 3, tonic: 0, smoke: 0 };
     Game.equipInv = {};
@@ -72,7 +103,7 @@
   Game.snapshot = function () {
     return JSON.parse(JSON.stringify({
       version: 1, mapId: Game.mapId, pos: Game.pos, flags: Game.flags,
-      party: Game.party, gold: Game.gold, items: Game.items, equipInv: Game.equipInv, advisor: Game.advisor, formation: Game.formation, playtime: Game.playtime, savedAt: Date.now()
+      party: Game.party, roster: Game.roster, gold: Game.gold, items: Game.items, equipInv: Game.equipInv, advisor: Game.advisor, formation: Game.formation, playtime: Game.playtime, savedAt: Date.now()
     }));
   };
 
@@ -86,6 +117,8 @@
       Game.pos = { x: d.pos.x, y: d.pos.y, dir: d.pos.dir || 'down' };
       Game.flags = d.flags || {};
       Game.party = d.party;
+      Game.roster = Array.isArray(d.roster) ? d.roster.filter(function (m) { return m && D.characters[m.id]; }) : [];
+      Game.roster.forEach(function (m) { m.equip = m.equip || {}; m.allocatable = false; Game.recalc(m); });
       Game.party.forEach(function (m) {
         const c = D.characters[m.id] || {};
         if (typeof m.lead !== 'number') m.lead = typeof m.cha === 'number' ? Math.round(m.cha * 0.8) + 2 : (c.lead || 8);

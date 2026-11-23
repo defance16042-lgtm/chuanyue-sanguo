@@ -14,9 +14,9 @@ window.DATA.characters = {
     id: 'nyao', name: '諸葛貓妖', sprite: 0, portrait: 0, zi: '（自稱孔明）', title: '穿越的貓妖', cls: '軍師', weapon: '扇',
     terrain: { plain: 'B', forest: 'A', mountain: 'A', sea: 'C' },
     hp: 110, tp: 8, atk: 13, int: 13, spd: 14, lead: 8, luck: 14, grd: 6,
-    growth: { hp: 14, atk: 0.6, int: 0.6, spd: 0.15, lead: 0.5, luck: 0.5, grd: 0.4, tp: 0.5 },
+    growth: { hp: 17, atk: 1.0, int: 1.9, spd: 0.4, lead: 1.0, luck: 1.0, grd: 0.7, tp: 1.0 },
     trait: { name: '貓的直覺', desc: '運氣 +4', mods: { luck: 4 } },
-    bio: '不知為何穿越到漢末的貓妖，自稱諸葛孔明。能力成長完全隨機，是隊伍裡最難預測的人。'
+    bio: '不知為何穿越到漢末的貓妖，自稱諸葛孔明。升級時各項能力會自動隨機成長，和同伴一樣穩定變強，只是每級長哪一項誰也說不準。'
   },
   liubei: {
     id: 'liubei', name: '劉備', sprite: 1, portrait: 1, zi: '玄德', title: '漢室宗親', cls: '君主', weapon: '劍',

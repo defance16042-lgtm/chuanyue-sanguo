@@ -186,7 +186,7 @@ window.DATA.battle = {
 (function () {
   const B = window.DATA.battle;
   B.rematch = { boss_down: 'chengyuanzhi', boss2_down: 'qushuai', bocai_down: 'bocai', pengtuo_down: 'pengtuo', zhaohong_down: 'zhaohong', hanzhong_down: 'hanzhong', busi_down: 'busi', zhangliang_down: 'zhangliang', zhangbao_down: 'zhangbao', zhangjiao_down: 'zhangjiao', duyou_down: 'duyou', zhangyan_down: 'zhangyan', zhangchun_down: 'zhangchun', huaxiong_down: 'huaxiong' };
-  B.rematchRate = 0.05;
+  B.rematchRate = 0.10;
   Object.keys(B.rematch).forEach(function (f) {
     const id = B.rematch[f], e = B.enemies[id];
     if (!e) return;

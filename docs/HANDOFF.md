@@ -142,3 +142,11 @@
 - scenes.js drawSprite/drawFace、battle_scene.js 繪製處優先用 *_hd，缺圖時退回 16px。
 - 立繪（portraits.png）維持 48px，尚未升級。
 - 戰鬥狀態特效：battle_scene.js statusFx（stun/confused/dot/hot/buffs）。
+
+## v0.43.0 招收系統
+- 招收只發生在野外：主線打倒過的頭目會以殘部（B.enemies.<id>_r，recruit=id）再度出現（B.rematchRate=0.10，一次 1~3 位，stepEncounter），打敗後每位有 10%+統率×0.2%（上限 25%）機率投降，戰後選「招收／放走」（Scenes.RecruitOffer）。主線 Boss 戰本人不能招收。
+- data/recruit.js：為 16 位主線頭目（B.rematch 內）產生 D.characters 角色資料（INFO 表：能力型態 b/t/s、地圖圖列）；並為每座 D.worldTowns 城鎮放一位「招賢官」NPC（對話 hall_officer，act {hall:true} 開 Scenes.Hall）。
+- 圖：tools/recruit_chars.py＋build_recruits.py 接 16px（sprites.png 第 37 列起、battle_enemy16.png 第 31 列起；彭脫、趙弘、韓忠、卜己借用），build_char_hd.py 同步高清版。
+- game.js：Game.roster（招收館）、addRecruit/deposit/withdraw/topLevel/hasMember，存檔含 roster；主角也可寄放，地圖人物圖用 party[0].sprite。
+- 遇敵頻率降低：stepEncounter 至少多走 6 步、機率×0.6。諸葛貓妖成長率提高（hp17 atk1.0 int1.9 spd.4 lead1 luck1 grd.7 tp1）。
+- tests/recruit_test.js（12 項）。第三章企劃：典韋不死。

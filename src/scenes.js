@@ -1000,16 +1000,17 @@
         }
       }
       this.steps = (this.steps || 0) + 1;
-      if (this.steps < (enc.minSteps || 4) || Math.random() >= enc.rate) return;
+      if (this.steps < (enc.minSteps || 4) + 6 || Math.random() >= enc.rate * 0.6) return;   // 遇敵不要太頻繁：至少多走 6 步，機率打六折
       this.steps = 0;
       const groups = D.battle.groups[enc.group];
       let g = groups[Math.floor(Math.random() * groups.length)].slice();
-      // 打倒過的頭目，有機會帶殘部再度出現（捲土重來）
-      const rm = D.battle.rematch || {}, done = Object.keys(rm).filter(function (f) { return G.flags[f] && D.battle.enemies[rm[f] + '_r']; });
+      // 打倒過的頭目，有機會帶殘部再度出現（捲土重來）；有時一次來一到三位，打敗後有機會投降、可招收
+      const rm = D.battle.rematch || {}, done = Object.keys(rm).filter(function (f) { return G.flags[f] && D.battle.enemies[rm[f] + '_r'] && !G.hasMember(rm[f]); });
       if (!this._forceTerr && done.length && Math.random() < (D.battle.rematchRate || 0)) {
-        const id = rm[done[Math.floor(Math.random() * done.length)]] + '_r';
-        g[0] = id;   // 取代隊伍裡的第一名雜兵
-        if (g.length > 4) g.pop();   // 殘部很壯，少一個雜兵
+        const roll = Math.random(), n = Math.min(done.length, roll < 0.7 ? 1 : (roll < 0.95 ? 2 : 3)), ids = [];
+        for (let i = 0; i < n; i++) ids.push(rm[done.splice(Math.floor(Math.random() * done.length), 1)[0]] + '_r');
+        g.splice(0, n, ...ids);   // 取代隊伍裡前面的雜兵
+        while (g.length > 5) g.pop();
       }
       this.startBattle(g, false);
       this._forceTerr = null;
@@ -1046,9 +1047,10 @@
       if (a.give) Object.keys(a.give).forEach(function (id) { G.items[id] = (G.items[id] || 0) + a.give[id]; got.push(D.battle.items[id].name + '×' + a.give[id]); });
       if (a.heal) { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('隊伍的兵力與戰術點全部恢復了。'); }
       if (got.length) this.say((a.pay ? '付出 ' + a.pay + ' 金。' : '') + '獲得：' + got.join('、') + '。');
+      if (a.hall) { E.push(new HallScene()); return; }
       if (a.recruit) {
         if (G.flags['recruited_' + a.recruit]) return;
-        const m = G.makeMember(a.recruit), lv = G.party[0].level;
+        const m = G.makeMember(a.recruit), lv = G.topLevel();
         if (G.party.length >= 5) { this.say('隊伍已滿（最多 5 人）。'); return; }
         if (lv > 1) window.BattleLogic.gainExp(m, window.BattleLogic.expFor(lv));
         m.hp = m.hpMax; G.fullTp(m);
@@ -1173,7 +1175,7 @@
         } });
       });
       items.push({ y: cam.py, draw: function () {
-        drawSprite(wc, 0, self.p.dir, self.p.moving ? self.p.step ^ 1 : 0, cam.px - cam.x, cam.py - cam.y);
+        drawSprite(wc, (G.party[0] && G.party[0].sprite) || 0, self.p.dir, self.p.moving ? self.p.step ^ 1 : 0, cam.px - cam.x, cam.py - cam.y);
       } });
       items.sort(function (a, b) { return a.y - b.y; }).forEach(function (i) { i.draw(); });
     }
@@ -1204,5 +1206,81 @@
   }
 
   window.Updater = Update;
-  window.Scenes = { Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene, BattleForm: BattleFormScene, FieldSkill: FieldSkillScene, Quest: QuestScene };
+
+  // ---- 招收投降的將領：每位一個選擇（招收／放走）----
+  class RecruitOfferScene {
+    constructor(ids, done) { this.ids = ids.slice(); this.done = done; this.sel = 0; this.msg = null; this.t = 0; }
+    update(dt) {
+      this.t += dt;
+      if (this.msg) { if (E.hit.ok) { this.msg = null; this.ids.shift(); this.sel = 0; if (!this.ids.length) { E.pop(); if (this.done) this.done(); } } return; }
+      if (E.hit.up || E.hit.down) this.sel ^= 1;
+      if (E.hit.ok || E.hit.cancel) {
+        const id = this.ids[0], c = D.characters[id];
+        if (E.hit.ok && this.sel === 0) {
+          const where = G.addRecruit(id);
+          this.msg = c.name + (where === 'party' ? '加入了隊伍！' : '歸順了。隊伍已滿，已送往招收館，可到城鎮的招收館領他出來。');
+        } else this.msg = c.name + '拱手告辭，離開了。';
+      }
+    }
+    drawUI(c) {
+      const id = this.ids[0], ch = D.characters[id];
+      E.panel(c, 14, 20, 228, 108);
+      const k = E.images.sprites_hd ? 32 : 16;
+      c.fillStyle = '#10204a'; c.fillRect(24, 32, 40, 40);
+      c.drawImage(E.images.sprites_hd || E.images.sprites, 6 * k, ch.sprite * k, k, k, 28, 36, 32, 32);
+      E.text(c, ch.name + (ch.zi ? '（' + ch.zi + '）' : ''), 74, 32, { color: GOLD });
+      E.text(c, ch.title + '　' + ch.cls + '　' + ch.weapon, 74, 46, { size: 8, color: GREY });
+      E.text(c, '兵力 ' + ch.hp + '　武力 ' + ch.atk + '　智力 ' + ch.int + '　速度 ' + ch.spd, 74, 58, { size: 8 });
+      E.wrap(c, this.msg || (ch.name + '：敗給你們了……我願意歸順，從此跟著你們走，如何？'), 9, 206).slice(0, 4).forEach(function (line, i) { E.text(c, line, 24, 82 + i * 12, { size: 9 }); });
+      if (!this.msg) { E.panel(c, 160, 96, 70, 44); E.menuList(c, ['招收', '放走'], this.sel, 168, 102, 16); }
+      else if (Math.floor(E.time / 350) % 2 === 0) E.text(c, '▼', 226, 116, { size: 8, color: GOLD });
+    }
+  }
+
+  // ---- 招收館：隊伍（左）與館內（右）互相搬人，劉關張與主角也能寄放 ----
+  class HallScene {
+    constructor() { this.pane = 0; this.i = [0, 0]; this.msg = ''; }
+    list(p) { return p === 0 ? G.party : G.roster; }
+    update() {
+      const L = this.list(this.pane);
+      if (E.hit.cancel) { E.pop(); return; }
+      if (E.hit.left || E.hit.right) { this.pane ^= 1; this.msg = ''; }
+      if (L.length) {
+        if (E.hit.up) this.i[this.pane] = (this.i[this.pane] + L.length - 1) % L.length;
+        if (E.hit.down) this.i[this.pane] = (this.i[this.pane] + 1) % L.length;
+      }
+      this.i[0] = Math.min(this.i[0], Math.max(0, G.party.length - 1)); this.i[1] = Math.min(this.i[1], Math.max(0, G.roster.length - 1));
+      if (E.hit.ok && L.length) {
+        const k = this.i[this.pane], nm = L[k].name;
+        const err = this.pane === 0 ? G.deposit(k) : G.withdraw(k);
+        this.msg = err || (this.pane === 0 ? nm + '寄放在招收館了。' : nm + '加入了隊伍。');
+      }
+    }
+    drawUI(c) {
+      E.panel(c, 6, 6, 244, 212);
+      E.text(c, '招收館', 128, 12, { align: 'center', color: GOLD });
+      const self = this;
+      [0, 1].forEach(function (p) {
+        const x = 12 + p * 122, L = self.list(p), cur = self.pane === p;
+        E.text(c, p === 0 ? '隊伍 ' + G.party.length + '/' + G.MAX_PARTY : '館內 ' + G.roster.length + ' 人', x + 2, 28, { size: 8, color: cur ? GOLD : GREY });
+        const per = 9, top = Math.max(0, Math.min(self.i[p] - 4, L.length - per));
+        L.slice(top, top + per).forEach(function (m, j) {
+          const y = 42 + j * 17, sel = cur && top + j === self.i[p];
+          if (sel) { c.fillStyle = 'rgba(255,214,104,0.22)'; c.fillRect(x, y - 2, 116, 17); }
+          drawSprite(c, m.sprite, 'down', 0, x + 1, y - 1);
+          E.text(c, m.name, x + 20, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
+          E.text(c, 'Lv' + m.level, x + 78, y + 1, { size: 8, color: GREY });
+        });
+        if (!L.length) E.text(c, p === 0 ? '' : '（空）', x + 40, 60, { size: 8, color: GREY });
+      });
+      const m = this.list(this.pane)[this.i[this.pane]];
+      if (m) {
+        const ch = D.characters[m.id] || {};
+        E.text(c, m.name + '　' + (ch.cls || '') + '　' + (ch.weapon || '') + '　兵力 ' + m.hpMax + '　武力 ' + m.atk + '　智力 ' + m.int, 14, 198, { size: 7, color: '#d8e0f0' });
+      }
+      E.text(c, this.msg || '左右切換　Z 搬人　X 離開', 14, 208, { size: 7, color: this.msg ? '#8affa0' : GREY });
+    }
+  }
+
+  window.Scenes = { RecruitOffer: RecruitOfferScene, Hall: HallScene, Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene, BattleForm: BattleFormScene, FieldSkill: FieldSkillScene, Quest: QuestScene };
 })();

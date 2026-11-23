@@ -139,6 +139,13 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         this.lines.push('戰鬥勝利！');
         this.lines.push('獲得 ' + v.share + ' 經驗值、' + v.gold + ' 金');
         BL.drops(b).forEach(function (id) { G.addGear(id); self.lines.push('撿到裝備：' + D.equipment[id].name); });
+        // 可招收的將領：敗陣後有機會投降（隊伍統率越高越容易），之後讓玩家選擇招收或放走
+        this.offers = [];
+        const lead = Math.max.apply(null, b.party.map(function (u) { return u.lead || 0; }).concat([0])), chance = Math.min(D.battle.surrenderMax || 0.25, (D.battle.surrenderBase || 0.1) + lead * 0.002);
+        b.enemies.forEach(function (e) {
+          const d = D.battle.enemies[e.id];
+          if (d && d.recruit && !G.hasMember(d.recruit) && Math.random() < chance) { self.offers.push(d.recruit); self.lines.push(e.name + '敗陣，願意歸順！'); }
+        });
         b.party.forEach(function (u) {
           if (u.ref.hp <= 0) u.ref.hp = 1;
           else {
@@ -305,9 +312,10 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       if (!E.hit.ok) return;
       this.li++;
       if (this.li < this.lines.length) { this.msgText = this.lines[this.li]; return; }
-      const r = this.result, cb = this.opts.onEnd;
+      const r = this.result, cb = this.opts.onEnd, offers = this.offers || [];
       E.pop();
-      if (cb) cb(r);
+      if (r === 'win' && offers.length) E.push(new window.Scenes.RecruitOffer(offers, function () { if (cb) cb(r); }));
+      else if (cb) cb(r);
     }
 
     // ---- 繪製 ----

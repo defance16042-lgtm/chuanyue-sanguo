@@ -125,7 +125,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // ---- 隨機遇敵：Math.random=0 → 一定遇敵；走 4 步
   await page.evaluate(() => { Math.random = () => 0; Engine.replaceAll(new Scenes.Map('field', { x: 11, y: 2, dir: 'down' })); });
   await sleep(300);
-  for (let i = 0; i < 5; i++) { await tap('ArrowDown', 60, 150); if ((await S()).scene === 'BattleScene') break; }
+  for (let i = 0; i < 14; i++) { await tap('ArrowDown', 60, 150); if ((await S()).scene === 'BattleScene') break; }
   s = await S(); check('random encounter triggers in the field', s.scene === 'BattleScene', { sc: s.scene, pos: s.pos });
   // 逃跑：用煙霧彈（一定逃走）。cmd → 道具 → 煙霧彈
   for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
