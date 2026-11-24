@@ -108,7 +108,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       this.msgText = party[i].name + '要怎麼做？';
     }
     beginExec() {
-      this.order = BL.order(this.b); this.oi = 0; this.state = 'exec'; this.queue = []; this.wait = 0;
+      this.order = BL.order(this.b); this.oi = 0; this.state = 'exec'; this.queue = []; this.wait = 0; this.roundFx = false;
     }
     stepExec() {
       const b = this.b;
@@ -116,8 +116,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         const o = BL.outcome(b);
         if (o) return this.finish(o);
         if (this.oi >= this.order.length) {
-          const fe = BL.fireEvents(b).concat(BL.statusEvents(b));
-          if (fe.length) { this.queue = fe; break; }
+          // 回合結束的中毒、火焰、回復：每回合只結算一次（之前事件播完會再回來這裡，造成一回合扣好幾次）
+          if (!this.roundFx) { this.roundFx = true; const fe = BL.fireEvents(b).concat(BL.statusEvents(b)); if (fe.length) { this.queue = fe; break; } }
           BL.endRound(b);
           const o2 = BL.outcome(b);
           if (o2) return this.finish(o2);
@@ -631,6 +631,13 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         const n = Math.max(12, Math.round((rx + ry) * 3)); c.fillStyle = col;
         for (let i = 0; i < n; i++) { const a = i / n * 6.2832; c.fillRect(Math.round(cx + Math.cos(a) * rx), Math.round(cy + Math.sin(a) * ry), 1, 1); }
       };
+      // 自繪 64px 像素特效圖集（assets/fx64.png，tools/build_fx64.py 產生）
+      const FXD = window.FX64, FXI = E.images.fx64;
+      if (FXD && FXI && FXD.rows[f.fx] != null) {
+        const fr = Math.min(FXD.frames - 1, Math.floor(k * FXD.frames)), lvl = { fire: 1, bolt: 1, heal: 1, thunder: 1, rock: 1, smoke: 1, water: 1 }[f.fx] ? 0.8 + 0.07 * Math.min(L || 1, 5) : 1, sz = Math.round(64 * lvl);
+        c.drawImage(FXI, fr * 64, FXD.rows[f.fx] * 64, 64, 64, x - sz / 2, y - sz / 2 - 6, sz, sz);
+        return;
+      }
       c.save();
       if (f.fx === 'fire') {
         const fade = k > 0.8 ? (1 - k) / 0.2 : 1, n = 1 + L, big = L >= 3, rows = big ? FLB : FL, w = rows[0][0].length, hgt = rows[0].length, sc = 1 + (L >= 5 ? 1 : 0) * (big ? 0 : 1);

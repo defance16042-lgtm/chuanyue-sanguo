@@ -63,8 +63,7 @@
   Game.hasMember = function (id) { return (Game.party || []).concat(Game.roster || []).some(function (m) { return m.id === id; }); };
   // 招收一位將領：隊伍有空位就直接入隊，否則送進招收館。回傳 'party' 或 'hall'
   Game.addRecruit = function (id) {
-    const m = Game.makeMember(id), lv = Game.topLevel();
-    if (lv > 1 && window.BattleLogic) window.BattleLogic.gainExp(m, window.BattleLogic.expFor(lv));
+    const m = Game.makeMember(id);   // 招收的將領從 1 級開始練
     m.hp = m.hpMax; Game.fullTp(m);
     Game.flags['recruited_' + id] = true;
     if (Game.party.length < Game.MAX_PARTY) { Game.party.push(m); return 'party'; }
@@ -133,9 +132,14 @@
       Game.flags = d.flags || {};
       Game.party = d.party;
       Game.roster = Array.isArray(d.roster) ? d.roster.filter(function (m) { return m && D.characters[m.id]; }) : [];
-      Game.roster.forEach(function (m) { m.equip = m.equip || {}; m.allocatable = false; Game.recalc(m); });
+      const migExp = function (m) {   // 舊存檔經驗是累積制 → 換成「本級已累積」
+        if (m.expV !== 2 && window.BattleLogic) { m.exp = Math.max(0, (m.exp || 0) - window.BattleLogic.expFor(m.level)); }
+        m.expV = 2;
+      };
+      Game.roster.forEach(function (m) { migExp(m); m.equip = m.equip || {}; m.allocatable = false; Game.recalc(m); });
       Game.party.forEach(function (m) {
         const c = D.characters[m.id] || {};
+        migExp(m);
         if (typeof m.lead !== 'number') m.lead = typeof m.cha === 'number' ? Math.round(m.cha * 0.8) + 2 : (c.lead || 8);
         if (typeof m.luck !== 'number') m.luck = c.luck || 8;
         if (typeof m.grd !== 'number') m.grd = c.grd || 6;

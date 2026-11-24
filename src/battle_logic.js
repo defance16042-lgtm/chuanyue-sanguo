@@ -389,6 +389,7 @@
   // 升到第 n 級所需的累積經驗：沒有等級上限，越高級每一級需要的經驗越多
   //   每級增量：2 級 12；3～9 級 10×(n-1)；10 級起 10×(n-1) + (n-1)²/6，一路遞增；改成立方曲線：每級增量 = 23 + 10j + 0.9j² + 0.02j³（j = 級數 - 2），高等級升級要的經驗暴增
   const expCache = [0, 0];
+  BL.expNeed = function (lv) { return BL.expFor(lv + 1) - BL.expFor(lv); };
   BL.expFor = function (n) {
     if (n <= 1) return 0;
     for (let k = expCache.length; k <= n; k++) {
@@ -468,8 +469,10 @@
   BL.gainExp = function (member, amount, rng) {
     const out = [];
     rng = rng || Math.random;
-    member.exp += amount;
-    while (member.exp >= BL.expFor(member.level + 1)) {
+    // member.exp = 目前這一級已累積的經驗，升級就扣掉該級所需並從餘數重新累積
+    member.exp += amount; member.expV = 2;
+    while (member.exp >= BL.expNeed(member.level)) {
+      member.exp -= BL.expNeed(member.level);
       member.level++;
       const c = root.DATA.characters[member.id] || {}, g = c.growth || {};
       const gain = { name: member.name, level: member.level, hp: 0, atk: 0, int: 0, spd: 0, lead: 0, luck: 0, grd: 0, tp: 0 };

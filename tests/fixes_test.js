@@ -61,6 +61,28 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     return { last: last.label, list, act, formation: bs.b.formation && bs.b.formation.id, tpSpent: tp0 - bs.b.party[0].tp, ev: ev.map(e => e.type) };
   });
   check('計謀頁最後有「變陣」，可換陣形（花 2 戰術點）', fm.last === '變陣…' && fm.act && fm.act.type === 'formation' && fm.formation === 'yulin' && fm.tpSpent === 2, fm);
+  const c3 = await page.evaluate(() => {
+    const D = DATA, o = {};
+    // 店家招牌：每間有商人的屋子，外面的門都有字
+    o.labels = Object.keys(D.doorLabels).length;
+    o.zx = (D.doorLabels.zhuoxian || []).map(l => l.text).join();
+    // 助戰角色加入後，原地的 NPC 消失
+    Game.fresh(); Game.flags = { intro_done: true }; Game.party = [Game.makeMember('nyao')];
+    Engine.replaceAll(new Scenes.Map('field')); const m = Engine.top(); m.banner = 0;
+    const npc = m.npcs.find(n => n.id === 'zoujing');
+    o.before = m.visible(npc);
+    m.runAct({ guest: 'zoujing' }); o.after = m.visible(npc); o.inParty = Game.party.some(x => x.id === 'zoujing');
+    // 行走跟隨：前三位隊員跟著隊長
+    Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei', 'zhangjiao'].map(Game.makeMember);
+    Engine.replaceAll(new Scenes.Map('zhuoxian', { x: 8, y: 8, dir: 'down' })); const mm = Engine.top(); mm.banner = 0;
+    const cam = mm.camera(); const f0 = mm.followers(cam);
+    mm.p.x = 9; cam.px += 16; const f1 = mm.followers(Object.assign({}, cam, { px: cam.px }));
+    o.followers = f0.length;
+    return o;
+  });
+  check('每間商店的門外都有招牌（雜貨店／武器店／防具店／客棧）', c3.labels >= 8 && /雜貨店|防具店|武器店/.test(c3.zx), [c3.labels, c3.zx]);
+  check('助戰角色加入後，原本站在外面的 NPC 不見了', c3.before === true && c3.after === false && c3.inParty, c3);
+  check('走路時前三位隊員跟隨顯示', c3.followers === 3, c3.followers);
   check('沒有 JS 錯誤', errors.length === 0, errors);
   console.log(pass + ' passed, ' + fail + ' failed');
   await br.close(); process.exit(fail ? 1 : 0);

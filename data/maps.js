@@ -110,7 +110,7 @@ window.DATA.maps = {
       { x: 12, y: 19, to: 'world', tx: 46, ty: 11, dir: 'down' }
     ],
     npcs: [
-      { id: 'zoujing', name: '鄒靖', sprite: 13, x: 13, y: 2, dir: 'left', dialogue: 'zoujing', alt: { flag: 'boss_down', dialogue: 'zoujing_after' } },
+      { id: 'zoujing', name: '鄒靖', hideIf: 'guest_zoujing', sprite: 13, x: 13, y: 2, dir: 'left', dialogue: 'zoujing', alt: { flag: 'boss_down', dialogue: 'zoujing_after' } },
       { id: 'soldierA', name: '官兵', sprite: 9, x: 14, y: 3, dir: 'left', dialogue: 'soldier' },
       { id: 'soldierB', name: '官兵', sprite: 9, x: 9, y: 2, dir: 'right', dialogue: 'soldier' },
       { id: 'boss1', name: '程遠志', sprite: 5, x: 11, y: 18, dir: 'up', dialogue: 'boss_chengyuanzhi', hideIf: 'boss_down' }

@@ -29,7 +29,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     await page.waitForTimeout(frames || 150);
     const v = await page.evaluate(() => {
       const R = window.__rec, out = [];
-      R.texts.forEach(t => {
+      R.texts.filter(t => t.size !== 6).forEach(t => {   // size 6 是大地圖上的店家招牌（畫在地圖座標）
         if (t.x1 > 255.5 || t.x0 < 0 || t.y + t.size > 224) out.push({ screen: true, s: t.s, x1: Math.round(t.x1), y: t.y });
         const ps = R.panels.filter(p => t.x0 >= p.x - 0.5 && t.x0 < p.x + p.w && t.y >= p.y && t.y < p.y + p.h).sort((a, b) => a.w * a.h - b.w * b.h);
         if (ps.length) { const p = ps[0]; if (t.x1 > p.x + p.w - 3 || t.y + t.size > p.y + p.h + 1) out.push({ panel: [p.x, p.y, p.w, p.h], s: t.s, x1: Math.round(t.x1), y: t.y }); }

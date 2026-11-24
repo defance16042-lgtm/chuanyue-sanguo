@@ -638,7 +638,7 @@
       drawFace(c, m, 196, 16);
       E.text(c, m.name + (m.guest ? '（助戰）' : ''), 20, 16, { size: 12, color: GOLD });
       E.text(c, (ch.zi ? '字' + ch.zi + '　' : '') + (ch.title || ''), 20, 32, { size: 8, color: GREY });
-      E.text(c, 'Lv ' + m.level + '　經驗 ' + m.exp + ' / ' + window.BattleLogic.expFor(m.level + 1), 20, 44, { size: 8 });
+      E.text(c, 'Lv ' + m.level + '　經驗 ' + m.exp + ' / ' + window.BattleLogic.expNeed(m.level), 20, 44, { size: 8 });
       // 分頁標籤
       STATUS_PAGES.forEach(function (name, i) {
         const x = 20 + i * 43, on = i === this.page;
@@ -911,13 +911,32 @@
         Object.keys(bf).forEach(function (t) { if (G.flags[bf[t]]) G.flags['seen_' + t] = true; });
       }
     }
+    // 跟隨：記錄隊長走過的路徑，後面的隊員依序站在路徑上（每人相隔 15 像素）
+    followers(cam) {
+      const tr = this.trail || (this.trail = []), last = tr[tr.length - 1];
+      if (!last || last.mapId !== this.mapId) { this.trail = [{ x: cam.px, y: cam.py, d: 0, dir: this.p.dir, mapId: this.mapId }]; }
+      else if (Math.abs(last.x - cam.px) + Math.abs(last.y - cam.py) >= 1) {
+        tr.push({ x: cam.px, y: cam.py, d: last.d + Math.abs(last.x - cam.px) + Math.abs(last.y - cam.py), dir: this.p.moving ? this.p.dir : last.dir, mapId: this.mapId });
+        if (tr.length > 120) tr.splice(0, tr.length - 120);
+      }
+      const t = this.trail, head = t[t.length - 1], out = [];
+      G.party.slice(1, 4).forEach(function (m, k) {
+        const want = head.d - (k + 1) * 15;
+        let i = t.length - 1; while (i > 0 && t[i - 1].d > want) i--;
+        const a = t[Math.max(0, i - 1)], b = t[i], span = b.d - a.d, f = span > 0 ? Math.min(1, Math.max(0, (want - a.d) / span)) : 1;
+        const x = a.x + (b.x - a.x) * f, y = a.y + (b.y - a.y) * f, moving = Math.abs(b.d - head.d) > 0.5 || this.p.moving;
+        let dir = b.dir; if (b.x !== a.x || b.y !== a.y) dir = Math.abs(b.x - a.x) > Math.abs(b.y - a.y) ? (b.x > a.x ? 'right' : 'left') : (b.y > a.y ? 'down' : 'up');
+        out.push({ sprite: m.sprite, x: x, y: y, dir: dir, step: this.p.moving ? (Math.floor(want / 6) & 1) : 0 });
+      }, this);
+      return out;
+    }
     syncPos() { G.pos = { x: this.p.x, y: this.p.y, dir: this.p.dir }; }
     tileAt(x, y) {
       if (x < 0 || y < 0 || x >= this.w || y >= this.h) return -1;
       return D.legend[this.map.tiles[y][x]];
     }
     terrainHere() { return D.terrainOf[this.tileAt(this.p.x, this.p.y)] || 'plain'; }
-    visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf]); }
+    visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf]) && !(G.party.some(function (m) { return m.guest && m.name === n.name; })); }   // 已經加入隊伍的助戰角色，原地的 NPC 會消失
     npcAt(x, y) { return this.npcs.find(function (n) { return n.x === x && n.y === y && this.visible(n); }, this); }
     objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]); }); }
     blocked(x, y) {
@@ -1217,10 +1236,18 @@
           wc.drawImage(E.images.objects, (Math.floor(E.time / 450) % 2) * 16, 0, 16, 16, o.x * T - cam.x, o.y * T - cam.y, 16, 16);
         } });
       });
+      this.followers(cam).forEach(function (f) {   // 隊伍第 2~4 位跟在後面走
+        items.push({ y: f.y, draw: function () { drawSprite(wc, f.sprite, f.dir, f.step, f.x - cam.x, f.y - cam.y); } });
+      });
       items.push({ y: cam.py, draw: function () {
         drawSprite(wc, (G.party[0] && G.party[0].sprite) || 0, self.p.dir, self.p.moving ? self.p.step ^ 1 : 0, cam.px - cam.x, cam.py - cam.y);
       } });
       items.sort(function (a, b) { return a.y - b.y; }).forEach(function (i) { i.draw(); });
+      (D.doorLabels && D.doorLabels[this.mapId] || []).forEach(function (l) {   // 店家招牌
+        const w = E.measure(wc, l.text, 6) + 6, x = Math.round(l.x * T + 8 - w / 2 - cam.x), y = Math.round(l.y * T - 9 - cam.y);
+        wc.fillStyle = '#3a2410'; wc.fillRect(x, y, w, 9); wc.fillStyle = '#e8c868'; wc.fillRect(x, y, w, 1); wc.fillRect(x, y + 8, w, 1); wc.fillRect(x, y, 1, 9); wc.fillRect(x + w - 1, y, 1, 9);
+        E.text(wc, l.text, x + w / 2, y + 1, { size: 6, color: '#ffe9a0', align: 'center' });
+      });
     }
     drawUI(c) {
       if (this.hidden) return;

@@ -14,6 +14,12 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     o.count = ids.length;
     o.defs = ids.every(id => D.characters[id] && D.characters[id].recruit && D.battle.enemies[id + '_r'].recruit === id && !D.battle.enemies[id].recruit);
     o.mainNo = ids.every(id => !D.battle.enemies[id].recruit);
+    // 專屬計謀、軍師計、頭像、1 級起
+    o.skills = ids.every(id => (D.battle.charSkills[id] || []).length >= 4 && (D.battle.advisorSkills[id] || []).length === 2 && D.battle.charSkills[id].every(e => D.battle.skills[Array.isArray(e) ? e[1] : e]) && D.battle.advisorSkills[id].every(e => D.battle.skills[e[1]] && /^adv_/.test(e[1])));
+    o.portraits = ids.every(id => typeof D.characters[id].portrait === 'number' && D.characters[id].portrait >= 58);
+    o.unique = new Set(ids.reduce((a, id) => a.concat(D.battle.charSkills[id].map(e => D.battle.skills[Array.isArray(e) ? e[1] : e].name)), [])).size === ids.length * 4;
+    Game.fresh(); Game.party = ['nyao'].map(Game.makeMember); Game.party[0].level = 30; o.lv1 = (Game.addRecruit('lubu'), Game.party[1].level);
+    o.lv1Skills = BattleLogic.skillsFor(Game.party[1], {}).map(s => s.name).join();
     o.rate = D.battle.surrenderMax <= 0.25 && D.battle.surrenderBase <= 0.1;
     // 每座城鎮都有招賢官，站得到、走得到
     const towns = Object.keys(D.worldTowns);
@@ -53,6 +59,9 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
   });
   console.log(JSON.stringify(r));
   check('主線打倒過的頭目殘部都能招收，主線頭目本人不能', r.count >= 14 && r.defs && r.mainNo, r.count);
+  check('招收的將領有專屬計謀(4)與軍師計(2)，名字各不相同', r.skills && r.unique);
+  check('每位都有頭像', r.portraits);
+  check('招收的將領從 1 級開始', r.lv1 === 1 && /畫戟連擊/.test(r.lv1Skills), [r.lv1, r.lv1Skills]);
   check('投降機率不高（基本 10%、上限 25%）', r.rate);
   check('每座城鎮都有招賢官且不重疊', r.officers && r.officerOk);
   check('招收：有空位入隊、滿了進招收館', r.add1 === 'party' && r.partyLen === 8 && r.add2 === 'hall' && r.rosterLen === 1 && r.flag);

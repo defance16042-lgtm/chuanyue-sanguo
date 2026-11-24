@@ -171,3 +171,15 @@
 - ItemScene 改成背包：tab 0 道具／1 裝備（G.equipInv 庫存）／2 兵書；選人視窗獨立（mode 'target'）；兵書改成 member.book 使用中才有計謀（BL.skillsFor 只加 member.book；Game.equipBook/autoBook/fixBooks，restore 時舊存檔自動分配）。
 - 戰鬥：計謀頁最後「變陣…」→ 陣形列表 → action {type:'formation',form}（BL.perform 扣 2 TP、applyFormation、事件 'formation' 讓小人滑到新站位）。
 - tests/overflow_test.js：用 hook E.text/E.panel 檢查各畫面文字不超出畫面與視窗框；tests/fixes_test.js 含變陣。
+
+## v0.48.0 批次C（城鎮與同伴）
+- data/doorlabels.js：由「室內地圖裡有商人 NPC／inn」反推，D.doorLabels[mapId]=[{x,y,text}]，MapScene.draw 末段畫招牌。
+- MapScene.visible：隊伍裡的助戰（guest）同名 NPC 會隱藏；鄒靖 NPC 補 hideIf。MapScene.followers(cam)：路徑記錄＋每人相隔 15px，隊伍第 2~4 位跟隨。
+- 招收：Game.addRecruit 改 1 級起；data/recruit_skills.js 為 16 位生成專屬 4 招＋軍師計 2 招（B.charSkills/advisorSkills）。
+- 大頭像：tools/build_portraits_extra.py（需 /tmp/missing_portraits.json：用 node 載入 data 列出「有講話但沒頭像」的 speaker 與其 NPC sprite 列；格式 [{name,row}]），把 portraits.png 擴充到 116 格並產生 data/portraits_extra.js（recruit portrait 與 D.npcPortraits）。
+
+## v0.49.0（批次C收尾＋批次D）
+- 經驗值改為「本級已累積」：`member.exp` 每升一級扣掉該級所需（`BattleLogic.expNeed(level)`）後從餘數重算；`expFor(n)` 仍是累積表（測試／招收設定等級用）。舊存檔 `restore` 以 `expV` 判斷並換算。
+- 毒／火／回復每回合只結算一次（`BattleScene.roundFx` 旗標，之前事件播完會重複結算，一回合扣掉整個毒期）。
+- 特效改用自繪 64px 像素圖集：`tools/build_fx64.py` → `assets/fx64.png`（每列一種特效、8 幀）＋ `data/fx64.js`（列號）；`drawFx` 優先用圖集，沒有的名稱才退回舊的程式繪製。新增特效：在 build_fx64.py 加 `@fx('名稱')` 函式再重跑。
+- tests/batchd_test.js 新增；tests/overflow_test.js 略過 size 6 的店家招牌字。
