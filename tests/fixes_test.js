@@ -47,6 +47,20 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     return { blocked, opened: !!Game.flags['chest_' + c.id] || Engine.stack.length > 1 };
   });
   check('寶箱不擋路，踩上去會開', ch.blocked === false && ch.opened, ch);
+  const fm = await page.evaluate(() => {
+    Game.fresh(); Game.flags = { intro_done: true }; Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(Game.makeMember); Game.party[0].level = 12;
+    Engine.replaceAll(new Scenes.Map('zhuoxian')); Engine.top().banner = 0; Engine.top().startBattle(['turban', 'turban'], false);
+    const bs = Engine.top(); bs.cur = 0; bs.state = 'cmd'; const tp0 = bs.b.party[0].tp; bs.sel = 1;
+    Engine.hit.ok = true; bs.update(16); Engine.hit.ok = false;
+    const last = bs.sub[bs.sub.length - 1];
+    bs.subSel = bs.sub.length - 1; Engine.hit.ok = true; bs.update(16); Engine.hit.ok = false;
+    const list = bs.sub.map(x => x.label);
+    const yu = bs.sub.findIndex(x => x.form === 'yulin'); bs.subSel = yu; Engine.hit.ok = true; bs.update(16); Engine.hit.ok = false;
+    const act = bs.plans[0];
+    const ev = BattleLogic.perform(bs.b, bs.b.party[0], act);
+    return { last: last.label, list, act, formation: bs.b.formation && bs.b.formation.id, tpSpent: tp0 - bs.b.party[0].tp, ev: ev.map(e => e.type) };
+  });
+  check('計謀頁最後有「變陣」，可換陣形（花 2 戰術點）', fm.last === '變陣…' && fm.act && fm.act.type === 'formation' && fm.formation === 'yulin' && fm.tpSpent === 2, fm);
   check('沒有 JS 錯誤', errors.length === 0, errors);
   console.log(pass + ' passed, ' + fail + ' failed');
   await br.close(); process.exit(fail ? 1 : 0);

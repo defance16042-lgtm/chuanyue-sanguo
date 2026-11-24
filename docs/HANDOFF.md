@@ -166,3 +166,8 @@
 ## v0.46.0 批次A（戰鬥與資料小修）
 - newBattle 敵方 slice(0,5)；逃跑＝一人按全隊一起（其餘 defend，成功率用全隊最快者）；毒計 chance/pct 下調（battle_logic dot 判定）；關羽 sea A（data/terrain.js）；偵察 2 頁（scoutPage，Z 換頁）；D.worldTowns 地圖刪除 encounter（data/recruit.js 末段）；寶箱/陶罐 blocked() 不擋、stepOnObj() 走上去打開。tests/fixes_test.js。
 - 待辦（使用者清單，批次B/C）：背包分頁（道具/裝備/兵書）、兵書需裝備才有計謀、戰鬥換陣形頁、道具使用介面分離、全介面文字不超框；店家招牌、助戰加入後 NPC 消失、行走跟隨前三位、招收武將 1 級起＋專屬計謀與軍師計、每位武將都有大頭像（含招收將領，96px 級）。
+
+## v0.47.0 批次B（背包與兵書）
+- ItemScene 改成背包：tab 0 道具／1 裝備（G.equipInv 庫存）／2 兵書；選人視窗獨立（mode 'target'）；兵書改成 member.book 使用中才有計謀（BL.skillsFor 只加 member.book；Game.equipBook/autoBook/fixBooks，restore 時舊存檔自動分配）。
+- 戰鬥：計謀頁最後「變陣…」→ 陣形列表 → action {type:'formation',form}（BL.perform 扣 2 TP、applyFormation、事件 'formation' 讓小人滑到新站位）。
+- tests/overflow_test.js：用 hook E.text/E.panel 檢查各畫面文字不超出畫面與視窗框；tests/fixes_test.js 含變陣。

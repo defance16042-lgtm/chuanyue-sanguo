@@ -18,7 +18,7 @@
     if (member.id === 'nyao' && flags && flags.route && B.routeSkills[flags.route]) B.routeSkills[flags.route].forEach(add);
     const G0 = root.Game;
     if (G0 && G0.advisor === member.id && B.advisorSkills && B.advisorSkills[member.id]) B.advisorSkills[member.id].forEach(add);   // 軍師專屬計謀
-    if (G0 && G0.flags && B.bookSkills) Object.keys(B.bookSkills).forEach(function (k) { if (G0.flags['book_' + k]) add(B.bookSkills[k]); });   // 兵書：全隊都會
+    if (G0 && G0.flags && B.bookSkills && member.book && B.bookSkills[member.book] && G0.flags['book_' + member.book]) add(B.bookSkills[member.book]);   // 兵書：使用中的才有
     const gone = {};   // 高階技能取代低階技能
     ids.forEach(function (id) { let r = B.skills[id] && B.skills[id].replaces; while (r && !gone[r]) { gone[r] = 1; r = B.skills[r] && B.skills[r].replaces; } });
     return ids.filter(function (id) { return !gone[id]; }).map(function (id) { return Object.assign({ id: id, adv: /^adv_/.test(id) }, B.skills[id]); });
@@ -183,6 +183,15 @@
     if (t0 === 'defend') {
       a.defending = true;
       ev.push({ type: 'msg', text: a.name + '擺出防禦架勢' });
+      return ev;
+    }
+
+    if (t0 === 'formation') {
+      if (a.tp < 2 || !BL.formationUsable(action.form, root.Game ? root.Game.party : b.party.map(function (u) { return u.ref; }))) { ev.push({ type: 'msg', text: '陣形變換失敗' }); return ev; }
+      a.tp -= 2;
+      BL.applyFormation(b, action.form);
+      ev.push({ type: 'msg', text: a.name + '號令變陣，擺出' + root.DATA.formations[action.form].name + '！' });
+      ev.push({ type: 'formation' });
       return ev;
     }
 

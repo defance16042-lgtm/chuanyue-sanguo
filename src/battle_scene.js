@@ -3,6 +3,8 @@
   const E = window.Engine, D = window.DATA, G = window.Game, BL = window.BattleLogic, B = D.battle;
   const W = E.W, GOLD = '#ffd668', GREY = '#8a8aa0', RED = '#ff7a6a', GREEN = '#8affa0';
   // 排成兩欄（欄優先）：左 攻擊／計謀／道具，右 全體攻擊／防禦／逃跑
+const FORM_TP = 2;
+const D0 = window.DATA;
 const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', '偵察'];
   const MSG_MS = 520, DMG_MS = 480;
   // 戰鬥小人（24×24，有武器與揮砍／施法動作）所在的列；沒有的人暫時用地圖小人
@@ -51,6 +53,10 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     playEvent(ev) {
       const self = this;
       if (ev.type === 'msg') { this.msgText = ev.text; this.wait = MSG_MS; }
+      else if (ev.type === 'formation') {
+        this.b.party.forEach(function (u, i) { const f = self.b.formation; u.tx = ROW_X[f && f.rows ? (f.rows[i] == null ? 1 : f.rows[i]) : 1]; if (!f || !f.rows) u.tx = 58; });
+        this.wait = 0;
+      }
       else if (ev.type === 'act') { ev.actor.anim = { kind: ev.kind, t: 0 }; this.wait = 0; }
       else if (ev.type === 'fx') {
         const p = this.unitPos(ev.target), h = ev.target.ch || 32;
@@ -234,7 +240,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }
       else if (c === '計謀') {
         this.sub = BL.skillsFor(u.ref, G.flags).map(function (s) { return { label: (s.adv ? '軍・' : '') + s.name, right: s.tp + 'TP', disabled: u.tp < s.tp, skill: s }; });
-        if (!this.sub.length) { this.msgText = '還沒有學會計謀'; return; }
+        // 最後一項固定是「變陣」：花 2 戰術點，當場換陣形（只在這場戰鬥有效）
+        this.sub.push({ label: '變陣…', right: FORM_TP + 'TP', disabled: u.tp < FORM_TP, formMenu: true, def: { desc: '花 ' + FORM_TP + ' 戰術點，換成別的陣形。換了之後站位與能力馬上改變。' } });
         this.state = 'skill'; this.subSel = 0;
       } else {
         const inv = G.items || {};
@@ -261,10 +268,18 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         }
         this.subSel = Math.min(this.subSel, n - 1);
       }
-      if (E.hit.cancel) { this.state = 'cmd'; return; }
+      if (E.hit.cancel) { if (this.formPage) { this.formPage = false; this.state = 'cmd'; this.sel = 1; } else this.state = 'cmd'; return; }
       if (!E.hit.ok) return;
       const it = this.sub[this.subSel];
       if (it.disabled) return;
+      if (it.formMenu) {
+        const cur = this.b.formation ? this.b.formation.id : 'none', party = G.party;
+        this.sub = D0.formationOrder.filter(function (id) { return BL.formationUsable(id, party); }).map(function (id) {
+          return { label: D0.formations[id].name + (id === cur ? '（目前）' : ''), right: '', disabled: id === cur, form: id, def: { desc: D0.formations[id].desc } };
+        });
+        this.subSel = 0; this.state = 'skill'; this.formPage = true; return;
+      }
+      if (it.form) { this.formPage = false; this.commit({ type: 'formation', form: it.form }); return; }
       if (it.skill) {
         const k = it.skill.target;
         if (it.skill.choice) {   // 計謀可選單體／全體
@@ -563,7 +578,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         });
       } else if (this.state === 'skill' || this.state === 'item') {
         const PER = 6, nn = this.sub.length, pages = Math.ceil(nn / PER), pg = Math.floor(this.subSel / PER);
-        E.text(c, this.state === 'skill' ? '計謀' : '道具', 74, 168, { size: 9, color: GOLD });
+        E.text(c, this.state === 'skill' ? (this.formPage ? '變陣' : '計謀') : '道具', 74, 168, { size: 9, color: GOLD });
         if (pages > 1) E.text(c, '◀ ' + (pg + 1) + '/' + pages + ' ▶　左右翻頁', 248, 169, { size: 8, color: GREY, align: 'right' });
         for (let k = 0; k < PER; k++) {
           const i = pg * PER + k; if (i >= nn) break;

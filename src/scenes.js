@@ -284,7 +284,7 @@
     }
     drawUI(c) {
       E.panel(c, 168, 8, 80, 172);
-      E.menuList(c, ['角色資料', '隊伍編成', '陣形', '裝備', '道具', '計謀', '任務', '讀取', '回標題', '關閉'], this.sel, 178, 16, 13);
+      E.menuList(c, ['角色資料', '隊伍編成', '陣形', '裝備', '背包', '計謀', '任務', '讀取', '回標題', '關閉'], this.sel, 178, 16, 13);
       E.text(c, '金 ' + (G.gold || 0), 178, 152, { size: 9, color: GOLD });
       E.text(c, '存檔請到', 178, 164, { size: 7, color: GREY });
       E.text(c, '藍色水晶旁', 178, 172, { size: 7, color: GREY });
@@ -498,65 +498,98 @@
   }
 
   // ------------------------------------------------------------ 道具（地圖上使用）
+  // 背包：分成「道具／裝備／兵書」三頁（左右鍵換頁）。道具可對隊員使用；裝備列出沒穿的庫存；兵書可指定誰「使用中」。
+  const MODNAME = { pow: '攻擊', atk: '武力', int: '智力', def: '防禦', spd: '速度', lead: '統率', luck: '運氣', grd: '守備' };
   class ItemScene {
-    constructor() { this.sel = 0; this.target = -1; this.msg = ''; }
-    list() { const inv = G.items || {}, B = D.battle; return Object.keys(B.items).filter(function (k) { return inv[k] > 0 && !B.items[k].escape && !B.items[k].quest; }); }
-    books() { const bs = D.battle.bookSkills || {}; return Object.keys(bs).filter(function (k) { return G.flags['book_' + k]; }); }   // 已經讀過的兵書（全隊都會，不能使用，只能查看）
+    constructor() { this.tab = 0; this.sel = [0, 0, 0]; this.mode = 'list'; this.pick = 0; this.msg = ''; }
+    useItems() { const inv = G.items || {}, B = D.battle; return Object.keys(B.items).filter(function (k) { return inv[k] > 0 && !B.items[k].escape && !B.items[k].quest; }); }
+    list() { return this.useItems(); }
+    gear() { const inv = G.equipInv || {}; return Object.keys(inv).filter(function (k) { return inv[k] > 0 && D.equipment[k]; }); }
+    books() { const bs = D.battle.bookSkills || {}; return Object.keys(bs).filter(function (k) { return G.flags['book_' + k]; }); }   // 已經讀過的兵書
+    rows() { return this.tab === 0 ? this.useItems() : this.tab === 1 ? this.gear() : this.books(); }
     update() {
-      const list = this.list(), books = this.books(), total = list.length + books.length;
-      if (this.target < 0) {
-        if (!total) { if (E.hit.cancel || E.hit.ok) E.pop(); return; }
-        this.sel = Math.min(this.sel, total - 1);
-        if (E.hit.up) this.sel = (this.sel + total - 1) % total;
-        if (E.hit.down) this.sel = (this.sel + 1) % total;
+      const rows = this.rows(), n = rows.length, t = this.tab;
+      if (this.mode === 'list') {
         if (E.hit.cancel) { E.pop(); return; }
-        if (E.hit.ok) {
-          if (this.sel >= list.length) {
-            const b = books[this.sel - list.length], sk = D.battle.skills[D.battle.bookSkills[b]];
-            this.msg = '《' + D.battle.bookNames[b] + '》已讀過，全隊都會「' + sk.name + '」。'; this.bookText = window.BattleLogic.skillText(sk);
-          } else { this.target = 0; this.msg = ''; this.bookText = ''; }
-        }
-      } else {
-        const n = G.party.length;
-        if (E.hit.up) this.target = (this.target + n - 1) % n;
-        if (E.hit.down) this.target = (this.target + 1) % n;
-        if (E.hit.cancel) { this.target = -1; return; }
-        if (E.hit.ok) {
-          const k = list[this.sel], it = D.battle.items[k], m = G.party[this.target];
-          if (it.revive) { if (m.hp <= 0) { m.hp = Math.max(1, Math.round(m.hpMax * it.revive)); G.items[k]--; this.msg = m.name + '復活了！'; } else this.msg = '沒有效果'; }
-          else if (it.hp && m.hp > 0 && m.hp < m.hpMax) { m.hp = Math.min(m.hpMax, m.hp + it.hp); G.items[k]--; this.msg = m.name + '回復了兵力'; }
-          else if (it.tp && m.tp < G.tpMaxOf(m)) { m.tp = Math.min(G.tpMaxOf(m), m.tp + it.tp); G.items[k]--; this.msg = m.name + '回復了戰術點'; }
-          else this.msg = '沒有效果';
-          if (!(G.items[k] > 0)) this.target = -1;
-        }
+        if (E.hit.left) { this.tab = (t + 2) % 3; this.msg = ''; return; }
+        if (E.hit.right) { this.tab = (t + 1) % 3; this.msg = ''; return; }
+        if (!n) return;
+        this.sel[t] = Math.min(this.sel[t], n - 1);
+        if (E.hit.up) this.sel[t] = (this.sel[t] + n - 1) % n;
+        if (E.hit.down) this.sel[t] = (this.sel[t] + 1) % n;
+        if (E.hit.ok && (t === 0 || t === 2)) { this.mode = 'target'; this.pick = 0; this.msg = ''; }
+        return;
       }
+      const m = G.party.length;
+      if (E.hit.up) this.pick = (this.pick + m - 1) % m;
+      if (E.hit.down) this.pick = (this.pick + 1) % m;
+      if (E.hit.cancel) { this.mode = 'list'; return; }
+      if (!E.hit.ok) return;
+      const who = G.party[this.pick], key = rows[this.sel[t]];
+      if (t === 2) {   // 兵書：交給這個人使用（原本拿著的人會放下）；已經在他手上就收回
+        if (who.book === key) { who.book = null; this.msg = who.name + '不再使用《' + D.battle.bookNames[key] + '》。'; }
+        else { G.equipBook(who, key); this.msg = who.name + '使用《' + D.battle.bookNames[key] + '》，戰鬥中可用「' + D.battle.skills[D.battle.bookSkills[key]].name + '」。'; }
+        this.mode = 'list'; return;
+      }
+      const it = D.battle.items[key];
+      if (it.revive) { if (who.hp <= 0) { who.hp = Math.max(1, Math.round(who.hpMax * it.revive)); G.items[key]--; this.msg = who.name + '復活了！'; } else this.msg = '沒有效果'; }
+      else if (it.hp && who.hp > 0 && who.hp < who.hpMax) { who.hp = Math.min(who.hpMax, who.hp + it.hp); G.items[key]--; this.msg = who.name + '回復了兵力'; }
+      else if (it.tp && who.tp < G.tpMaxOf(who)) { who.tp = Math.min(G.tpMaxOf(who), who.tp + it.tp); G.items[key]--; this.msg = who.name + '回復了戰術點'; }
+      else this.msg = '沒有效果';
+      if (!(G.items[key] > 0)) this.mode = 'list';
     }
     drawUI(c) {
-      c.fillStyle = '#0c1030'; c.fillRect(16, 16, 224, 192);
-      E.panel(c, 16, 16, 224, 192);
-      E.text(c, '道具', 28, 24, { size: 11, color: GOLD });
-      const list = this.list(), B = D.battle, books = this.books();
-      if (!list.length && !books.length) E.text(c, '沒有可以在這裡使用的道具', 32, 52, { color: GREY });
-      if (this.target < 0) books.forEach(function (b, i) {
-        const y = 48 + (list.length + i) * 16, sel = list.length + i === this.sel, sk = B.skills[B.bookSkills[b]];
-        E.text(c, (sel ? '▶ ' : '　') + '兵書《' + B.bookNames[b] + '》', 32, y, { color: sel ? GOLD : '#c8e8ff' });
-        E.text(c, '學會：' + sk.name, 140, y + 1, { size: 8, color: GREY });
-      }, this);
-      if (this.target < 0 && this.bookText) E.wrap(c, this.bookText, 7, 200).slice(0, 2).forEach(function (l, i) { E.text(c, l, 32, 164 + i * 9, { size: 7, color: '#d8d8f0' }); });
-      list.forEach(function (k, i) {
-        const y = 48 + i * 16, sel = i === this.sel && this.target < 0;
-        E.text(c, (sel ? '▶ ' : '　') + B.items[k].name, 32, y, { color: sel ? GOLD : '#f4f4ff' });
-        E.text(c, '×' + G.items[k], 110, y, { color: sel ? GOLD : '#f4f4ff' });
-        E.text(c, B.items[k].desc, 140, y + 1, { size: 8, color: GREY });
-      }, this);
-      if (this.target >= 0) {
-        G.party.forEach(function (m, i) {
-          const y = 104 + i * 11, sel = i === this.target;
-          E.text(c, (sel ? '▶ ' : '　') + m.name, 32, y, { size: 8, color: sel ? GOLD : '#f4f4ff' });
-          E.text(c, '兵 ' + m.hp + '/' + m.hpMax + '　計 ' + m.tp + '/' + G.tpMaxOf(m), 100, y, { size: 8, color: sel ? GOLD : '#f4f4ff' });
-        }, this);
+      const B = D.battle, t = this.tab, rows = this.rows(), n = rows.length, self = this;
+      c.fillStyle = '#0c1030'; c.fillRect(8, 8, 240, 208);
+      E.panel(c, 8, 8, 240, 208);
+      E.text(c, '背包', 20, 15, { size: 11, color: GOLD });
+      ['道具', '裝備', '兵書'].forEach(function (nm, i) {
+        const x = 90 + i * 50, on = i === t;
+        if (on) { c.fillStyle = 'rgba(255,214,104,0.25)'; c.fillRect(x - 4, 14, 44, 15); }
+        E.text(c, nm, x + 18, 16, { size: 9, color: on ? GOLD : GREY, align: 'center' });
+      });
+      E.text(c, '◀ ▶ 換頁', 236, 33, { size: 7, color: GREY, align: 'right' });
+      const PER = 8, sel = Math.min(this.sel[t], Math.max(0, n - 1)), top = Math.max(0, Math.min(sel - PER + 1 + 3, n - PER));
+      if (!n) E.text(c, ['沒有可以在這裡使用的道具', '背包裡沒有多餘的裝備（已穿上的在「裝備」裡看）', '還沒有讀過兵書'][t], 20, 52, { size: 9, color: GREY });
+      rows.slice(top, top + PER).forEach(function (k, j) {
+        const i = top + j, y = 44 + j * 12, on = i === sel && self.mode === 'list';
+        if (on) { c.fillStyle = 'rgba(255,214,104,0.18)'; c.fillRect(16, y - 2, 216, 12); }
+        const col = on ? GOLD : '#f4f4ff';
+        if (t === 0) { E.text(c, B.items[k].name, 22, y, { size: 9, color: col }); E.text(c, '×' + G.items[k], 226, y, { size: 9, color: col, align: 'right' }); }
+        else if (t === 1) {
+          const e = D.equipment[k];
+          E.text(c, e.name, 22, y, { size: 9, color: col }); E.text(c, D.slots[e.slot] + (e.wtype ? '・' + e.wtype : ''), 140, y + 1, { size: 8, color: GREY });
+          E.text(c, '×' + G.equipInv[k], 226, y, { size: 9, color: col, align: 'right' });
+        } else {
+          const holder = G.party.concat(G.roster || []).find(function (m) { return m.book === k; });
+          E.text(c, '《' + B.bookNames[k] + '》', 22, y, { size: 9, color: col });
+          E.text(c, holder ? holder.name + '使用中' : '未使用', 226, y + 1, { size: 8, color: holder ? '#8affa0' : GREY, align: 'right' });
+        }
+      });
+      if (n > PER) E.text(c, (sel + 1) + '/' + n, 20, 33, { size: 7, color: GREY });
+      // 說明欄
+      c.fillStyle = '#000'; c.fillRect(14, 144, 228, 50); c.strokeStyle = '#6a7ab8'; c.strokeRect(14.5, 144.5, 227, 49);
+      const k = rows[sel];
+      if (k) {
+        let head = '', body = '';
+        if (t === 0) { head = B.items[k].name; body = B.items[k].desc || ''; }
+        else if (t === 1) { const e = D.equipment[k]; head = e.name; body = Object.keys(e.mods || {}).map(function (m) { return MODNAME[m] + '+' + e.mods[m]; }).join('　') + '\n' + (e.desc || ''); }
+        else { const sk = B.skills[B.bookSkills[k]]; head = '《' + B.bookNames[k] + '》　學會：' + sk.name; body = window.BattleLogic.skillText(sk); }
+        E.text(c, head, 20, 147, { size: 8, color: GOLD });
+        E.wrap(c, body.replace('\n', ' '), 7, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, 158 + i * 8, { size: 7, color: '#d8d8f0' }); });
       }
-      E.text(c, this.msg || '金 ' + (G.gold || 0) + '　Z 選擇　X 返回', 32, 194, { size: 8, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || '金 ' + (G.gold || 0) + '　' + (t === 1 ? '穿脫請到「裝備」' : 'Z ' + (t === 0 ? '使用' : '指定使用者')) + '　X 返回', 20, 199, { size: 8, color: this.msg ? GOLD : GREY });
+      if (this.mode === 'target') {   // 獨立的選人視窗（有自己的底色，蓋在清單上）
+        const h = 26 + G.party.length * 12;
+        c.fillStyle = '#0c1030'; c.fillRect(44, 40, 168, h); E.panel(c, 44, 40, 168, h);
+        E.text(c, t === 2 ? '交給誰使用？' : '對誰使用？', 54, 47, { size: 8, color: GOLD });
+        G.party.forEach(function (m, i) {
+          const y = 60 + i * 12, on = i === self.pick;
+          if (on) { c.fillStyle = 'rgba(255,214,104,0.22)'; c.fillRect(50, y - 2, 156, 12); }
+          E.text(c, m.name, 56, y, { size: 8, color: on ? GOLD : '#f4f4ff' });
+          E.text(c, t === 2 ? (m.book ? '《' + B.bookNames[m.book] + '》' : '（無）') : '兵 ' + m.hp + '/' + m.hpMax + '　計 ' + m.tp + '/' + G.tpMaxOf(m), 200, y, { size: 8, color: on ? GOLD : GREY, align: 'right' });
+        });
+      }
     }
   }
 
@@ -1053,7 +1086,7 @@
       const got = [];
       if (a.gold) { G.gold = (G.gold || 0) + a.gold; got.push(a.gold + '金'); }
       if (a.gear) a.gear.forEach(function (id) { G.addGear(id); got.push(D.equipment[id].name); });
-      if (a.book) { G.flags['book_' + a.book] = true; const bs = D.battle.skills[D.battle.bookSkills[a.book]]; got.push('兵書《' + D.battle.bookNames[a.book] + '》（全隊學會「' + bs.name + '」）'); }
+      if (a.book) { G.flags['book_' + a.book] = true; G.autoBook(a.book); const bs = D.battle.skills[D.battle.bookSkills[a.book]]; got.push('兵書《' + D.battle.bookNames[a.book] + '》（全隊學會「' + bs.name + '」）'); }
       if (a.give) Object.keys(a.give).forEach(function (id) { G.items[id] = (G.items[id] || 0) + a.give[id]; got.push(D.battle.items[id].name + '×' + a.give[id]); });
       if (a.heal) { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('隊伍的兵力與戰術點全部恢復了。'); }
       if (got.length) this.say((a.pay ? '付出 ' + a.pay + ' 金。' : '') + '獲得：' + got.join('、') + '。');

@@ -86,6 +86,21 @@
     return null;
   };
 
+  // ---- 兵書：每位隊員可以「使用」一本，使用中的兵書計謀才會出現在戰鬥裡 ----
+  Game.equipBook = function (m, id) {
+    Game.party.concat(Game.roster || []).forEach(function (x) { if (x.book === id) x.book = null; });
+    m.book = id;
+  };
+  Game.autoBook = function (id) {   // 剛讀到兵書：先交給第一位還沒拿兵書的隊員
+    const held = Game.party.concat(Game.roster || []).some(function (x) { return x.book === id; });
+    if (held) return;
+    const m = Game.party.find(function (x) { return !x.book && !x.guest; });
+    if (m) m.book = id;
+  };
+  Game.fixBooks = function () {   // 舊存檔：讀過但沒人拿的兵書，自動分給隊員
+    Object.keys((window.DATA.battle.bookSkills) || {}).forEach(function (k) { if (Game.flags['book_' + k]) Game.autoBook(k); });
+  };
+
   Game.fresh = function () {
     const start = D.maps.zhuoxian.start;
     Game.flags = {};
@@ -137,6 +152,7 @@
       Game.playtime = d.playtime || 0;
       Game.gold = typeof d.gold === 'number' ? d.gold : 0;
       Game.items = Object.assign({ herb: 0, tonic: 0, smoke: 0 }, d.items || {});
+      Game.fixBooks();
       return true;
     } catch (e) { return false; }
   };
