@@ -634,7 +634,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       // 自繪 64px 像素特效圖集（assets/fx64.png，tools/build_fx64.py 產生）
       const FXD = window.FX64, FXI = E.images.fx64;
       if (FXD && FXI && FXD.rows[f.fx] != null) {
-        const fr = Math.min(FXD.frames - 1, Math.floor(k * FXD.frames)), lvl = { fire: 1, bolt: 1, heal: 1, thunder: 1, rock: 1, smoke: 1, water: 1 }[f.fx] ? 0.8 + 0.07 * Math.min(L || 1, 5) : 1, sz = Math.round(64 * lvl);
+        const fr = Math.min(FXD.frames - 1, Math.floor(k * FXD.frames)), lvl = { fire: 1, bolt: 1, heal: 1, thunder: 1, rock: 1, smoke: 1, water: 1 }[f.fx] ? 0.8 + 0.07 * Math.min(L || 1, 5) : 1, sz = Math.round(36 * lvl);   // 圖是 64px 解析度，畫在畫面上只佔約 36 邏輯像素
         c.drawImage(FXI, fr * 64, FXD.rows[f.fx] * 64, 64, 64, x - sz / 2, y - sz / 2 - 6, sz, sz);
         return;
       }

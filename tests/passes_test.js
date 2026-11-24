@@ -45,7 +45,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await sleep(300); for (let i = 0; i < 14; i++) await tap('ArrowUp', 110, 110); await sleep(1200);
   check('walking through the fortress leads to the Guandong map', (await page.evaluate(() => Game.mapId)) === 'world2', await page.evaluate(() => Game.mapId));
   // 東關的守將
-  await setup({}); await go('guan_e', 11, 13, 'up'); await sleep(300); await tap('z', 60, 500); await talk(); await sleep(900);
+  await setup({}); await go('guan_e', 12, 13, 'up');   // 東關左右翻轉過：守將站在 x=12
+  await sleep(300); await tap('z', 60, 500); await talk(); await sleep(900);
   check('east fortress general fights', (await top()) === 'BattleScene', await top());
   // 山口
   const s1 = sk.w1[0];

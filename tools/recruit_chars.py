@@ -21,4 +21,12 @@ RC = [
     ("chunyuqiong", dict(pal=P(0, GRY, (96, 96, 150), (230, 210, 120)), beard="long", wild=False, hat=(76, 76, 130), plume=(220, 200, 90)), "swords"),
     ("caiyang",   dict(pal=P(2, BLK, (40, 70, 110), (220, 220, 230)), beard="long", wild=False, hat=(30, 56, 96), plume=(200, 50, 50)), "glaive"),
     ("haomeng",   dict(pal=P(1, BLK, (140, 50, 50), (230, 190, 80)), beard="short", wild=True, hat=(120, 36, 36)), "swords"),
+    # ---- 第三章人物（列序接在上面之後：地圖第 53 列起、戰鬥第 47 列起）
+    ("dianwei",   dict(pal=P(1, BLK, (96, 64, 52), (200, 170, 70)), beard="short", wild=True, hat=None), "swords"),
+    ("chengong",  dict(pal=P(0, BRN, (90, 110, 130), (220, 220, 230)), beard="long", wild=False, hat=(60, 80, 110)), "fan"),
+    ("gaoshun",   dict(pal=P(1, BLK, (60, 62, 76), (180, 60, 50)), beard="short", wild=False, hat=(50, 52, 66)), "spear"),
+    ("taoqian",   dict(pal=P(0, GRY, (150, 120, 70), (230, 210, 150)), beard="long", wild=False, hat=(120, 90, 50)), "spear"),
+    ("mizhu",     dict(pal=P(0, BLK, (120, 70, 100), (230, 200, 120)), beard=None, wild=False, hat=(100, 56, 84)), "fan"),
+    ("zhangkai",  dict(pal=P(2, BLK, (110, 90, 60), (170, 50, 44)), beard="short", wild=True, hat=None), "sabre"),
+    ("xianzhen",  dict(pal=P(1, BLK, (120, 40, 44), (210, 190, 90)), beard=None, wild=False, hat=(100, 34, 38)), "spear"),
 ]

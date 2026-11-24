@@ -17,7 +17,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     // 專屬計謀、軍師計、頭像、1 級起
     o.skills = ids.every(id => (D.battle.charSkills[id] || []).length >= 4 && (D.battle.advisorSkills[id] || []).length === 2 && D.battle.charSkills[id].every(e => D.battle.skills[Array.isArray(e) ? e[1] : e]) && D.battle.advisorSkills[id].every(e => D.battle.skills[e[1]] && /^adv_/.test(e[1])));
     o.portraits = ids.every(id => typeof D.characters[id].portrait === 'number' && D.characters[id].portrait >= 58);
-    o.unique = new Set(ids.reduce((a, id) => a.concat(D.battle.charSkills[id].map(e => D.battle.skills[Array.isArray(e) ? e[1] : e].name)), [])).size === ids.length * 4;
+    o.unique = new Set(ids.reduce((a, id) => a.concat(D.battle.charSkills[id].map(e => D.battle.skills[Array.isArray(e) ? e[1] : e].name)), [])).size === ids.length * 7;   // 4 招個人計謀 + 3 招後期計謀
     Game.fresh(); Game.party = ['nyao'].map(Game.makeMember); Game.party[0].level = 30; o.lv1 = (Game.addRecruit('lubu'), Game.party[1].level);
     o.lv1Skills = BattleLogic.skillsFor(Game.party[1], {}).map(s => s.name).join();
     o.rate = D.battle.surrenderMax <= 0.25 && D.battle.surrenderBase <= 0.1;

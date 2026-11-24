@@ -51,5 +51,12 @@ STYLES = {
     "chenglian": dict(armor=BLACK, helm=("horn", (70, 60, 60)), face="fierce", wide=3),
     "chunyuqiong": dict(armor=(90, 90, 140), helm=("plume", (90, 90, 140)), face="calm"),
     "caiyang": dict(armor=(40, 66, 106), helm=("plume", (40, 66, 106)), face="fierce", wide=1),
+    "dianwei": dict(armor=(90, 60, 50), band=(200, 170, 70), face="fierce", wide=4),
+    "chengong": dict(cap=("official", (70, 90, 120)), face="wise"),
+    "gaoshun": dict(armor=BLACK, helm=("dome", (60, 62, 76)), face="calm", wide=1),
+    "taoqian": dict(cap=("guan", (130, 100, 60)), face="wise"),
+    "mizhu": dict(cap=("jin", (100, 56, 84)), face="calm"),
+    "zhangkai": dict(armor=(100, 80, 56), band=(170, 50, 44), face="grin", wide=2),
+    "xianzhen": dict(armor=(110, 36, 40), helm=("dome", (100, 34, 38)), face="fierce", wide=1),
     "haomeng": dict(armor=(130, 46, 46), helm=("horn", (120, 40, 40)), face="fierce", wide=2),
 }

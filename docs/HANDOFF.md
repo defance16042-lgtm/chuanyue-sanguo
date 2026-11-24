@@ -183,3 +183,13 @@
 - 毒／火／回復每回合只結算一次（`BattleScene.roundFx` 旗標，之前事件播完會重複結算，一回合扣掉整個毒期）。
 - 特效改用自繪 64px 像素圖集：`tools/build_fx64.py` → `assets/fx64.png`（每列一種特效、8 幀）＋ `data/fx64.js`（列號）；`drawFx` 優先用圖集，沒有的名稱才退回舊的程式繪製。新增特效：在 build_fx64.py 加 `@fx('名稱')` 函式再重跑。
 - tests/batchd_test.js 新增；tests/overflow_test.js 略過 size 6 的店家招牌字。
+
+## v0.50.0（批次E）
+- 特效圖集改畫在約 36 邏輯像素（64px 是解析度，不是大小）。孟津渡等「進圖事件」現在會記錄 once 旗標，不再重複講話（scenes.js evCheck）。
+- 經驗曲線 8 級後再加陡（expFor 乘 1+(j-8)*0.04）；每級兵力成長乘 (1+等級*0.1)。
+- 陣形新增 10 個（玄武、龍騰、朱雀、白虎、青龍、連環、太極、破軍、烏雲、星羅），陣形清單會捲動；八卦陣仍 only:'nyao'。
+- data/skills_late.js：後期計謀（Lv26–60）、劉備持續回復系（hot）、關張曹盧後期計、軍師新計、招收將領 Lv26/36/48 各 3 招；敵方將領（boss/將/帥/_r/gen_）自動分配 eSkills（2~3 招，不耗 TP，威力×0.75），planEnemy 約 30~40% 機率使用。
+- data/wildgen.js：各區雜兵升格成「無名將領」（_w，兵力×3.4），wildGenRate 0.16、allGenRate 0.035（五將齊出）；知名殘部 rematchRate 降到 0.04。有將領出戰時小兵 hp×1.7、atk×1.2、def×1.15。
+- data/layout_variety.js：山口/關口/洞穴翻轉、換圖塊（積雪、山岩、墓磚）、撒障礙（保證連通）；東關左右翻轉，守將在 x=12。測試改用 DATA.solidTiles 判斷可走。
+- 自畫像：tools/portrait_art.py（參數化臉型/眉眼/鬍/頭盔/鎧甲）＋ tools/build_portraits_art.py（SPEC 表）→ portraits.png 第 116 格起、data/portraits_art.js。新增人物只要在 SPEC 加一筆再重跑。
+- 第三章：美術列已加（recruit_chars.py 第 53 列起：典韋、陳宮、高順、陶謙、糜竺、張闓、陷陣兵），地圖／劇情尚未實作。

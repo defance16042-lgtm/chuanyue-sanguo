@@ -36,7 +36,7 @@
   };
   function unitFromEnemy(id, i) {
     const e = B.enemies[id];
-    return { side: 'enemy', idx: i, id: id, name: e.name, hp: e.hp, hpMax: e.hp, tp: 0, tpMax: 0,
+    return { side: 'enemy', idx: i, id: id, name: e.name, hp: e.hp, hpMax: e.hp, tp: 999, tpMax: 999, eSkills: e.eSkills || null,
       terr: e.terrain || {}, home: e.home || 'plain', atk: e.atk, pow: 0, int: e.int != null ? e.int : e.atk, def: e.def, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, wtype: e.weapon || '刀', title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
       buffs: {}, confused: 0, defending: false };
   }
@@ -50,6 +50,11 @@
       flags: opts.flags || {}, rng: opts.rng || Math.random, round: 0,
       terrain: opts.terrain || 'plain', fire: opts.fire ? { rounds: opts.fire.rounds.slice(), pct: opts.fire.pct, texts: (opts.fire.texts || []).slice(), n: 0 } : null, canFlee: opts.canFlee !== false, boss: !!opts.boss, allMembers: party
     };
+    // 將領帶的小兵會更強：有將領出戰時，其餘雜兵兵力、攻防、經驗都提高
+    if (b.enemies.some(function (u) { return u.eSkills; })) b.enemies.forEach(function (u) {
+      if (u.eSkills) return;
+      u.hp = u.hpMax = Math.round(u.hp * 1.7); u.atk = Math.round(u.atk * 1.2); u.def = Math.round(u.def * 1.15); u.exp = Math.round(u.exp * 1.4); u.gold = Math.round(u.gold * 1.3);
+    });
     // 戰死者仍保留在 allMembers，戰鬥結束時同步
     b.party.forEach(function (u, i) { u.idx = i; });
     // 統率：各陣營中最高的統率讓全隊傷害提高（每點 +0.3%）
@@ -251,7 +256,7 @@
     if (!targets.length) return ev;
 
     const kind = skill ? skill.kind : 'phys';
-    const power0 = skill ? (allMode && skill.allPower ? skill.allPower : skill.power) : 1;
+    const power0 = (skill ? (allMode && skill.allPower ? skill.allPower : skill.power) : 1) * (a.side === 'enemy' && skill ? 0.75 : 1);
     let fxName = skill ? (skill.fx || (kind === 'tact' ? 'bolt' : kind === 'heal' ? 'heal' : 'slash')) : 'slash';
     if (fxName === 'slash') fxName = BL.weaponFx(a.wtype);
     // 特效等級：計謀／回復看「智力×威力」，越高越強（火焰越高）；物理看威力
@@ -343,6 +348,15 @@
     if (u.confused > 0) return { type: 'attack', target: pick(b, BL.alive(b.enemies)) };
     const bait = targets.filter(function (x) { return x.taunt > 0; });
     if (bait.length && b.rng() < 0.85) t = bait[0];   // 被叫陣的敵人多半衝著他來
+    // 將領的專屬計謀：三成多的機率使出（不耗戰術點）
+    if (u.eSkills && u.eSkills.length && b.rng() < (u.ai === 'boss' ? 0.4 : 0.3)) {
+      const friends = BL.alive(b.enemies), sid = u.eSkills[Math.floor(b.rng() * u.eSkills.length)], sk = B.skills[sid];
+      if (sk) {
+        if (sk.kind === 'hot') { const w = friends.filter(function (x) { return !x.hot && x.hp < x.hpMax * 0.8; }); if (w.length || sk.target === 'allAlly') return { type: 'skill', skill: sid, mode: 'one', target: w.sort(function (x, y) { return x.hp / x.hpMax - y.hp / y.hpMax; })[0] || u }; }
+        else if (sk.kind === 'buff' && sk.target === 'allAlly') { if (!u.buffs[sk.stat]) return { type: 'skill', skill: sid, mode: 'one' }; }
+        else return { type: 'skill', skill: sid, mode: 'one', target: t };
+      }
+    }
     if (u.ai === 'boss') {
       const roll = b.rng();
       if (roll < 0.25) return { type: 'boss_all' };
@@ -393,7 +407,7 @@
   BL.expFor = function (n) {
     if (n <= 1) return 0;
     for (let k = expCache.length; k <= n; k++) {
-      const j = k - 2, d = Math.round(23 + 10 * j + 0.9 * j * j + 0.02 * j * j * j);   // 每一級的增量越來越大（立方曲線）
+      const j = k - 2, d = Math.round((23 + 10 * j + 0.9 * j * j + 0.02 * j * j * j) * (1 + Math.max(0, j - 8) * 0.04));   // 8 級之後再加陡，後期不會太好升   // 每一級的增量越來越大（立方曲線）
       expCache[k] = expCache[k - 1] + d;
     }
     return expCache[n];
@@ -476,7 +490,7 @@
       member.level++;
       const c = root.DATA.characters[member.id] || {}, g = c.growth || {};
       const gain = { name: member.name, level: member.level, hp: 0, atk: 0, int: 0, spd: 0, lead: 0, luck: 0, grd: 0, tp: 0 };
-      gain.hp = Math.round((g.hp || 12) * (0.8 + rng() * 0.4));
+      gain.hp = Math.round((g.hp || 12) * (0.8 + rng() * 0.4) * (1 + member.level * 0.1));   // 等級越高每級兵力成長越多（敵軍後期破萬）
       member.hpMax += gain.hp; member.hp = Math.min(member.hpMax, member.hp + gain.hp);
       ['atk', 'int', 'spd', 'lead', 'luck', 'grd', 'tp'].forEach(function (k) {
         const r = g[k] || 0; let n = Math.floor(r); if (rng() < r - n) n++;

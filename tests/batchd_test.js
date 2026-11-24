@@ -43,6 +43,30 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
   });
   console.log(JSON.stringify(t));
   check('毒一回合只扣一次（3→2）', t.turns === 2, t);
+  const e = await page.evaluate(() => {
+    const D = DATA, B = D.battle, o = {};
+    o.art = D.characters.lubu.portrait >= 116 && D.characters.caocao.portrait >= 116 && D.npcPortraits['皇甫嵩'] >= 116;
+    o.wild = Object.keys(B.wildGen.field5 || []).length > 0 && B.enemies[B.wildGen.field5[0]].eSkills.length === 3;
+    o.eskill = Object.values(B.enemies).filter(e => e.eSkills).length > 60;
+    o.forms = D.formationOrder.length >= 20 && D.formations.bagua.only === 'nyao';
+    o.late = (B.charSkills.liubei || []).some(e => Array.isArray(e) && B.skills[e[1]].kind === 'hot');
+    // 敵將會用專屬計謀
+    Game.fresh(); Game.party = ['nyao', 'liubei'].map(Game.makeMember);
+    const b = BattleLogic.newBattle(Game.party, ['lubu', 'langqi'], { rng: () => 0.01 });
+    const act = BattleLogic.planEnemy(b, b.enemies[0]); o.act = act.type;
+    // 有將領時小兵變強
+    o.minion = b.enemies[1].hp > B.enemies.langqi.hp * 1.5;
+    // 孟津渡：進圖事件只會觸發一次
+    Game.flags = {}; Engine.replaceAll(new Scenes.Map('mengjin', DATA.maps.mengjin.start));
+    return o;
+  });
+  console.log(JSON.stringify(e));
+  check('武將有自創畫像', e.art); check('野外無名將領有專屬計謀', e.wild); check('敵將各有專屬計謀', e.eskill);
+  check('陣形增加且八卦陣限孔明', e.forms); check('劉備有持續回復計謀', e.late);
+  check('敵將會使用專屬計謀', e.act === 'skill', e.act); check('將領帶的小兵變強', e.minion);
+  await page.waitForTimeout(400);
+  const mj = await page.evaluate(() => Game.flags.mj_intro_done);
+  check('孟津渡開場對話只觸發一次（旗標已記錄）', mj === true, mj);
   const fxok = await page.evaluate(() => !!(window.FX64 && Engine.images.fx64 && Engine.images.fx64.width === 64 * FX64.frames && FX64.rows.fire != null));
   check('特效圖集載入', fxok);
   check('無錯誤', errors.length === 0, errors.slice(0, 3));

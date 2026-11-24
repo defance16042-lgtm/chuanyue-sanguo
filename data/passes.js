@@ -81,7 +81,7 @@
     [[4, 15, 'O'], [5, 15, 'O'], [3, 20, 'X'], [4, 20, 'X'], [16, 15, 'X'], [17, 15, 'X'], [20, 16, 'O'], [20, 17, 'O'], [6, 3, 'X'], [15, 3, 'O'], [10, 22, 'F'], [13, 22, 'F'], [10, 8, 'F'], [13, 8, 'F']].forEach(function (d) { dec(d[0], d[1], d[2]); });
     const npc = function (i, n, sp, x, y, dir, dlg) { return { id: id + '_n' + i, name: n, sprite: sp, x: x, y: y, dir: dir, dialogue: dlg }; };
     const npcs = [npc(1, o.n[0], o.sp[0], 10, 21, 'right', o.p + '_s1'), npc(2, o.n[1], o.sp[0], 13, 18, 'left', o.p + '_s2'), npc(3, o.n[2], o.sp[1], 6, 17, 'down', o.p + '_s3'),
-      npc(4, o.n[3], o.sp[2], 18, 17, 'down', o.p + '_s4'), npc(5, o.n[4], o.sp[0], 10, 9, 'right', o.p + '_s5'), npc(6, o.n[5], o.sp[2], 8, 4, 'right', o.p + '_off')];
+      npc(4, o.n[3], o.sp[2], 18, 17, 'down', o.p + '_s4'), npc(5, o.n[4], o.sp[0], 10, 13, 'right', o.p + '_s5'), npc(6, o.n[5], o.sp[2], 8, 4, 'right', o.p + '_off')];
     npcs.push(o.boss);
     const objects = o.chests.map(function (c) { return chestObj(c[0], c[1], c[2], c[3]); });
     D.maps[id] = { name: name, battleBg: 'grass', home: { map: 'world' }, tiles: rows(g), start: { x: 11, y: 24, dir: 'up' }, warps: o.warps, npcs: npcs, objects: objects, encounter: null };

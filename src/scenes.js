@@ -422,8 +422,10 @@
       E.panel(c, 8, 8, 240, 208);
       E.text(c, '陣形', 20, 16, { size: 11, color: GOLD });
       E.text(c, '目前：' + D.formations[G.formation || 'none'].name, 150, 18, { size: 8, color: GOLD });
+      const top = Math.max(0, Math.min(D.formationOrder.length - 11, this.sel - 5));   // 陣形多了，清單會跟著捲動
       D.formationOrder.forEach(function (id, i) {
-        const f = D.formations[id], ok = window.BattleLogic.formationUsable(id, G.party), sel = i === this.sel, y = 34 + i * 12;
+        if (i < top || i >= top + 11) return;
+        const f = D.formations[id], ok = window.BattleLogic.formationUsable(id, G.party), sel = i === this.sel, y = 34 + (i - top) * 12;
         E.text(c, (sel ? '▶ ' : '　') + f.name, 20, y, { size: 8, color: sel ? GOLD : ok ? '#f4f4ff' : '#6a6a80' });
         E.text(c, (G.formation || 'none') === id ? '使用中' : ok ? '' : (f.only ? '僅孔明' : 'Lv' + f.unlock), 82, y, { size: 7, color: GREY });
       }, this);
@@ -1035,7 +1037,7 @@
         const ev = (this.map.events || []).find(function (e) {
           return !G.flags[e.once] && (e.need || []).every(function (f) { return G.flags[f]; });
         });
-        if (ev) { E.push(new DialogScene(D.dialogue[ev.dialogue])); return; }
+        if (ev) { G.flags[ev.once] = true; E.push(new DialogScene(D.dialogue[ev.dialogue])); return; }
       }
       if (E.hit.cancel) { E.push(new MenuScene()); return; }
       if (E.hit.ok) { this.interact(); return; }
@@ -1073,6 +1075,14 @@
         for (let i = 0; i < n; i++) ids.push(rm[done.splice(Math.floor(Math.random() * done.length), 1)[0]] + '_r');
         g.splice(0, n, ...ids);   // 取代隊伍裡前面的雜兵
         while (g.length > 5) g.pop();
+      }
+      else if (!this._forceTerr) {   // 無名將領：一到兩位帶隊，偶爾五位全是將領
+        const wg = (D.battle.wildGen || {})[enc.group] || [], r = Math.random();
+        if (wg.length && r < (D.battle.allGenRate || 0)) { g = []; for (let i = 0; i < 5; i++) g.push(wg[Math.floor(Math.random() * wg.length)]); }
+        else if (wg.length && r < (D.battle.allGenRate || 0) + (D.battle.wildGenRate || 0)) {
+          const n = Math.random() < 0.7 ? 1 : 2;
+          for (let i = 0; i < n; i++) g[i] = wg[Math.floor(Math.random() * wg.length)];
+        }
       }
       this.startBattle(g, false);
       this._forceTerr = null;
