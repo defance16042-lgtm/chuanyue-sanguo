@@ -48,4 +48,5 @@
   Object.keys(D.characters).forEach(function (k) { apply(k, D.characters[k], true); });
   D.characters.guanyu.terrain.sea = 'A';   // 史實：關羽擅長水戰（水淹七軍、荊州水師）
   Object.keys(en).forEach(function (k) { apply(k, en[k], !!en[k].boss || /^(guanhai|guotai)$/.test(k)); });
+  D.applyTerrain = apply; D.terrainHome = HOME;   // 後面章節新增的敵人與角色用
 })();

@@ -80,6 +80,8 @@ SPEC = {
  "taoqian|陶謙": S(bg=(110, 96, 70), armor=(150, 120, 70), head="guan", headc=(120, 90, 50), face="round", w=23, brow="calm", eye="calm", mouth="smile", beard="long", beardc=WHT, hair=WHT, skin=SK[0], body="robe", trim=(230, 210, 150), age=2),
  "mizhu|糜竺": S(bg=(96, 64, 90), armor=(120, 70, 100), head="jin", headc=(100, 56, 84), face="round", w=23, brow="calm", eye="calm", mouth="smile", beard="stache", skin=SK[0], body="lord", trim=(230, 200, 120), blush=True),
  "zhangkai|張闓": S(bg=(80, 70, 56), armor=(110, 90, 60), head="band", headc=(170, 50, 44), face="pointed", w=22, brow="angry", eye="narrow", mouth="grin", beard="goatee", skin=SK[2], body="armor", trim=(200, 170, 80), scar=True),
+ "houcheng|侯成": S(bg=(70, 72, 90), armor=(110, 110, 124), head="helm_plume", headc=(90, 90, 104), face="square", w=23, brow="angry", eye="narrow", mouth="flat", beard="stache", skin=SK[1], body="armor", trim=(220, 180, 70)),
+ "songxian|宋憲": S(bg=(80, 64, 56), armor=(96, 70, 60), head="helm_horn", headc=(110, 80, 60), face="long", w=22, brow="thick", eye="fierce", mouth="frown", beard="full", skin=SK[2], body="armor", trim=(200, 200, 120)),
 }
 
 def main():

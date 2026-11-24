@@ -339,7 +339,7 @@
     if (!t) return '';
     const cur = D.maps[G.mapId];
     if (cur && cur.world && G.mapId === t.world && G.pos) return '從這裡往' + compass(G.pos, t);
-    if (G.mapId !== t.world) return t.world === 'world' ? '（目標在北方大地圖）' : '（目標在關東大地圖）';
+    if (G.mapId !== t.world) return t.world === 'world' ? '（目標在北方大地圖）' : (t.world === 'world3' ? '（目標在兗徐大地圖）' : '（目標在關東大地圖）');
     return '';
   }
   function wrap(text, n) { const out = []; for (let i = 0; i < text.length; i += n) out.push(text.slice(i, i + n)); return out; }

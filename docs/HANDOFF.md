@@ -192,4 +192,14 @@
 - data/wildgen.js：各區雜兵升格成「無名將領」（_w，兵力×3.4），wildGenRate 0.16、allGenRate 0.035（五將齊出）；知名殘部 rematchRate 降到 0.04。有將領出戰時小兵 hp×1.7、atk×1.2、def×1.15。
 - data/layout_variety.js：山口/關口/洞穴翻轉、換圖塊（積雪、山岩、墓磚）、撒障礙（保證連通）；東關左右翻轉，守將在 x=12。測試改用 DATA.solidTiles 判斷可走。
 - 自畫像：tools/portrait_art.py（參數化臉型/眉眼/鬍/頭盔/鎧甲）＋ tools/build_portraits_art.py（SPEC 表）→ portraits.png 第 116 格起、data/portraits_art.js。新增人物只要在 SPEC 加一筆再重跑。
-- 第三章：美術列已加（recruit_chars.py 第 53 列起：典韋、陳宮、高順、陶謙、糜竺、張闓、陷陣兵），地圖／劇情尚未實作。
+- 第三章：美術列已加（recruit_chars.py 第 53 列起：典韋、陳宮、高順、陶謙、糜竺、張闓、陷陣兵）。（v0.51.0 已實作地圖與劇情，見下。）
+
+## v0.51.0（第三章 批次1：兗州風雲 主線）
+- 地圖：`tools/build_ch3.py` → `data/ch3world.js`（world3 80×60＋六城 chenliu/dongah/puyang/xiaopei/xuzhou/xiapi，模板 T1/T2/T3 各 24×20，`D.ch3Doors[town]` 為門序）。world3 `zoneTiers=[11,12,13]` → 野外群 field11~13。world2 南端出口（x=62 一路往南、關門 (62,57)，need `xurong_down`）在 `data/ch3.js` 末段改 world2 圖塊與 warps，**不是**改 build_world.py（再產生 world.js 不會壞）。
+- `data/ch3.js`：敵人（兗州賊/青州老兵/徐州亂兵/并州弓手/陷陣營兵＋頭目張闓/侯成/宋憲/高順）、boss18/19/20、field11~13、rematch（zhangkai_down、houcheng_down、puyang_fire→宋憲、gaoshun_down）、裝備（tier4 商店貨 forge_*/札甲/虎首盔/追風靴/虎符；頭目掉落）、助戰典韋 `D.characters.dianwei`（gaoshun_after 離隊）、房屋與商店（自己的 builder，房屋 id＝town_h{i}，客棧 id＝town_inn）、主線對話與 mainQuest（world:'world3'）、`D.worldBackfill`（chenliu←xurong_down、dongah/xuzhou←cl_meet、puyang←zhangkai_down、xiaopei←houcheng_down、xiapi←xp_archery）。
+- 主線旗標順序：cl_meet → xz_taoqian → zhangkai_down（戰後 yz_news）→ houcheng_down（戰後火燒濮陽、puyang_fire）→ xp_archery → gaoshun_down（ch3_end；圯橋老人給 clue_sanlue）。
+- terrain.js 末尾新增 `D.applyTerrain` / `D.terrainHome`，後面章節新增敵人、角色要在自己檔案裡補專屬地形。
+- recruit.js INFO、recruit_skills.js T 各加 4 位（zhangkai/houcheng/songxian/gaoshun）；`tools/build_portraits_art.py` 加侯成、宋憲（portraits.png 175、176 格）。
+- 平衡：`node tools/sim_ch3.js <等級> force [敵群,...]`（載入 index.html 全部 data 檔；TUNE='{"id":{"hp":..}}' 可臨時覆蓋）。目前 Lv50~58：boss18 97~100%、boss19 56~100%、boss20 39~75%（模擬不含陣形與裝備）。
+- tests/ch3_test.js（25 項）新增；world_test/ch2d_test 改成認得 world3。
+- **批次2待辦**：3 個村莊、2 個洞穴（泰山寨、沂蒙山洞）、1 個山口、4 條支線（陶謙糧草、泰山賊、濮陽火場救人、兵書取書）、兵書《三略》（B.bookSkills/bookNames、全隊計謀）、陳宮/陶謙/糜竺閒聊補強、第三章 passes 與 layout_variety 套用。
