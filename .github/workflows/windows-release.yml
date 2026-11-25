@@ -29,8 +29,31 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install dependencies
+      - name: Install project dependencies
         run: npm ci
+
+      - name: Install Playwright for regression tests
+        run: npm install --no-save --no-package-lock playwright@1.65.1
+
+      - name: Install Chromium
+        run: npx playwright install chromium
+
+      - name: Run all regression tests
+        shell: pwsh
+        env:
+          CI: 'true'
+        run: |
+          $tests = Get-ChildItem -Path tests -Filter '*_test.js' | Sort-Object Name
+          if ($tests.Count -eq 0) {
+            throw "No tests/*_test.js files were found."
+          }
+          foreach ($test in $tests) {
+            Write-Host "===== Running $($test.Name) ====="
+            node $test.FullName
+            if ($LASTEXITCODE -ne 0) {
+              throw "Test failed: $($test.Name) (exit code $LASTEXITCODE)"
+            }
+          }
 
       - name: Build Windows installer
         run: npm run dist:win
