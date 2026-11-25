@@ -552,7 +552,7 @@ for k, fl in CAVE_FLOORS.items():
         mid = k if f == 0 else '%s_%d' % (k, f + 1)
         warps = []
         if f == 0:
-            warps.append(dict(x=fd['up'][0], y=fd['up'][1], to=CAVE_WORLD[k], tx=CAVES[k][0], ty=CAVES[k][1] + 1, dir='down'))
+            warps.append(dict(x=fd['up'][0], y=fd['up'][1], to=CAVE_WORLD[k], tx=CAVES[k][0], ty=CAVES[k][1], dir='down'))
         else:
             prev = fl[f - 1]; pid = k if f == 1 else '%s_%d' % (k, f)
             warps.append(dict(x=fd['up'][0], y=fd['up'][1], to=pid, tx=prev['down'][0], ty=prev['down'][1], dir='left'))
