@@ -320,15 +320,16 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       if (E.hit.down || E.hit.right) this.targetSel = (this.targetSel + 1) % n;
       if (E.hit.cancel) { this.state = this.prevState; return; }
       if (E.hit.ok) {
-        if (this.pending.type === 'scout') { this.scoutIdx = this.targetSel; this.state = 'scout'; return; }   // 偵察不耗回合
+        if (this.pending.type === 'scout') { this.scoutIdx = this.targetSel; this.scoutPage = 0; this.state = 'scout'; return; }   // 偵察不耗回合
         this.pending.target = this.targets[this.targetSel]; this.commit(this.pending);
       }
     }
     updateScout() {
-      const n = this.targets.length;
-      if (E.hit.up || E.hit.left) this.scoutIdx = (this.scoutIdx + n - 1) % n;
-      if (E.hit.down || E.hit.right) this.scoutIdx = (this.scoutIdx + 1) % n;
-      if (E.hit.ok) this.scoutPage = ((this.scoutPage || 0) + 1) % 2;
+      const n = this.targets.length, pages = 8;
+      if (E.hit.up) this.scoutIdx = (this.scoutIdx + n - 1) % n;
+      if (E.hit.down) this.scoutIdx = (this.scoutIdx + 1) % n;
+      if (E.hit.left) this.scoutPage = ((this.scoutPage || 0) + pages - 1) % pages;
+      if (E.hit.right || E.hit.ok) this.scoutPage = ((this.scoutPage || 0) + 1) % pages;
       if (E.hit.cancel) { this.targetSel = this.scoutIdx; this.scoutPage = 0; this.state = 'cmd'; }
     }
     commit(action) {
@@ -550,22 +551,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       c.fillStyle = '#fff'; c.fillRect(66, 164, 184, 58); c.fillStyle = '#000'; c.fillRect(67, 165, 182, 56);
 
       if (this.state === 'scout') {
-        const t = this.targets[this.scoutIdx], D = window.DATA, tbl = D.drops || {}, pg = this.scoutPage || 0;
-        E.text(c, t.name, 74, 168, { size: 10, color: GOLD });
-        E.text(c, '資料 ' + (pg + 1) + '/2　Z 換頁　X 返回', 248, 169, { size: 7, color: GREY, align: 'right' });
-        if (pg === 0) {
-          E.text(c, (t.cls || '') + '　武器 ' + (t.weapon || '－'), 74, 180, { size: 8, color: GREY });
-          E.text(c, '兵力 ' + this.H(t) + '/' + t.hpMax, 74, 190, { size: 8 });
-          E.text(c, '武力 ' + t.atk, 170, 190, { size: 8 });
-          E.text(c, '攻擊力 ' + (t.atk * 2), 74, 200, { size: 8 });
-          E.text(c, '防禦力 ' + t.def, 170, 200, { size: 8 });
-          E.text(c, '智力 ' + t.int + '　速度 ' + t.spd, 74, 210, { size: 8 });
-          E.text(c, '統率 ' + (t.lead || 0) + '　運氣 ' + (t.luck || 0), 170, 210, { size: 8 });
-        } else {
-          E.text(c, '地形適性', 74, 181, { size: 8, color: GREY });
-          E.text(c, Object.keys(D.terrainNames).map(function (k) { return D.terrainNames[k] + ((t.terr && t.terr[k]) || 'B'); }).join('　'), 74, 191, { size: 8 });
-          E.wrap(c, (t.desc || '') + (tbl[t.id] ? '（身上帶著裝備）' : ''), 8, 172).slice(0, 2).forEach(function (l, i) { E.text(c, l, 74, 202 + i * 10, { size: 8, color: GREY }); });
-        }
+        const t = this.targets[this.scoutIdx];
+        if (window.ScoutInfoRenderer) window.ScoutInfoRenderer(c, this, t);
         this.targetMark = t;
       } else if (this.state === 'cmd') {
         const u = b.party[this.cur];
