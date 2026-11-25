@@ -342,6 +342,35 @@
     if (G.mapId !== t.world) return t.world === 'world' ? '（目標在北方大地圖）' : (t.world === 'world3' ? '（目標在兗徐大地圖）' : t.world === 'world4' ? '（目標在許都大地圖）' : '（目標在關東大地圖）');
     return '';
   }
+  function sideQuestMap(q) {
+    if (q.kind === 'fetch') return q.chest.map;
+    const m = String(q.target || '').match(/^gen_(cave|shankou)(\d+)(?:_(\d+))?/);
+    if (!m) return null;
+    return m[1] + m[2] + (m[3] ? '_' + m[3] : '');
+  }
+  function sideQuestGuide(q, st) {
+    const giverMap = D.maps[q.giver], town = D.worldTowns && D.worldTowns[q.giver];
+    const destId = sideQuestMap(q), dest = destId && D.maps[destId];
+    const lines = [];
+    if (st === 0) {
+      lines.push('委託人：' + (giverMap ? giverMap.name : q.giver));
+      lines.push('位置：' + q.giver + ' 地圖座標 (' + q.npc.x + ',' + q.npc.y + ')');
+      if (town) lines.push('大地圖入口座標：(' + town.x + ',' + town.y + ')');
+      return lines;
+    }
+    if (st === 2) return ['任務已完成並領取報酬。'];
+    if (st === 3) return ['目標已完成，請返回' + (giverMap ? giverMap.name : q.giver), '委託人座標：(' + q.npc.x + ',' + q.npc.y + ')'];
+    lines.push('目的地：' + q.where);
+    if (dest) lines.push('目的地地圖：' + dest.name + '（' + destId + '）');
+    if (q.kind === 'fetch') lines.push('物件座標：(' + q.chest.x + ',' + q.chest.y + ')');
+    else lines.push('目標：' + q.targetName + '（地圖深處守將）');
+    if (G.mapId === q.giver) lines.push('方向：' + compass(G.pos, q.npc) + '，先離城前往目標區域。');
+    else if (G.mapId === destId && q.kind === 'fetch') lines.push('方向：' + compass(G.pos, q.chest) + '，前往任務物件。');
+    else if (town && D.maps[G.mapId] && D.maps[G.mapId].world && G.mapId === town.world) lines.push('方向：先往委託城鎮 ' + compass(G.pos, town));
+    else if (town) lines.push('路線：先前往' + (giverMap ? giverMap.name : q.giver) + '附近，再依任務地點進入目標區域。');
+    lines.push('回報：' + (giverMap ? giverMap.name : q.giver) + '，NPC座標 (' + q.npc.x + ',' + q.npc.y + ')');
+    return lines;
+  }
   function wrap(text, n) { const out = []; for (let i = 0; i < text.length; i += n) out.push(text.slice(i, i + n)); return out; }
   class QuestScene {
     constructor() { this.tab = 0; this.sel = 0; }
@@ -393,15 +422,11 @@
         }, this);
         const q = D.sideQuests[this.sel], st = this.sideState(q);
         c.strokeStyle = '#4a5a9a'; c.strokeRect(14.5, 136.5, 227, 74);
-        if (st === 0) { E.text(c, '委託人在' + D.maps[q.giver].name + '。', 20, 142, { size: 8, color: GREY }); }
-        else {
-          E.text(c, '地點：' + q.where, 20, 142, { size: 8, color: '#9ef59e' });
+        const guide = sideQuestGuide(q, st);
+        guide.slice(0, 5).forEach(function (ln, i) { E.text(c, ln, 20, 142 + i * 12, { size: 7, color: i === 0 ? '#9ef59e' : '#f4f4ff' }); });
+        if (st > 0 && st < 2) {
           const rw = (q.gear ? q.gear.map(function (g) { return D.equipment[g].name; }).join('、') : '兵書《' + D.battle.bookNames[q.book] + '》') + '＋' + q.gold + '金';
-          E.text(c, '報酬：' + rw, 20, 154, { size: 8, color: GOLD });
-          E.text(c, st === 3 ? '目標已完成，回去找委託人（' + D.maps[q.giver].name + '）。' : st === 2 ? '已經領過報酬。' : '委託人：' + D.maps[q.giver].name, 20, 166, { size: 8, color: '#f4f4ff' });
-          const eq = q.gear ? D.equipment[q.gear[0]] : null;
-          if (eq) wrap(eq.desc, 24).forEach(function (ln, i) { E.text(c, ln, 20, 180 + i * 10, { size: 7, color: GREY }); });
-          else { const sk = D.battle.skills[D.battle.bookSkills[q.book]]; E.text(c, '學會：' + sk.name, 20, 180, { size: 7, color: GREY }); }
+          E.text(c, '報酬：' + rw, 20, 202, { size: 7, color: GOLD });
         }
       }
     }
