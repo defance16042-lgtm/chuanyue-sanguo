@@ -21,7 +21,7 @@
     ];
     c.fillStyle='rgba(4,7,20,0.97)';c.fillRect(4,4,248,216);window.Engine.panel(c,4,4,248,216);
     window.Engine.text(c,'敵將偵察：'+t.name,12,10,{size:10,color:'#ffd668'});
-    window.Engine.text(c,(pg+1)+'/'+pages.length+'　左右／Z 翻頁　上下換敵將　X 返回',244,11,{size:6,color:'#8a8aa0',align:'right'});
+    window.Engine.text(c,(pg+1)+'/'+pages.length+'　Z翻頁　↑↓換敵將　X返回',244,11,{size:6,color:'#8a8aa0',align:'right'});
     tabs.forEach((n,i)=>{const x=12+i*29;window.Engine.text(c,n,x,25,{size:7,color:i===pg?'#ffd668':'#8a8aa0'});if(i===pg){c.fillStyle='#ffd668';c.fillRect(x,34,Math.min(26,n.length*7),1);}});
     const lines=[];pages[pg].forEach(s=>{for(let i=0;i<s.length;i+=27)lines.push(s.slice(i,i+27));});
     lines.slice(0,11).forEach((line,i)=>window.Engine.text(c,line,12,44+i*13,{size:8,color:i===0?'#9ef59e':'#f4f4ff'}));
