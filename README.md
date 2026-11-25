@@ -2,7 +2,7 @@
 
 以三國時代為舞台的原創 PC RPG，融合像素風大地圖探索、城鎮／洞穴事件與回合制策略戰鬥。玩家將跟隨男性主角諸葛貓妖，與劉備、關羽、張飛及各路武將踏上旅程。
 
-> **目前開發版本：v0.53.0**  
+> **目前開發版本：v0.53.1（尚未發布）**  
 > **最新已發布 Release：v0.53.0**  
 > 版本資訊以 `package.json`、`package-lock.json`、`src/version.js`、`update.json` 為準；Windows 安裝包請以 [Releases](https://github.com/defance16042-lgtm/chuanyue-sanguo/releases) 頁面為準。
 
@@ -145,3 +145,10 @@ GitHub Actions 會安裝 Playwright／Chromium，依序執行 `tests/*_test.js` 
 - 城內、洞穴及多層地圖需標示正確入口／樓層；未解鎖地點顯示前置條件與可抵達路線。
 - 詳細規格：[支線任務目的地與方向導航](docs/SIDE_QUEST_NAVIGATION.md)。
 - 此為規劃需求，尚未實作於 v0.53.0。
+
+
+## v0.53.1 開發更新（尚未發布）
+- 戰鬥敵將偵察擴充為八分頁情報面板，切頁不耗回合。
+- 支線任務追蹤加入目的地、方向、座標與委託城鎮／目標區標記。
+- 敵將裝備槽、軍師、弱點等未配置資料會標示未提供。
+- 本版程式尚待完整測試與 Windows 建置；請以 Releases 頁面中的已發布版本為準。
