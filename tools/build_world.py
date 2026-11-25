@@ -522,7 +522,7 @@ for wid, cfg in WORLDS.items():
     if wm['camp']:
         warps.append(dict(x=wm['camp'][0], y=wm['camp'][1], to='field', tx=11, ty=1, dir='down', bx=wm['camp'][0], by=wm['camp'][1] + 1))
     for c, (x, y) in CAVES_BY[wid].items():
-        sp = CAVE_FLOORS[c][0]['spawn']; warps.append(dict(x=x, y=y, to=c, tx=sp[0], ty=sp[1], dir='up'))
+        sp = CAVE_FLOORS[c][0]['up']; warps.append(dict(x=x, y=y, to=c, tx=sp[0], ty=sp[1], dir='up'))
     other = 'world2' if wid == 'world' else 'world'
     P, PO = PASS[wid], PASS[other]
     pw = dict(x=P['x'], y=P['y'], to='guan_w' if wid == 'world' else 'guan_e', tx=11, ty=24, dir='up', bx=P['x'] + P['d'], by=P['y'])
@@ -555,10 +555,10 @@ for k, fl in CAVE_FLOORS.items():
             warps.append(dict(x=fd['up'][0], y=fd['up'][1], to=CAVE_WORLD[k], tx=CAVES[k][0], ty=CAVES[k][1] + 1, dir='down'))
         else:
             prev = fl[f - 1]; pid = k if f == 1 else '%s_%d' % (k, f)
-            warps.append(dict(x=fd['up'][0], y=fd['up'][1], to=pid, tx=prev['down'][0] - 1, ty=prev['down'][1], dir='left'))
+            warps.append(dict(x=fd['up'][0], y=fd['up'][1], to=pid, tx=prev['down'][0], ty=prev['down'][1], dir='left'))
         if fd['down']:
             nid = '%s_%d' % (k, f + 2); nxt = fl[f + 1]
-            warps.append(dict(x=fd['down'][0], y=fd['down'][1], to=nid, tx=nxt['spawn'][0], ty=nxt['spawn'][1], dir='right'))
+            warps.append(dict(x=fd['down'][0], y=fd['down'][1], to=nid, tx=nxt['up'][0], ty=nxt['up'][1], dir='right'))
         mp = dict(name='%s・%s' % (spec['name'], '一二三'[f] + '層'), battleBg='cave', cave=True, encounter=dict(group=spec['enc'], rate=0.1, minSteps=4),
                   tiles=[''.join(r) for r in fd['m']], start=dict(x=fd['spawn'][0], y=fd['spawn'][1], dir='right'),
                   warps=warps, npcs=fd['npcs'], objects=fd['objects'])
