@@ -7,7 +7,7 @@ const FORM_TP = 2;
 const D0 = window.DATA;
 const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', '偵察'];
   const MSG_MS = 520, DMG_MS = 480;
-  // 戰鬥小人（24×24，有武器與揮砍／施法動作）所在的列；沒有的人暫時用地圖小人
+  // 戰鬥人物原畫列索引；待逐位武將高解析原創動作素材完成後，依人物 ID 擴充對應列。
   const BATTLE_ROW = { nyao: 0, liubei: 1, guanyu: 2, zhangfei: 3, caocao: 4, luzhi: 5 };
 
   const ROW_X = [94, 68, 44];   // 前排、中排、後排的小人 x 座標
@@ -33,12 +33,12 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       const self = this;
       // 小人站在兵力條正上方、對齊條的中間。我方條中心 x=70，敵方條中心 x=186
       this.b.enemies.forEach(function (e, i) {
-        e.big = !!e.boss; e.size = 16; e.cw = 24; e.top = 0;
-        e.dhp = e.hp; e.x = 186 - 12; e.y = self.rowY(i) + 2; e.shake = 0; e.fade = 1; e.row = i;
+        e.big = !!e.boss; e.size = 24; e.cw = 36; e.ch = 24; e.top = 0;
+        e.dhp = e.hp; e.x = 186 - 18; e.y = self.rowY(i) + 2; e.shake = 0; e.fade = 1; e.row = i;
       });
       this.b.party.forEach(function (u, i) {
-        u.dhp = u.hp; u.cw = 24; u.top = 0;   // 戰鬥小人的格是 24×16：身體 16×16，右邊留給武器
-        u.x = 70 - 12; u.y = self.rowY(i) + 2; u.shake = 0; u.row = i; u.tx = u.x;
+        u.dhp = u.hp; u.cw = 36; u.ch = 24; u.top = 0;   // HD 戰鬥格 48×32，畫面以 36×24 顯示，完整保留武器邊緣
+        u.x = 70 - 18; u.y = self.rowY(i) + 2; u.shake = 0; u.row = i; u.tx = u.x;
         // 陣形：站位只看第幾位。前排衝到場中央，後排退到最左邊（相差約 3 個人身寬）
         const f = self.b.formation;
         if (f && f.rows) u.tx = ROW_X[f.rows[i] == null ? 1 : f.rows[i]];
@@ -346,6 +346,38 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       else if (cb) cb(r);
     }
 
+    // 依武器分類播放不同的起手、出招與收招節奏；影格使用角色原有戰鬥圖列。
+    attackPose(kind, t) {
+      if (kind === 'bow') {
+        if (t < 150) return { frame: 3, off: 0 };
+        if (t < 330) return { frame: 5, off: 1 };
+        if (t < 460) return { frame: 4, off: 7 };
+        return { frame: 2, off: 2 };
+      }
+      if (kind === 'thrust') {
+        if (t < 120) return { frame: 3, off: -2 };
+        if (t < 300) return { frame: 4, off: 16 };
+        if (t < 460) return { frame: 2, off: 7 };
+        return { frame: 2, off: 2 };
+      }
+      if (kind === 'heavy') {
+        if (t < 180) return { frame: 3, off: -3 };
+        if (t < 390) return { frame: 4, off: 13 };
+        if (t < 500) return { frame: 2, off: 6 };
+        return { frame: 2, off: 2 };
+      }
+      if (kind === 'fan') {
+        if (t < 130) return { frame: 3, off: 0 };
+        if (t < 330) return { frame: 4, off: 9 };
+        return { frame: 2, off: 3 };
+      }
+      // 劍：快速斜斬；保留 swing 作為舊存檔／舊事件的相容別名。
+      if (t < 130) return { frame: 3, off: 0 };
+      if (t < 310) return { frame: 4, off: 12 };
+      if (t < 470) return { frame: 2, off: 5 };
+      return { frame: 2, off: 2 };
+    }
+
     // ---- 繪製 ----
     drawBg(wc) {
       const T = this.b.terrain || 'plain', img = E.images['bg_' + T];
@@ -395,11 +427,11 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         let frame = Math.floor(E.time / 500 + e.row * 0.5) % 2;
         const an = e.anim;
         if (an && !dead) {
-          if (an.kind === 'swing') { if (an.t < 160) { frame = 3; } else if (an.t < 360) { frame = 4; dx -= 10; } else { frame = 2; dx -= 4; } }
+          if (['swing', 'slash', 'heavy', 'thrust', 'bow', 'fan'].indexOf(an.kind) >= 0) { const p = this.attackPose(an.kind, an.t); frame = p.frame; dx -= p.off; }
         }
         if (hurt && !dead) frame = 6;
         if (dead) frame = 7;
-        { const k = E.images.benemy_hd ? 2 : 1; wc.drawImage(E.images.benemy_hd || E.images.benemy16, frame * 24 * k, e.sprite * 16 * k, 24 * k, 16 * k, e.x + dx, e.y, 24, 16); }
+        { const k = E.images.benemy_hd ? 2 : 1; wc.drawImage(E.images.benemy_hd || E.images.benemy16, frame * 24 * k, e.sprite * 16 * k, 24 * k, 16 * k, e.x + dx, e.y - 4, 36, 24); }
         wc.globalAlpha = 1;
         if (!dead) self.statusFx(wc, e, e.x + 12 + dx, e.y);
       });
@@ -459,7 +491,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       if (cmd) frame = 2;
       const an = u.anim;
       if (an && !dead) {
-        if (an.kind === 'swing') { if (an.t < 160) { frame = 3; off = 0; } else if (an.t < 360) { frame = 4; off = 10; } else { frame = 2; off = 4; } }
+        if (['swing', 'slash', 'heavy', 'thrust', 'bow', 'fan'].indexOf(an.kind) >= 0) { const p = this.attackPose(an.kind, an.t); frame = p.frame; off = p.off; }
         else { frame = 5; off = 2; }
       }
       if (hurt && !dead) frame = 6;
@@ -467,11 +499,11 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       const row = BATTLE_ROW[u.id];
       if (row !== undefined) {
         const k = E.images.bparty_hd ? 2 : 1;
-        wc.drawImage(E.images.bparty_hd || E.images.bparty16, frame * 24 * k, row * 16 * k, 24 * k, 16 * k, u.x + sx + off, u.y, 24, 16);
+        wc.drawImage(E.images.bparty_hd || E.images.bparty16, frame * 24 * k, row * 16 * k, 24 * k, 16 * k, u.x + sx + off, u.y - 4, 36, 24);
       } else {
         wc.globalAlpha = dead ? 0.35 : 1;
         const k2 = E.images.sprites_hd ? 32 : 16;
-        wc.drawImage(E.images.sprites_hd || E.images.sprites, ((cmd || an) ? 7 : 6) * k2, u.ref.sprite * k2, k2, k2, u.x + sx + off, u.y, 16, 16);
+        wc.drawImage(E.images.sprites_hd || E.images.sprites, ((cmd || an) ? 7 : 6) * k2, u.ref.sprite * k2, k2, k2, u.x + sx + off, u.y - 4, 24, 24);
         wc.globalAlpha = 1;
       }
       this.statusFx(wc, u, u.x + 12 + off + sx, u.y);
