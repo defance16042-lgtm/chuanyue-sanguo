@@ -971,9 +971,11 @@
     npcAt(x, y) { return this.npcs.find(function (n) { return n.x === x && n.y === y && this.visible(n); }, this); }
     objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]); }); }
     blocked(x, y) {
-      const t = this.tileAt(x, y);
-      const o = this.objAt(x, y);   // 寶箱與陶罐可以直接走上去打開，不會擋路
-      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!(o && o.type !== 'chest' && o.type !== 'urn');
+      const t = this.tileAt(x, y), o = this.objAt(x, y);
+      // 只有明確的大型障礙／未開啟關門擋路；火把、骸骨、石碑、存檔點、
+      // 拉桿、泉水、雕像等場景物件不再一律封死通道。資料可用 solid:true 個別指定。
+      const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat');
+      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject;
     }
     interact() {
       const p = this.p, v = DIRV[p.dir], tx = p.x + v[0], ty = p.y + v[1];
