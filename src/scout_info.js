@@ -5,7 +5,7 @@
     const tabs = ['人物','能力','裝備','敵將計謀','軍師','兵種陣形','戰場狀態','應對'];
     const terrain = Object.keys(D.terrainNames || {}).map(k => D.terrainNames[k]+':'+((t.terr&&t.terr[k])||'B')).join('　');
     const ids = Array.isArray(t.eSkills)?t.eSkills:(t.eSkills?[t.eSkills]:[]);
-    const skills = ids.map(x=>{const id=Array.isArray(x)?x[x.length-1]:x;return B.skills[id]?B.skills[id].name:String(id);});
+    const skills = ids.map(x=>{const id=Array.isArray(x)?x[x.length-1]:x,s=B.skills[id];if(!s)return String(id);const kind=({phys:'武技',tact:'計謀',buff:'增益',debuff:'削弱',confuse:'混亂',heal:'回復',dot:'持續傷害',stun:'暈眩',taunt:'叫陣'})[s.kind]||s.kind;return s.name+'（'+kind+'／TP'+(s.tp==null?'不耗':s.tp)+(s.power?'／倍率'+s.power:'')+(s.turns?'／'+s.turns+'回合':'')+'）';});
     const advisor=t.strategist||t.advisor||t.militaryAdvisor;
     const buffs=Object.keys(t.buffs||{}).map(k=>{const v=t.buffs[k];return k+(v&&v.mult?(v.mult>1?'提升':'降低')+Math.round(Math.abs(v.mult-1)*100)+'%':'')+(v&&v.turns?'剩'+v.turns+'回合':'');});
     if(t.confused>0)buffs.push('混亂'+t.confused+'回合'); if(t.stun>0)buffs.push('暈眩'+t.stun+'回合'); if(t.taunt>0)buffs.push('叫陣'+t.taunt+'回合'); if(t.defending)buffs.push('防禦中');
@@ -13,7 +13,7 @@
       ['人物情報','姓名：'+t.name,'稱號：'+(t.title||'未設定'),'身分：'+(t.cls||'未設定'),'兵器：'+(t.weapon||'未設定'),'身勢／背景：'+(t.desc||'尚無人物描述'),'來源：遊戲既有敵將資料'],
       ['能力值','兵力：'+scene.H(t)+'/'+t.hpMax,'武力：'+(t.atk||0)+'　攻擊：'+((t.atk||0)*2+(t.pow||0)),'防禦：'+(t.def||0),'智力：'+(t.int||0)+'　速度：'+(t.spd||0),'統率：'+(t.lead||0)+'　運氣：'+(t.luck||0),'敵方戰術點：'+(t.tp==null?'未設定':t.tp)],
       ['裝備情報','武器類型：'+(t.weapon||'未設定'),'兵種：'+(t.cls||'未設定'),'獨立裝備槽：'+(t.equip?'有配置':'目前敵將資料未配置'),'裝備加成：'+(t.equip?'讀取既有裝備欄位':'未提供，不推測'),'注意：掉落物不等於敵將身上裝備。'],
-      ['敵將本人計謀','AI 類型：'+(t.ai||'普通'),'特殊技能：'+(skills.length?skills.join('、'):'未配置 eSkills'),'計謀效果：依既有技能資料。','成功率／冷卻：若未記錄，不填猜測值。','本頁只列敵將本人，不混入軍師計謀。'],
+      ['敵將本人計謀','AI 類型：'+(t.ai||'普通'),'特殊技能：'+(skills.length?skills.join('、'):'未配置 eSkills'),...(t.ai==='boss'?['頭目招式：全軍衝鋒（25% 機率）','頭目招式：重斬（15% 機率，未防禦時）']:[]),'一般敵將若配置 eSkills，依既有技能資料顯示。','本頁只列敵將本人，不混入軍師計謀。'],
       ['軍師情報','隨軍軍師：'+(advisor?(advisor.name||advisor.id||advisor):'敵將資料未配置軍師'),'軍師智力：'+(advisor&&advisor.int!=null?advisor.int:'未提供'),'軍師計謀：'+(advisor&&advisor.skills?advisor.skills.join('、'):'未配置獨立軍師計謀'),'不補造未配置的人物、能力或計謀。'],
       ['兵種／陣形','兵種：'+(t.cls||'未設定'),'地形適性：'+terrain,'敵方陣形：'+(t.formation||'未配置'),'主將／頭目：'+(t.boss?'是':'否'),'部隊編制：依本場敵軍資料。'],
       ['戰場狀態','目前兵力：'+scene.H(t)+'/'+t.hpMax,'狀態：'+(buffs.length?buffs.join('、'):'無已記錄狀態'),'位置：敵方第'+((t.row||0)+1)+'列','已倒下：'+(scene.H(t)<=0?'是':'否'),'弱點／抗性：'+(t.weakness||t.resist||'尚未配置資料')],
