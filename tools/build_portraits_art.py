@@ -91,6 +91,21 @@ SPEC = {
  "yuanshao|袁紹": S(bg=(110, 84, 40), armor=(170, 130, 50), head="helm_plume", headc=(140, 100, 36), face="round", w=24, brow="raised", eye="calm", mouth="smile", beard="long", beardc=(40, 30, 30), skin=SK[0], body="lord", trim=(120, 40, 40)),
 }
 
+# ---- 名將專屬畫像（hist_specs.py）：覆蓋同鍵的通用設定
+from hist_specs import HIST
+SPEC.pop("袁紹", None)
+for _k, _v in HIST.items():
+    _v = dict(_v); _v.pop("smirk", None)
+    SPEC[_k] = _v
+# ---- 其餘人物：臉部細節（鼻型、鬍型、八字鬚、眉型）依序輪替，避免大家同一張臉
+_NOSE = ["normal", "big", "sharp", "hawk", "flat"]; _STK = ["std", "pencil", "handle"]; _BEARD = {"stache": ["stache", "forked", "mutton"], "goatee": ["goatee", "three"], "full": ["full", "mutton"]}
+_BROW = {"calm": ["calm", "knit", "long"], "angry": ["angry", "sword", "knit"], "raised": ["raised", "sword"]}
+for _i, (_k, _v) in enumerate(sorted(SPEC.items())):
+    if _k in HIST or "nose" in _v and _v.get("nose") != "normal": continue
+    _v.setdefault("nose", _NOSE[_i % 5]); _v.setdefault("stache", _STK[(_i // 2) % 3])
+    if _v.get("beard") in _BEARD: _v["beard"] = _BEARD[_v["beard"]][(_i // 3) % len(_BEARD[_v["beard"]])]
+    if _v.get("brow") in _BROW: _v["brow"] = _BROW[_v["brow"]][(_i // 5) % len(_BROW[_v["brow"]])]
+
 def main():
     base = Image.open(ROOT / "assets" / "portraits.png").convert("RGBA").crop((0, 0, 48 * BASE, 48))
     cells, ids, names = [], {}, {}

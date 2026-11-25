@@ -223,3 +223,9 @@
 - 數值：chezhou 38000/190/88、yanliang 42000/194/92、wenchou 44000/200/92；sim_ch3.js：Lv50 約 35%、Lv53 車冑 100%、顏良 Lv53 16%/Lv56 98%、文丑 Lv56 93%/Lv58 100%。
 - 測試：tests/ch4_test.js（25 項）；ch3b 之後 gens/quests 測試已放寬數量限制。
 - 待辦（批次2）：村莊 3、洞穴 2、關口 5（過五關各一）、支線 4、新兵書、關羽分隊機制、袁紹/曹操閒談潤飾、官渡之戰（烏巢）。
+
+## v0.53.1（名將畫像、計謀與能力獨立設計）
+- 畫像：tools/portrait_art.py 新增 head（pheasant 雉尾冠／chi 赤幘／taoist 黃巾道士／tiger 虎首盔／fu 朝官冠）、body（fur 毛皮／beast 獸面吞肩／taoist）、eye（phoenix 丹鳳眼／tiger／droop）、brow（sword／knit／long）、nose（hawk／flat）、beard（three／forked／mutton）、stache（pencil／handle／none）、jowl 雙下巴，以及 pre/post 繪圖掛鉤。tools/hist_specs.py 放 30 位名將的專屬設定與背景圖案（方天畫戟、大刀、雙戟、光芒、法杖、羽扇…）；build_portraits_art.py 載入後覆蓋同鍵設定，並把其他人的鼻、鬍、眉輪替。新增董卓（dongzhuo|董卓）。
+- 計謀：data/recruit_skills.js 的 KIT（個人 4 招＋軍師 2 招）與 LATE（Lv26／36／48 三招）逐人設計，效果組合（hits／rider／leech／lowBonus／dot／hot／cleanse／confuse／stun／extra）各不相同；data/skills_late.js 遇到有 _La 技能的人就不再產生共用範本版。
+- 能力：data/recruit.js 的 PROF 逐人設定 [兵力, 戰術點, 武力, 智力, 速度, 統率, 運氣, 防禦]、成長與專屬特性（猛將重武力、智將重智力與統率、張燕重速度、徐榮／高順／韓忠重統率與防禦）。
+- 新增招收將領時，請同步加：recruit.js INFO + PROF、recruit_skills.js T + KIT + LATE、hist_specs.py（或 build_portraits_art.py）畫像。

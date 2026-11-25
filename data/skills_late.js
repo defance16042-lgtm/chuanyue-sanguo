@@ -79,6 +79,7 @@
   let n = 0;
   Object.keys(B.charSkills).forEach(function (id) {
     const c = D.characters[id]; if (!c || !c.recruit) return;
+    if (S[id + '_La']) return;
     const i = n++, first = B.skills[id + '_1'] || {}, caster = first.kind === 'tact';
     const mainPool = caster ? TT : PH;
     // 每人的複製版技能：名字帶人名，數值與原版相同，所以每個人的計謀名單都不同
