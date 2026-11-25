@@ -179,7 +179,7 @@ def portrait(o):
     # ---- 頭髮（鬢角）與頭飾 ----
     head = o.get("head", "hair")
     hc = o.get("headc", armor)
-    hair_back = head in ("hair", "bun", "wild", "guan", "jin", "turban", "band", "crown", "helm_dome", "helm_plume", "helm_horn", "helm_wing", "pheasant", "chi", "taoist", "tiger", "fu")
+    hair_back = head in ("hair", "bun", "wild", "guan", "jin", "turban", "band", "crown", "helm_dome", "helm_plume", "helm_horn", "helm_wing", "pheasant", "chi", "taoist", "tiger", "fu", "jinxian")
     if hair_back:
         P.poly([(cx - w - 1, 30), (cx - w + 3, 52), (cx - w + 5, 40), (cx - w + 4, 26)], hair, None)
         P.poly([(cx + w + 1, 30), (cx + w - 3, 52), (cx + w - 5, 40), (cx + w - 4, 26)], hair, None)
@@ -230,6 +230,13 @@ def portrait(o):
             P.line([(cx + sx * 5, 10), (cx + sx * 26, 2)], (220, 190, 80), 1.0)
             for k in range(4): P.ell(cx + sx * (11 + k * 4.5), 4 - k * .5, 1.5, 1.5, (240, 210, 90), None)
         P.line([(cx - w * .8, 24), (cx + w * .8, 24)], trim, 1.6)
+    elif head == "jinxian":    # 進賢冠：前高後低、三道金梁
+        hair_cap()
+        P.poly([(cx - w - 1, 28), (cx - w * .85, 15), (cx + w * .85, 15), (cx + w + 1, 28), (cx + w * .6, 23), (cx - w * .6, 23)], hc)
+        P.poly([(cx - w * .72, 15), (cx - w * .5, -1), (cx + w * .35, -3), (cx + w * .72, 15)], shade(hc, 1.12))
+        for k in (-1, 0, 1): P.line([(cx + k * 8 - 1, 14), (cx + k * 8 + 2, -1)], trim, 1.0)
+        P.line([(cx - w * .8, 16), (cx + w * .8, 16)], trim, 1.4)
+        P.ell(cx, 19, 1.8, 1.8, (200, 50, 50), None)
     elif head == "chi":        # 赤幘（漢代紅頭巾，平頂）
         hair_cap()
         P.poly([(cx - w - 1, 30), (cx - w * .9, 14), (cx - w * .3, 8), (cx + w * .3, 8), (cx + w * .9, 14), (cx + w + 1, 30), (cx + w * .6, 25), (cx - w * .6, 25)], hc)
@@ -295,8 +302,8 @@ def portrait(o):
         if ek == "wide":    P.ell(ex, ey, 4.6, 3.6, (250, 250, 252)); P.ell(ex + sx * .3, ey, 2.3, 2.6, (30, 24, 26), None)
         elif ek == "fierce": P.poly([(ex - 4.6, ey + .6), (ex - 1, ey - 2.4), (ex + 4.6, ey - 1.4 * sx * -1 if False else ey - 0.6), (ex + 4, ey + 1.6), (ex - 1, ey + 2)], (250, 250, 252), OUT, 1.0); P.ell(ex + sx * .6, ey, 1.9, 1.9, (24, 18, 20), None); P.line([(ex - 5, ey - 2.4 + (1 if sx < 0 else 0)), (ex + 5, ey - 2.4 + (0 if sx < 0 else 1))], OUT, 1.4)
         elif ek == "phoenix":   # 丹鳳眼：細長、外眼角上挑
-            P.poly([(ex - 6.4 * -sx * 0 - 6, ey + 1.2), (ex, ey - 2), (ex + 6.8, ey - 2.4 if sx > 0 else ey - 2.4), (ex + 4, ey + .8), (ex, ey + 1.6)] if False else [(ex - 6.2, ey + 1.4 * (1 if sx > 0 else -1) * 0 + 1), (ex, ey - 2), (ex + sx * 6.8, ey - 2.6), (ex + sx * 2, ey + 1.4), (ex - sx * 3, ey + 1.6)], (250, 250, 252), OUT, 1.0)
-            P.ell(ex + sx * .6, ey - .2, 1.9, 1.7, (30, 24, 26), None)
+            P.poly([(ex - sx * 5.4, ey + .5), (ex, ey - 2.3), (ex + sx * 6.8, ey - 3.0), (ex + sx * 1.5, ey + 1.4)], (250, 250, 252), OUT, 1.0)
+            P.ell(ex + sx * .3, ey - .3, 1.9, 1.7, (30, 24, 26), None)
         elif ek == "tiger":     # 圓睜虎目
             P.ell(ex, ey, 5.2, 4.4, (250, 250, 252)); P.ell(ex, ey + .2, 2.9, 3.1, (30, 24, 26), None); P.ell(ex, ey + .2, 1.1, 1.1, (150, 40, 30), None)
             P.line([(ex - 6, ey - 4), (ex + 6, ey - 3)] if sx > 0 else [(ex - 6, ey - 3), (ex + 6, ey - 4)], OUT, 1.2)

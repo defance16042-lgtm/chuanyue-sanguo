@@ -62,9 +62,30 @@ def staff(P, x, col=(150, 110, 60)):
         P.ell(x - (yy / 96) * 3 + 1, yy, 2.6, 1.6, (90, 64, 40), None)
     P.ell(x - 3, 8, 4.2, 4.2, (232, 200, 90))
 
+def stars(P):
+    for x, y in ((10, 10), (24, 26), (60, 8), (88, 40), (14, 52)):
+        P.ell(x, y, 1.1, 1.1, (250, 240, 200), None)
+
+def caocao_post(P):
+    # 眼下細紋與顴骨陰影，讓臉更精悍；唇邊一抹笑意（只動一邊）
+    P.line([(34, 51), (38, 53)], (190, 140, 112), .8); P.line([(62, 51), (58, 53)], (190, 140, 112), .8)
+    P.line([(41, 64), (44, 65.5)], (150, 64, 60), 1.0)
+
+def dongzhuo_post(P):
+    # 肥厚的臉：頰肉、眼袋、下巴肉褶與額頭油光
+    sk = (206, 152, 112); dk = (150, 100, 74)
+    P.ell(30, 56, 7, 6, (214, 160, 122), None); P.ell(66, 56, 7, 6, (214, 160, 122), None)
+    P.arc((26, 50, 40, 64), 20, 160, dk, 1.0); P.arc((56, 50, 70, 64), 20, 160, dk, 1.0)
+    for ex in (32.5, 63.5):   # 沉重的眼皮把眼睛壓成一條縫，眼下掛著眼袋
+        P.poly([(ex - 6.5, 41.5), (ex + 6.5, 41.5), (ex + 6.5, 45), (ex + 2, 44.6), (ex - 2, 44.6), (ex - 6.5, 45)], (206, 152, 112), None)
+        P.line([(ex - 6, 45), (ex - 2, 44.4), (ex + 2, 44.4), (ex + 6, 45)], (40, 28, 28), 1.1)
+        P.arc((ex - 6, 44, ex + 6, 52), 20, 160, (150, 100, 74), 1.0)
+    P.arc((30, 70, 66, 86), 20, 160, dk, 1.0)
+    P.ell(56, 28, 6, 2.4, (240, 200, 170), None)
+
 HIST = {
- "caocao|曹操": S(bg=(44, 52, 104), armor=(70, 52, 110), trim=GLD, head="fu", headc=(30, 30, 52), face="pointed", w=20, brow="sword", eye="phoenix", mouth="smile", nose="sharp", beard="thin", stache="pencil", skin=SK[0], body="lord",
-                 pre=lambda P: (moon(P, 74, 20, 11), clouds(P, (70, 78, 130)))),
+ "caocao|曹操": S(bg=(40, 46, 96), armor=(52, 46, 90), trim=(226, 190, 90), head="jinxian", headc=(26, 26, 40), face="pointed", w=20, brow="sword", eye="phoenix", mouth="smile", nose="sharp", beard="three", beardc=(26, 22, 24), stache="pencil", skin=SK[0], body="lord", age=1,
+                 pre=lambda P: (moon(P, 76, 20, 11), clouds(P, (64, 72, 126)), stars(P)), post=caocao_post),
  "lubu|呂布": S(bg=(130, 40, 44), armor=(150, 150, 164), trim=GLD, head="pheasant", headc=(150, 110, 40), face="long", w=22, brow="sword", eye="phoenix", mouth="grin", nose="normal", beard="stache", stache="handle", skin=SK[0], body="beast",
                pre=lambda P: halberd(P, 84, 4, 96)),
  "huaxiong|華雄": S(bg=(90, 36, 30), armor=(70, 50, 52), trim=(190, 120, 50), head="tiger", headc=(120, 96, 60), face="square", w=27, brow="thick", eye="tiger", mouth="shout", nose="flat", beard="mutton", skin=SK[3], body="armor", scar=True, hair=(30, 24, 22),
@@ -101,7 +122,8 @@ HIST = {
  "管亥": S(bg=(34, 72, 90), armor=(52, 84, 100), trim=(180, 200, 210), head="band", headc=(44, 112, 130), face="round", w=27, brow="thick", eye="wide", mouth="grin", nose="big", beard="wild", skin=SK[3], body="armor", jowl=True),
  "李傕": S(bg=(70, 50, 50), armor=(104, 66, 60), trim=(190, 150, 80), head="helm_wing", headc=(116, 90, 76), face="long", w=22, brow="angry", eye="narrow", mouth="frown", nose="hawk", beard="stache", stache="handle", skin=SK[2], body="armor", scar=True),
  "郭汜": S(bg=(56, 62, 70), armor=(84, 90, 96), trim=(160, 160, 120), head="helm_wing", headc=(96, 100, 106), face="pointed", w=21, brow="knit", eye="droop", mouth="smirk" if False else "grin", nose="flat", beard="forked", skin=SK[1], body="armor"),
- "dongzhuo|董卓": S(bg=(70, 40, 40), armor=(120, 40, 44), trim=GLD, head="crown", headc=(40, 34, 40), face="round", w=29, brow="thick", eye="narrow", mouth="grin", nose="big", beard="full", skin=SK[2], body="fur", fur=(90, 64, 46), jowl=True, blush=True),
+ "dongzhuo|董卓": S(bg=(74, 34, 34), armor=(112, 36, 40), trim=GLD, head="bun", hair=(40, 34, 34), face="round", w=31, brow="thick", eye="narrow", mouth="grin", nose="big", beard="full", beardc=(36, 30, 30), skin=SK[2], body="fur", fur=(96, 70, 48), jowl=True, blush=True, age=1,
+                  pre=lambda P: rays(P, 48, 60, 12, (110, 52, 44)), post=dongzhuo_post),
  "zhangkai|張闓": S(bg=(66, 58, 40), armor=(104, 84, 56), trim=(180, 150, 80), head="band", headc=(120, 90, 50), face="pointed", w=21, brow="knit", eye="narrow", mouth="grin", nose="hawk", beard="stache", stache="handle", skin=SK[2], body="armor", scar=True),
  "houcheng|侯成": S(bg=(70, 80, 70), armor=(92, 104, 92), trim=(200, 190, 140), head="helm_dome", headc=(120, 130, 116), face="long", w=21, brow="knit", eye="droop", mouth="frown", nose="flat", beard="stache", stache="pencil", skin=SK[1], body="armor"),
  "songxian|宋憲": S(bg=(84, 60, 48), armor=(120, 90, 64), trim=(210, 170, 90), head="tiger", headc=(150, 120, 70), face="square", w=25, brow="thick", eye="fierce", mouth="shout", nose="big", beard="mutton", skin=SK[3], body="armor"),
