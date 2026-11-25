@@ -11,11 +11,20 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.goto(URL); await sleep(600);
   await page.keyboard.press('x'); await sleep(300);
   const cur = () => page.evaluate(() => Audio2.current());
+  const waitTrack = async (expected, timeout = 4000) => {
+    const start = Date.now(); let value;
+    while (Date.now() - start < timeout) {
+      value = await cur();
+      if (value === expected) { await sleep(250); value = await cur(); if (value === expected) return value; }
+      await sleep(100);
+    }
+    return value;
+  };
   const L = await page.evaluate(() => Object.keys(Audio2.TRACKS).map(k => [k, Audio2.lengths(k)]));
   L.forEach(([k, l]) => { if (!/victory|defeat/.test(k)) check('track ' + k + ' voices aligned to 128 steps', l.slice(0, -1).every(x => x <= 128) && l[l.length - 1] === 128, l); });
   check('title music on the title screen', (await cur()) === 'title', await cur());
   await page.evaluate(() => { Game.fresh(); Game.flags = { intro_done: true }; Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(Game.makeMember); Engine.replaceAll(new Scenes.Map('zhuoxian', { x: 5, y: 5 })); });
-  await sleep(500); check('village music in town', (await cur()) === 'village', await cur());
+  const villageTrack = await waitTrack('village'); check('village music in town', villageTrack === 'village', villageTrack);
   await page.evaluate(() => Engine.replaceAll(new Scenes.Map('world', { x: 20, y: 20 }))); await sleep(500); check('world music on world map', (await cur()) === 'world', await cur());
   await page.evaluate(() => Engine.replaceAll(new Scenes.Map('cave1', DATA.maps.cave1.start))); await sleep(500); check('cave music in cave', (await cur()) === 'cave', await cur());
   await page.evaluate(() => Engine.push(new Scenes.Battle(['turban', 'turban'], { boss: false, onEnd() {} }))); await sleep(500); check('normal battle music', (await cur()) === 'battle', await cur());
