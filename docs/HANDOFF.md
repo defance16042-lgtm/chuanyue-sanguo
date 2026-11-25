@@ -203,3 +203,13 @@
 - 平衡：`node tools/sim_ch3.js <等級> force [敵群,...]`（載入 index.html 全部 data 檔；TUNE='{"id":{"hp":..}}' 可臨時覆蓋）。目前 Lv50~58：boss18 97~100%、boss19 56~100%、boss20 39~75%（模擬不含陣形與裝備）。
 - tests/ch3_test.js（25 項）新增；world_test/ch2d_test 改成認得 world3。
 - **批次2待辦**：3 個村莊、2 個洞穴（泰山寨、沂蒙山洞）、1 個山口、4 條支線（陶謙糧草、泰山賊、濮陽火場救人、兵書取書）、兵書《三略》（B.bookSkills/bookNames、全隊計謀）、陳宮/陶謙/糜竺閒聊補強、第三章 passes 與 layout_variety 套用。
+
+## v0.52.0（第三章 批次2：村莊、洞穴、山口、支線、兵書）
+- 村莊：jiwu 己吾村（陳留旁，解鎖旗 xurong_down→backfill 'cl_meet' 見 D.worldBackfill）、liangfu 梁父村、huaxian 華縣（小沛旁）。皆為 tools/build_ch3.py 的 'V' 模板；房屋在 data/ch3.js HOUSES.*（民宅＋雜貨店 tier3＋客棧 id 'inn'）。
+- 洞穴：cave6 泰山寨（臧霸）、cave7 沂蒙山洞（昌豨），各 3 層；build_ch3.py 以 exec 方式重用 build_world.py 的 gen_floor/find_choke/add_decor/floors_of。輸出 data/ch3caves.js。
+- 山口：shankou4 鉅野山口（守將徐和），用 D.passKit.climb（passes.js 新增匯出）。
+- data/ch3b.js：臧霸/昌豨/徐和敵人、各洞穴的 GENS 部下、新裝備（taishan_*、yimeng_*、q_*）、道具 relic_*、計謀 sanlue_soft、兵書 sanlue、支線 q9–q12。
+- 支線：q9 徐州糧官（取 cave6_2 帳冊）、q10 東阿縣尉（討伐 gen_cave6_3 孫觀）、q11 濮陽喪家婦人（取鎖）、q12 下邳圯橋老人（取 cave7_2 兵書《三略》）。任務清單可捲動（scenes.js，ROWS=8）。
+- 數值：houcheng 26000/142/64、songxian 27000/138/65、gaoshun 30000/142/68、zangba 24000/140/62、changxi 34000/156/70、xuhe 22000/138/60；sim（tools/sim_ch3.js）顯示 Lv48–54 可過。
+- 測試：tests/ch3b_test.js（22 項）；gens_test、quests_test 已改成 12 條支線、洞穴數 ≥24。
+- 待辦：第四章規劃；陳宮／陶謙／糜竺閒談對白潤飾；洞穴頭目殘部招收非必要。

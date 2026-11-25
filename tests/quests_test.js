@@ -15,7 +15,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     out.giversOk = D.sideQuests.every(q => D.maps[q.giver].npcs.some(n => n.id === q.id + '_giver'));
     out.dialogOk = D.sideQuests.every(q => ['_ask', '_wait', '_turn', '_after'].every(s => D.dialogue[q.id + s]));
     out.bountyOk = D.sideQuests.filter(q => q.kind === 'bounty').every(q => Object.values(D.maps).some(m => (m.npcs || []).some(n => JSON.stringify(n).indexOf(q.target) >= 0 || (D.dialogue[n.dialogue] || []).some(l => l.act && l.act.battle === q.target))) && q.gear.every(g => D.equipment[g]));
-    out.chestOk = D.sideQuests.filter(q => q.kind === 'fetch').every(q => D.maps[q.chest.map].objects.some(o => o.id === q.chest.id) && D.battle.items[q.item].quest && D.battle.bookSkills[q.book]);
+    out.chestOk = D.sideQuests.filter(q => q.kind === 'fetch').every(q => D.maps[q.chest.map].objects.some(o => o.id === q.chest.id) && D.battle.items[q.item].quest && (!q.book || D.battle.bookSkills[q.book]) && [].concat(q.gear || []).every(g => D.equipment[g]));
     // 主線指引：每個旗標都有人會設定；前進時下一步會改變
     Game.fresh(); Game.flags = { intro_done: true };
     const names = []; for (const q of D.mainQuest) { names.push(q.title); }
@@ -49,7 +49,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     return out;
   });
   console.log(JSON.stringify(r));
-  check('8 side quests', r.quests === 8);
+  check('12 side quests', r.quests === 12);
   check('quest givers exist', r.giversOk); check('quest dialogues exist', r.dialogOk);
   check('bounty targets and gear exist', r.bountyOk); check('fetch chests/items/books exist', r.chestOk);
   check('main quest towns are on the world map', r.worldTownsOk);

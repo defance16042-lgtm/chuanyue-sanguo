@@ -35,7 +35,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     return out;
   });
   console.log(JSON.stringify(r));
-  check('24 cave/pass maps all have a general', r.maps === 24 && r.bad.length === 0, r.bad);
+  check('cave/pass maps all have a general', r.maps >= 24 && r.bad.length === 0, r.bad);
   check('generals are real bosses with plenty of HP', r.weak.length === 0, r.weak);
   check('every general can be reached from the entrance', r.unreachable.length === 0, r.unreachable);
   check('general names are unique', r.dup === 0);

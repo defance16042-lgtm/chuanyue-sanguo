@@ -382,8 +382,12 @@
         E.text(c, '主線進度：' + n + ' / ' + D.mainQuest.length, 20, 196, { size: 8, color: GREY });
       } else {
         const names = ['未接受', '進行中', '已完成', '可回報'], cols = [GREY, '#f4f4ff', '#6ac86a', GOLD];
+        const ROWS = 8, qn = D.sideQuests.length, top = Math.max(0, Math.min(qn - ROWS, this.sel - 4));
+        if (top > 0) E.text(c, '▲', 236, 28, { size: 7, color: GREY });
+        if (top + ROWS < qn) E.text(c, '▼', 236, 126, { size: 7, color: GREY });
         D.sideQuests.forEach(function (q, i) {
-          const st = this.sideState(q), y = 34 + i * 12, sel = i === this.sel, known = st > 0;
+          if (i < top || i >= top + ROWS) return;
+          const st = this.sideState(q), y = 34 + (i - top) * 12, sel = i === this.sel, known = st > 0;
           E.text(c, (sel ? '▶ ' : '　') + (known ? (q.kind === 'bounty' ? '討伐' + q.targetName : '尋找' + q.itemName) : '？？？（到' + D.maps[q.giver].name + '找人）'), 16, y, { size: 7, color: sel ? GOLD : '#f4f4ff' });
           E.text(c, names[st], 214, y, { size: 7, color: cols[st], align: 'right' });
         }, this);

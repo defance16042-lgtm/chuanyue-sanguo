@@ -142,6 +142,26 @@
       { name: '糜家商號', size: 'small', chest: { id: 'h_xz_b', gold: 1200, msg: '糜家商號的帳房，櫃子裡有一包預備給賓客的銀子。' },
         npc: { name: '糜家管事', sprite: 9, lines: ['管事：我家糜竺大人家財萬貫，連店裡的掃帚都是紅木的。', '管事：他說，錢是用來花在對的人身上的。我看他最近花在您這位劉使君身上不少。'] } }
     ],
+    jiwu: [
+      { name: '典韋舊宅', size: 'small', chest: { id: 'h_jw_a', gold: 300, item: { herb2: 2 }, msg: '米缸底下壓著一小袋錢，是典韋寄回老家的軍餉，上面還貼著他的大名。' },
+        npc: { name: '典韋的鄰居', sprite: 6, lines: ['鄰居：典韋這孩子啊，從小力氣就大，吃飯一人頂三人。', '鄰居：他年輕時替朋友報仇，把仇家一刀砍了，提著人頭走出市集，整條街沒人敢追。後來曹將軍看中他，聽說到現在還沒人敢跟他搶飯吃。'] } },
+      { kind: 'general', name: '己吾雜貨店', keeper: '掌櫃', sprite: 4, tier: 3 },
+      { kind: 'inn', id: 'inn', size: 'big', name: '己吾客棧', keeper: '掌櫃', sprite: 4, hello: '客官打哪來？己吾村小，客棧也小，不過典韋將軍回鄉的時候，也是住這間。要不要住一晚？' }
+    ],
+    liangfu: [
+      { name: '採藥人的家', size: 'small', chest: { id: 'h_lf_a', gold: 500, item: { tonic2: 2, herb2: 2 }, msg: '藥簍裡藏著幾包曬好的草藥。' },
+        npc: { name: '採藥人', sprite: 8, lines: ['採藥人：泰山深處有座山寨，寨主叫臧霸，手下的泰山賊最近越來越囂張。', '採藥人：山裡我走了三十年，最怕的不是老虎，是賊。老虎起碼不會跟我要買路錢。'] } },
+      { kind: 'general', name: '梁父雜貨店', keeper: '掌櫃', sprite: 4, tier: 3 },
+      { kind: 'inn', id: 'inn', size: 'big', name: '梁父客棧', keeper: '掌櫃', sprite: 4, hello: '梁父山腳下的客棧，晚上能聽見山風。住一晚吧，被子我曬過了。' }
+    ],
+    huaxian: [
+      { name: '驛站舊屋', size: 'small', chest: { id: 'h_hx_a', gold: 600, msg: '驛站的案頭抽屜裡，有一小袋沒人認領的銀子。' },
+        npc: { name: '驛丁', sprite: 10, states: [
+          { flag: 'zhangkai_down', lines: ['驛丁：曹嵩老太爺就是在這裡遇害的。那天夜裡，一百多輛車，全被劫了。', '驛丁：張闓死了，老太爺卻回不來了。我們華縣的人，這輩子都不想再看見那天的火光。'] },
+          { lines: ['驛丁：老太爺的車隊今天該路過華縣了。一百多輛車，滿滿都是財物，這年頭帶這麼多錢趕路，真是不要命。', '驛丁：我看護送的那個都尉，眼神總是在車上打轉。你們……要不要去看一眼？'] }] } },
+      { kind: 'general', name: '華縣雜貨店', keeper: '掌櫃', sprite: 4, tier: 3 },
+      { kind: 'inn', id: 'inn', size: 'big', name: '華縣客棧', keeper: '掌櫃', sprite: 4, hello: '華縣是個小地方，來往的都是趕路的。住一晚吧，睡得香一點。' }
+    ],
     xiapi: [
       { name: '圯橋老人的茅屋', size: 'small', chest: { id: 'h_xp_b', gold: 500, item: { tonic3: 1 }, msg: '茅屋的角落有只舊木箱，裡面沒有書，只有一雙破草鞋。' },
         npc: { name: '圯橋老人', sprite: 8, states: [
@@ -231,6 +251,21 @@
   P('xiapi', { id: 'xp_gaoshun', name: '高順', sprite: 55, x: 11, y: 7, dir: 'down', dialogue: 'boss_gaoshun', showIf: 'xp_archery', hideIf: 'gaoshun_down' });
   P('xiapi', { id: 'xp_chengong', name: '陳宮', sprite: 54, x: 14, y: 8, dir: 'left', dialogue: 'xp_chengong', showIf: 'gaoshun_down' });
   P('xiapi', { id: 'xp_soldier', name: '下邳守兵', sprite: 9, x: 15, y: 11, dir: 'left', dialogue: 'xp_soldier' });
+
+  // ---- 三個村莊
+  const V = function (map, id, name, sprite, x, y, dir, lines, flagAlt) {
+    S['v_' + id] = lines.map(function (t) { return { speaker: name, text: t }; });
+    const n = { id: id, name: name, sprite: sprite, x: x, y: y, dir: dir, dialogue: 'v_' + id };
+    if (flagAlt) { S['v_' + id + '_2'] = flagAlt.lines.map(function (t) { return { speaker: name, text: t }; }); n.alts = [{ flag: flagAlt.flag, dialogue: 'v_' + id + '_2' }]; }
+    nm[map].npcs.push(n);
+  };
+  V('jiwu', 'jw_wife', '村婦', 6, 10, 6, 'down', ['聽說咱們村的典韋當了曹將軍的大官，村裡人都說：「那娃從小就愛吃，現在終於吃到官飯了。」']);
+  V('jiwu', 'jw_hunter', '獵戶', 7, 17, 12, 'left', ['我打了半輩子獵，山裡的野豬看見典韋都繞著走。他一個人能背兩頭回來，真是怪物。']);
+  V('liangfu', 'lf_herb', '採藥老翁', 8, 13, 8, 'down', ['泰山上有座賊寨，聽說裡面有個通天洞，一路通到山後去。你們要是進去，記得多備藥。']);
+  V('liangfu', 'lf_kid', '孩童', 7, 6, 12, 'right', ['我爹說，晚上不要往山裡跑，會被泰山賊抓去當伙夫。我說我不會煮飯，他說那更糟。']);
+  V('huaxian', 'hx_post', '驛卒', 9, 10, 6, 'down', ['曹老太爺的車隊今天要來。我們華縣驛站準備了一整桌，就是不知道他吃不吃得慣。'], { flag: 'zhangkai_down', lines: ['驛站的桌子，到現在還沒收。老太爺沒來得及吃。'] });
+  V('huaxian', 'hx_farmer', '老農', 6, 17, 12, 'left', ['這年頭種地都不安穩，兵來了搶糧，賊來了搶人。我就想活著把這季麥子收了。']);
+  D.worldBackfill.jiwu = 'xurong_down'; D.worldBackfill.liangfu = 'cl_meet'; D.worldBackfill.huaxian = 'xz_taoqian';
 
   // ================= 對話 =================
   S.pass_sealed3 = [{ speaker: '', text: '關門守軍攔住去路：「洛陽的事情還沒了結，南邊的兗州、徐州不太平，沒有令牌不放行！」' }];

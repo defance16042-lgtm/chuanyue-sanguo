@@ -155,6 +155,7 @@
   climb('shankou1', '太行山口', { sprite: 19, c1: { gold: 700, msg: '山賊藏在石縫裡的贓物。' }, c2: { gear: ['cliff_boots'], msg: '一只被山石壓著的皮箱，裡面是一雙鐵釘靴。' }, c3: { item: { herb: 5, tonic: 3 }, msg: '路邊的藥囊。' } }, 7);
   climb('shankou2', '燕山口', { sprite: 23, c1: { gold: 900, msg: '烏桓人藏在氈子下的銀幣。' }, c2: { gear: ['horse_charm'], msg: '一個氈包，裡面掛著一枚銅馬牌。' }, c3: { item: { herb: 5, tonic: 4 }, msg: '草原的藥草袋。' } }, 8);
   climb('shankou3', '轘轅山口', { sprite: 18, c1: { gold: 1800, msg: '被劫的糧車裡，翻出來的一袋軍餉。' }, c2: { gold: 2200, gear: ['cliff_boots'], msg: '十八盤路上的石龕，裡面供著一雙舊鐵靴。' }, c3: { item: { herb: 6, tonic: 5 }, msg: '採藥人留在石縫裡的藥包。' } }, 10);
+  D.passKit = { SK: SK, climb: climb };   // 第三章（ch3b.js）也用同一套山口組裝
   // 山口兩端接回大地圖：南端回到西側，北端出到東側
   ['world', 'world2'].forEach(function (w) {
     (D.maps[w].shankou || []).forEach(function (sk) {
