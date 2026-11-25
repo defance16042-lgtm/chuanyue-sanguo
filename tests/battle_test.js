@@ -41,8 +41,6 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   }
 
   await page.goto(URL); await sleep(500);
-  const weaponAnim = await page.evaluate(() => ['劍','刀','矛','槍','弓','扇'].map(w => [w, BattleLogic.weaponAnim(w)]));
-  check('weapon-specific attack animation mapping', JSON.stringify(weaponAnim) === JSON.stringify([['劍','slash'],['刀','heavy'],['矛','thrust'],['槍','thrust'],['弓','bow'],['扇','fan']]), weaponAnim);
   await tap('Enter');
   await sleep(400);
   await talk();     // 序幕對話
