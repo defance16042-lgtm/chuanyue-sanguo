@@ -24,7 +24,7 @@
 
 ## 技術要點
 - 沿用 tools/build_ch3.py 的產生器架構（世界地圖、城鎮模板、洞穴 exec build_world.py 片段、passKit.climb 做關口），另建 tools/build_ch4.py、data/ch4*.js。
-- 關羽單獨隊段需要「分隊」機制：先用旗標暫時替換 Game.party，章節內結束時還原；需新測試。
+- 關羽與諸葛貓妖同行；不可把主角分派到另一條袁紹線而缺席。若技術上需暫時調整 Game.party，須以旗標安全保存並在關卡結束還原，新增同行、存檔／讀檔與隊伍還原測試。
 - 等級區間預估 Lv55–65；平衡以 tools/sim_ch3.js 為範本複製為 sim_ch4.js。
 
 ## 實作順序（照第三章兩批）
