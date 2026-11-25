@@ -251,7 +251,7 @@
       else ev.push({ type: 'msg', text: a.name + '發動攻擊' });
     }
 
-    ev.push({ type: 'act', actor: a, kind: (!skill || skill.kind === 'phys') ? 'swing' : 'cast' });
+    ev.push({ type: 'act', actor: a, kind: (!skill || skill.kind === 'phys') ? BL.weaponAnim(a.wtype) : 'cast' });
     const targets = resolveTargets(b, a, action, skill);
     if (!targets.length) return ev;
 
@@ -335,8 +335,9 @@
   };
 
   BL.FX_MS = { fire: 620, bolt: 520, heal: 560, slash: 230, chop: 280, thrust: 230, axe: 300, arrow: 260, wave: 320, aura: 520, star: 520, shock: 400 };
-  // 武器種類 → 命中特效：劍＝細長斬、刀＝粗重弧斬、矛／槍＝直刺、斧＝劈砍、弓＝箭矢、扇＝氣波
-  BL.weaponFx = function (w) { return { '劍': 'slash', '刀': 'chop', '矛': 'thrust', '槍': 'thrust', '斧': 'axe', '弓': 'arrow', '扇': 'wave' }[w] || 'slash'; };
+  // 武器種類 → 命中特效與戰鬥動作分流；動畫種類供戰鬥畫面依武器播放不同起手／攻擊／收招。
+  BL.weaponFx = function (w) { return { '劍': 'slash', '刀': 'chop', '矛': 'thrust', '槍': 'thrust', '斧': 'axe', '戟': 'axe', '弓': 'arrow', '扇': 'wave' }[w] || 'slash'; };
+  BL.weaponAnim = function (w) { return { '劍': 'slash', '刀': 'heavy', '矛': 'thrust', '槍': 'thrust', '斧': 'heavy', '戟': 'heavy', '弓': 'bow', '扇': 'fan' }[w] || 'slash'; };
 
   // 敵方行動決策
   BL.planEnemy = function (b, u) {
