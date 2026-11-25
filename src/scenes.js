@@ -1282,6 +1282,31 @@
         drawSprite(wc, (G.party[0] && G.party[0].sprite) || 0, self.p.dir, self.p.moving ? self.p.step ^ 1 : 0, cam.px - cam.x, cam.py - cam.y);
       } });
       items.sort(function (a, b) { return a.y - b.y; }).forEach(function (i) { i.draw(); });
+      // 支線導航標記：大地圖標出委託城鎮；進入任務洞穴後標出藏物／目標區入口。
+      const activeSide = (D.sideQuests || []).filter(function (q) { return G.flags[q.id + '_start'] && !G.flags[q.id + '_done']; });
+      if (this.map.world) {
+        activeSide.forEach(function (q) {
+          const town = D.worldTowns && D.worldTowns[q.giver];
+          if (!town || town.world !== self.mapId) return;
+          const mx = town.x * T - cam.x + 8, my = town.y * T - cam.y + 2;
+          if (mx < -12 || my < -12 || mx > W + 12 || my > H + 12) return;
+          const blink = Math.floor(E.time / 300) % 2;
+          wc.fillStyle = '#ffdf55'; wc.fillRect(Math.round(mx - 4), Math.round(my - 4), 9, 9);
+          wc.fillStyle = '#9b251c'; wc.fillRect(Math.round(mx - 2), Math.round(my - 2), 5, 5);
+          E.text(wc, blink ? '支' : '◆', mx, my - 11, { size: 8, color: '#ffe878', align: 'center' });
+        });
+      }
+      activeSide.forEach(function (q) {
+        const targetMap = sideQuestMap(q);
+        if (!targetMap || self.mapId !== targetMap) return;
+        const point = q.kind === 'fetch' ? q.chest : (self.map.start || null);
+        if (!point) return;
+        const mx = point.x * T - cam.x + 8, my = point.y * T - cam.y + 8;
+        if (mx < -10 || my < -10 || mx > W + 10 || my > H + 10) return;
+        wc.fillStyle = '#ffdf55'; wc.fillRect(Math.round(mx - 5), Math.round(my - 5), 11, 11);
+        wc.fillStyle = '#9b251c'; wc.fillRect(Math.round(mx - 3), Math.round(my - 3), 7, 7);
+        E.text(wc, '◆', mx, my - 10, { size: 8, color: '#ffe878', align: 'center' });
+      });
       (D.doorLabels && D.doorLabels[this.mapId] || []).forEach(function (l) {   // 店家招牌
         const w = E.measure(wc, l.text, 6) + 6, x = Math.round(l.x * T + 8 - w / 2 - cam.x), y = Math.round(l.y * T - 9 - cam.y);
         wc.fillStyle = '#3a2410'; wc.fillRect(x, y, w, 9); wc.fillStyle = '#e8c868'; wc.fillRect(x, y, w, 1); wc.fillRect(x, y + 8, w, 1); wc.fillRect(x, y, 1, 9); wc.fillRect(x + w - 1, y, 1, 9);
