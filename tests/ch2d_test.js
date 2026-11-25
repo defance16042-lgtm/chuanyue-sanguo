@@ -15,7 +15,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const go = (m, x, y, d) => page.evaluate(([m, x, y, d]) => Engine.replaceAll(new Scenes.Map(m, { x, y, dir: d })), [m, x, y, d]);
   const setup = flags => page.evaluate(f => { Game.fresh(); Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(Game.makeMember); Game.flags = Object.assign({ intro_done: true }, f); Game.gold = 1000; }, flags);
   const W = await page.evaluate(() => ({ w1: DATA.maps.world.dock, w2: DATA.maps.world2.dock, p1: DATA.maps.world.pass, p2: DATA.maps.world2.pass, ids: DATA.worldIds }));
-  check('world maps exist (ch1, ch2, ch3)', W.ids.join() === 'world,world2,world3', W.ids);
+  check('world maps exist (ch1-ch4)', W.ids.join() === 'world,world2,world3,world4', W.ids);
   // 渡口：黃巾沒平，船夫不載
   await setup({ seen_zhuoxian: true }); await go('world', W.w1.x - 1, W.w1.y, 'right'); await sleep(300); await tap('z', 60, 400); await talk();
   check('boatman refuses before chapter 2', (await info())[0] === 'world', await info());

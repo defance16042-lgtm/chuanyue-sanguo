@@ -213,3 +213,13 @@
 - 數值：houcheng 26000/142/64、songxian 27000/138/65、gaoshun 30000/142/68、zangba 24000/140/62、changxi 34000/156/70、xuhe 22000/138/60；sim（tools/sim_ch3.js）顯示 Lv48–54 可過。
 - 測試：tests/ch3b_test.js（22 項）；gens_test、quests_test 已改成 12 條支線、洞穴數 ≥24。
 - 待辦：第四章規劃；陳宮／陶謙／糜竺閒談對白潤飾；洞穴頭目殘部招收非必要。
+
+## v0.53.0（第四章 批次1：許都風雲 主線）
+- 企劃：docs/CHAPTER4_PLAN.md（批次2＝村莊、洞穴、五關口、支線、新兵書、關羽單獨隊「過五關」）。
+- tools/build_ch4.py → data/ch4world.js：world4（80×60；黃河橫貫北方）＋六城 xudu/runan/guandu/yanjin/baima/ye（城鎮模板用 exec 重用 build_ch3.py 的「城鎮模板」區段，TOWN_SPEC 另設）。D.ch4Doors 記門序；進入 world4 的關門在 data/ch4.js 內改 world3 圖塊（(61..78, 13) 一條路＋關門，warp need 'ch3_end'，deny 'pass_sealed4'），world4 西邊 (2,35) 回 world3 (76,13)。
+- data/ch4.js：敵人 yu_bandit/yuan_infantry/yuan_crossbow/hebei_cav/yuan_elite、頭目 chezhou/yanliang/wenchou（battle 圖列 56/57/58；招收用地圖列 62/63/64）、field14–16、boss21–23、殘部 *_r 與 rematch 旗（chezhou_down/yanliang_down/wenchou_down）、裝備 G5、商店（tier 5＝W5/A5）、房屋（HOUSES，門序要與模板對應：T1 第一間是 big 雙門，T2 第二間是 big）、NPC、對話、主線 mainQuest(world4)、worldBackfill。
+- 流程旗：xd_intro_done → xd_wine（煮酒，送 1500 金）→ xd_belt（衣帶詔，送玉帶佩）→ chezhou_down + ch4_rebel → ye_meet → yanliang_down → wenchou_down → ch4_part1_end（官渡，關羽辭曹，下一版接過五關）。mainQuestEnd 暫時寫「前半完成」。
+- 美術：tools/recruit_chars.py 新增 xunyu/dongcheng/chezhou/yanliang/wenchou/yuanshao（map 60–65、battle 54–59，要依序跑 build_recruits.py → build_char_hd.py），char_styles.py 加造型；build_portraits_art.py 加 6 張自畫像（portraits.png 177–182）。recruit.js INFO、recruit_skills.js T 各加 3 位。
+- 數值：chezhou 38000/190/88、yanliang 42000/194/92、wenchou 44000/200/92；sim_ch3.js：Lv50 約 35%、Lv53 車冑 100%、顏良 Lv53 16%/Lv56 98%、文丑 Lv56 93%/Lv58 100%。
+- 測試：tests/ch4_test.js（25 項）；ch3b 之後 gens/quests 測試已放寬數量限制。
+- 待辦（批次2）：村莊 3、洞穴 2、關口 5（過五關各一）、支線 4、新兵書、關羽分隊機制、袁紹/曹操閒談潤飾、官渡之戰（烏巢）。

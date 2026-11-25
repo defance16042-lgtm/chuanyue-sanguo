@@ -82,6 +82,13 @@ SPEC = {
  "zhangkai|張闓": S(bg=(80, 70, 56), armor=(110, 90, 60), head="band", headc=(170, 50, 44), face="pointed", w=22, brow="angry", eye="narrow", mouth="grin", beard="goatee", skin=SK[2], body="armor", trim=(200, 170, 80), scar=True),
  "houcheng|侯成": S(bg=(70, 72, 90), armor=(110, 110, 124), head="helm_plume", headc=(90, 90, 104), face="square", w=23, brow="angry", eye="narrow", mouth="flat", beard="stache", skin=SK[1], body="armor", trim=(220, 180, 70)),
  "songxian|宋憲": S(bg=(80, 64, 56), armor=(96, 70, 60), head="helm_horn", headc=(110, 80, 60), face="long", w=22, brow="thick", eye="fierce", mouth="frown", beard="full", skin=SK[2], body="armor", trim=(200, 200, 120)),
+ # ---- 第四章人物 ----
+ "xunyu|荀彧": S(bg=(60, 90, 84), armor=(70, 110, 100), head="guan", headc=(50, 90, 82), face="long", w=21, brow="calm", eye="wise", mouth="smile", beard="thin", skin=SK[0], body="robe", trim=(230, 220, 150)),
+ "dongcheng|董承": S(bg=(100, 60, 70), armor=(130, 60, 70), head="guan", headc=(110, 44, 56), face="round", w=23, brow="calm", eye="calm", mouth="flat", beard="stache", skin=SK[1], body="lord", trim=(220, 200, 120), age=1),
+ "chezhou|車冑": S(bg=(70, 70, 84), armor=(80, 80, 96), head="helm_dome", headc=(64, 64, 80), face="pointed", w=22, brow="angry", eye="narrow", mouth="grin", beard="goatee", skin=SK[2], body="armor", trim=(190, 150, 70)),
+ "yanliang|顏良": S(bg=(110, 96, 50), armor=(150, 130, 50), head="helm_plume", headc=(130, 110, 40), face="square", w=26, brow="thick", eye="fierce", mouth="shout", beard="full", skin=SK[1], body="armor", trim=(210, 70, 50), scar=True),
+ "wenchou|文丑": S(bg=(50, 70, 110), armor=(60, 90, 140), head="helm_horn", headc=(44, 70, 120), face="long", w=25, brow="thick", eye="fierce", mouth="grin", beard="wild", skin=SK[2], body="armor", trim=(230, 200, 90)),
+ "yuanshao|袁紹": S(bg=(110, 84, 40), armor=(170, 130, 50), head="helm_plume", headc=(140, 100, 36), face="round", w=24, brow="raised", eye="calm", mouth="smile", beard="long", beardc=(40, 30, 30), skin=SK[0], body="lord", trim=(120, 40, 40)),
 }
 
 def main():

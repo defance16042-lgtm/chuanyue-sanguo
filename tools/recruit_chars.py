@@ -29,4 +29,11 @@ RC = [
     ("mizhu",     dict(pal=P(0, BLK, (120, 70, 100), (230, 200, 120)), beard=None, wild=False, hat=(100, 56, 84)), "fan"),
     ("zhangkai",  dict(pal=P(2, BLK, (110, 90, 60), (170, 50, 44)), beard="short", wild=True, hat=None), "sabre"),
     ("xianzhen",  dict(pal=P(1, BLK, (120, 40, 44), (210, 190, 90)), beard=None, wild=False, hat=(100, 34, 38)), "spear"),
+    # ---- 第四章人物（地圖第 60 列起、戰鬥第 54 列起）
+    ("xunyu",     dict(pal=P(0, BLK, (70, 110, 100), (230, 220, 150)), beard=None, wild=False, hat=(50, 90, 82)), "fan"),
+    ("dongcheng", dict(pal=P(1, BRN, (130, 60, 70), (220, 200, 120)), beard="short", wild=False, hat=(110, 44, 56)), "sabre"),
+    ("chezhou",   dict(pal=P(2, BLK, (80, 80, 96), (190, 150, 70)), beard="short", wild=False, hat=(64, 64, 80)), "spear"),
+    ("yanliang",  dict(pal=P(1, BLK, (150, 130, 50), (200, 60, 50)), beard="short", wild=True, hat=(130, 110, 40)), "glaive"),
+    ("wenchou",   dict(pal=P(2, BLK, (60, 90, 140), (230, 200, 90)), beard="long", wild=True, hat=(44, 70, 120)), "spear"),
+    ("yuanshao",  dict(pal=P(0, BLK, (170, 130, 50), (120, 40, 40)), beard="long", wild=False, hat=(140, 100, 36), plume=(200, 60, 50)), "swords"),
 ]
