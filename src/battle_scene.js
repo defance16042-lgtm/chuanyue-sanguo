@@ -62,6 +62,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       this.state = 'msg'; this.queue = []; this.wait = 0; this.after = null;
       this.msgText = ''; this.floats = []; this.fxs = []; this.cur = 0; this.plans = []; this.sel = 0; this.sub = []; this.subSel = 0;
       this.pending = null; this.targets = []; this.targetSel = 0; this.lines = []; this.result = null;
+      this.auto = false; this.autoMode = 'attack'; this.massSel = 0;
       this.execQueue = []; this.time = 0; this.actor = null; this.bg = opts.bg || 'grass';
       this.layout();
       const names = {}; this.b.enemies.forEach(function (e) { names[e.name] = (names[e.name] || 0) + 1; });
@@ -132,7 +133,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }, this);
       this.plans = []; this.cur = -1;
       if (this.auto) {   // 全體攻擊：自動戰鬥到底，直到按鍵取消
-        this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = { type: 'attack', auto: true }; }, this);
+        this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = this.autoAction(m); }, this);
         this.beginExec(); return;
       }
       this.nextCommand();
@@ -250,6 +251,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (this.wait <= 0) this.stepExec();
       } else if (s === 'cmd') this.updateCmd();
       else if (s === 'skill' || s === 'item') this.updateSub();
+      else if (s === 'mass') this.updateMass();
       else if (s === 'mode') this.updateMode();
       else if (s === 'target') this.updateTarget();
       else if (s === 'scout') this.updateScout();
@@ -268,10 +270,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       const c = CMDS[this.sel], enemies = BL.alive(this.b.enemies);
       if (c === '攻擊') this.pickTarget('enemy', { type: 'attack' });
       else if (c === '全體攻擊') {
-        // 所有還能動的隊員一起普通攻擊，目標自動選兵力最少的敵人
-        this.auto = true;
-        this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = { type: 'attack', auto: true }; }, this);
-        this.beginExec();
+        this.massSel = 0; this.state = 'mass';
       }
       else if (c === '偵察') this.pickTarget('enemy', { type: 'scout' });
       else if (c === '防禦') this.commit({ type: 'defend' });
@@ -293,6 +292,28 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (!this.sub.length) { this.msgText = '沒有道具'; return; }
         this.state = 'item'; this.subSel = 0;
       }
+    }
+    autoAction(member) {
+      if (this.autoMode === 'tactic') {
+        const usable = BL.skillsFor(member.ref, G.flags).filter(function (skill) {
+          const cost = skill.choice && skill.allTp ? skill.allTp : skill.tp;
+          return skill.kind === 'tact' && (skill.target === 'one' || skill.target === 'all') && member.tp >= cost;
+        });
+        if (usable.length) {
+          const skill = usable[Math.floor(Math.random() * usable.length)];
+          return { type: 'skill', skill: skill.id, auto: true, mode: skill.choice ? 'all' : undefined };
+        }
+      }
+      return { type: 'attack', auto: true };
+    }
+    updateMass() {
+      if (E.hit.up || E.hit.down) this.massSel = 1 - this.massSel;
+      if (E.hit.cancel) { this.state = 'cmd'; this.sel = 3; return; }
+      if (!E.hit.ok) return;
+      this.autoMode = this.massSel === 0 ? 'attack' : 'tactic';
+      this.auto = true; this.autoOff = 0;
+      this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = this.autoAction(m); }, this);
+      this.beginExec();
     }
     updateSub() {
       const n = this.sub.length, PER = 6, pages = Math.ceil(n / PER);
@@ -584,7 +605,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
 
       // 下方：頭像框＋訊息框（指令選單會蓋在訊息框上）
       // 選指令／技能／目標時顯示「正在下指令的人」；動作播放時顯示出手的人（我方）
-      const choosing = ['cmd', 'skill', 'item', 'mode', 'target', 'scout'].indexOf(this.state) >= 0;
+      const choosing = ['cmd', 'skill', 'item', 'mode', 'mass', 'target', 'scout'].indexOf(this.state) >= 0;
       const who = choosing ? (b.party[Math.max(0, this.cur)] || b.party[0]) : (this.actor && this.actor.side === 'party' ? this.actor : b.party[Math.max(0, this.cur)] || b.party[0]);
       c.fillStyle = '#fff'; c.fillRect(6, 164, 56, 58); c.fillStyle = '#10204a'; c.fillRect(7, 165, 54, 56);
       const pi = who ? G.portraitOf(who.ref) : -1;
@@ -605,6 +626,14 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
           if (on) E.text(c, '▶', cx, cy, { size: 9, color: GOLD });
           E.text(c, name, cx + 11, cy, { size: 9, color: on ? GOLD : '#f4f4ff' });
         });
+      } else if (this.state === 'mass') {
+        E.text(c, '選擇全體攻擊方式', 74, 168, { size: 9, color: GOLD });
+        ['全員普通攻擊', '全員隨機計謀'].forEach(function (label, i) {
+          const y = 183 + i * 12, selected = i === self.massSel;
+          if (selected) E.text(c, '▶', 74, y, { size: 9, color: GOLD });
+          E.text(c, label, 86, y, { size: 9, color: selected ? GOLD : '#f4f4ff' });
+        });
+        E.text(c, '計略點不足或沒有攻擊計謀時改用普通攻擊', 74, 210, { size: 6, color: GREY });
       } else if (this.state === 'skill' || this.state === 'item') {
         const PER = 6, nn = this.sub.length, pages = Math.ceil(nn / PER), pg = Math.floor(this.subSel / PER);
         E.text(c, this.state === 'skill' ? (this.formPage ? '變陣' : '計謀') : '道具', 74, 168, { size: 9, color: GOLD });
