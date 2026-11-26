@@ -62,8 +62,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('Huangfu Song first talk sets huangfu_met', s.flags.huangfu_met === true, s.flags);
   await face('changshe', 12, 4, 'up'); s = await S();    // 曹操 (12,3)
   check('Cao Cao joins as a guest (5th slot)', s.ids.includes('caocao') && s.flags.guest_caocao && s.n === 5, s.ids);
-  const cc = await page.evaluate(() => { const m = Game.party.find(x => x.id === 'caocao'); return { guest: m.guest, p: Game.portraitOf(m), skills: BattleLogic.skillsFor(m, Game.flags).map(k => k.name) }; });
-  check('Cao Cao is a guest with portrait and skills', cc.guest && cc.p === DATA.characters.caocao.portrait && cc.skills.includes('亂世奇謀'), cc);
+  const cc = await page.evaluate(() => { const m = Game.party.find(x => x.id === 'caocao'); return { guest: m.guest, p: Game.portraitOf(m), expected: DATA.characters.caocao.portrait, skills: BattleLogic.skillsFor(m, Game.flags).map(k => k.name) }; });
+  check('Cao Cao is a guest with portrait and skills', cc.guest && cc.p === cc.expected && cc.skills.includes('亂世奇謀'), cc);
   await go('changshe', 5, 7, 'up'); await sleep(150); await tap('z'); await sleep(300); await talk();
   await sleep(800);
   const bt = await page.evaluate(() => { const t = Engine.top(); return { sc: t.constructor.name, fire: t.b && t.b.fire && t.b.fire.rounds, boss: t.b && t.b.enemies.map(e => e.id) }; });
