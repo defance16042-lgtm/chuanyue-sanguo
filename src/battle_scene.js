@@ -325,11 +325,9 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }
     }
     updateScout() {
-      const n = this.targets.length, pages = 8;
+      const n = this.targets.length;
       if (E.hit.up) this.scoutIdx = (this.scoutIdx + n - 1) % n;
       if (E.hit.down) this.scoutIdx = (this.scoutIdx + 1) % n;
-      if (E.hit.left) this.scoutPage = ((this.scoutPage || 0) + pages - 1) % pages;
-      if (E.hit.right || E.hit.ok) this.scoutPage = ((this.scoutPage || 0) + 1) % pages;
       if (E.hit.cancel) { this.targetSel = this.scoutIdx; this.scoutPage = 0; this.state = 'cmd'; }
     }
     commit(action) {
