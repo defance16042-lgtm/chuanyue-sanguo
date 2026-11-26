@@ -58,7 +58,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const rest = await page.evaluate(() => JSON.stringify(DATA.dialogue.shop_changshe_weapon).includes('rest'));
   check('inn rest option kept at 長社軍需官', rest);
 
-  // 陶罐：打破之後消失、不擋路
+  // 洞穴陶罐阻擋通行；打破後消失並恢復通行
   const u = await page.evaluate(() => {
     const m = DATA.maps.cave1, o = m.objects.find(x => x.type === 'urn');
     if (!o) return null;
@@ -68,7 +68,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     return { before, blockedBefore, after: !!t.objAt(o.x, o.y), blockedAfter: t.blocked(o.x, o.y) };
   });
   check('an urn exists in cave1', !!u, u);
-  if (u) check('urn never blocks the way (walk onto it to open)', !u.blockedBefore && !u.blockedAfter, u);
+  if (u) check('urn blocks until opened, then disappears', u.blockedBefore && !u.after && !u.blockedAfter, u);
 
   // 角色資料分頁
   await page.evaluate(() => { Game.party.forEach(m => BattleLogic.gainExp(m, BattleLogic.expFor(14))); Game.advisor = 'nyao'; Engine.replaceAll(new Scenes.Map('zhuoxian', { x: 10, y: 12, dir: 'down' })); Engine.push(new Scenes.Status()); });
