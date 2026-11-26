@@ -298,29 +298,32 @@
     constructor() { this.sel = 0; }
     volumes() { return window.Audio2 ? window.Audio2.getVolumes() : { music: 0.3, sfx: 0.3 }; }
     update() {
-      if (E.hit.cancel || E.hit.ok && this.sel === 2) { E.pop(); return; }
-      if (E.hit.up) this.sel = (this.sel + 2) % 3;
-      if (E.hit.down) this.sel = (this.sel + 1) % 3;
-      if (this.sel < 2 && (E.hit.left || E.hit.right)) {
-        const v = this.volumes(), key = this.sel === 0 ? 'music' : 'sfx';
+      if (E.hit.cancel || E.hit.ok && this.sel === 3) { E.pop(); return; }
+      if (E.hit.up) this.sel = (this.sel + 3) % 4;
+      if (E.hit.down) this.sel = (this.sel + 1) % 4;
+      if (this.sel === 0 && (E.hit.left || E.hit.right || E.hit.ok)) {
+        if (window.Audio2) window.Audio2.setMusicMuted(!window.Audio2.isMusicMuted());
+      } else if ((this.sel === 1 || this.sel === 2) && (E.hit.left || E.hit.right)) {
+        const v = this.volumes(), key = this.sel === 1 ? 'music' : 'sfx';
         const next = Math.max(0, Math.min(1, v[key] + (E.hit.right ? 0.1 : -0.1)));
         if (window.Audio2) (key === 'music' ? window.Audio2.setMusicVolume : window.Audio2.setSfxVolume)(next);
-        if (this.sel === 1 && window.Audio2) window.Audio2.sfx('hit');
+        if (this.sel === 2 && window.Audio2) window.Audio2.sfx('hit');
       }
     }
     drawUI(c) {
-      E.panel(c, 35, 48, 186, 124);
-      E.text(c, '音量設定', 128, 56, { align: 'center', color: GOLD });
-      const v = this.volumes();
+      E.panel(c, 35, 34, 186, 156);
+      E.text(c, '音量設定', 128, 42, { align: 'center', color: GOLD });
+      const v = this.volumes(), muted = window.Audio2 && window.Audio2.isMusicMuted();
+      E.text(c, (this.sel === 0 ? '▶ ' : '　') + '音樂播放　' + (muted ? '關閉' : '開啟'), 48, 64, { size: 9, color: this.sel === 0 ? GOLD : '#f4f4ff' });
       [['音樂音量', v.music], ['音效音量', v.sfx]].forEach(function (row, i) {
-        const y = 82 + i * 30;
-        E.text(c, row[0], 48, y, { size: 9, color: this.sel === i ? GOLD : '#f4f4ff' });
-        c.fillStyle = '#302b39'; c.fillRect(110, y + 3, 78, 7);
-        c.fillStyle = '#e5b94e'; c.fillRect(110, y + 3, Math.round(78 * row[1]), 7);
-        E.text(c, Math.round(row[1] * 100) + '%', 194, y, { size: 8, color: '#f4f4ff' });
+        const y = 88 + i * 24, selected = this.sel === i + 1;
+        E.text(c, (selected ? '▶ ' : '　') + row[0], 48, y, { size: 9, color: selected ? GOLD : '#f4f4ff' });
+        c.fillStyle = '#302b39'; c.fillRect(122, y + 3, 62, 7);
+        c.fillStyle = '#e5b94e'; c.fillRect(122, y + 3, Math.round(62 * row[1]), 7);
+        E.text(c, Math.round(row[1] * 100) + '%', 190, y, { size: 8, color: '#f4f4ff' });
       }, this);
-      E.text(c, '返回', 128, 145, { align: 'center', size: 9, color: this.sel === 2 ? GOLD : '#f4f4ff' });
-      E.text(c, '左右調整　確認／取消返回', 128, 160, { align: 'center', size: 7, color: GREY });
+      E.text(c, (this.sel === 3 ? '▶ ' : '　') + '返回', 48, 143, { size: 9, color: this.sel === 3 ? GOLD : '#f4f4ff' });
+      E.text(c, '左右調整　確認切換音樂　取消返回', 128, 166, { align: 'center', size: 7, color: GREY });
     }
   }
 
@@ -1086,7 +1089,7 @@
     blocked(x, y) {
       const t = this.tileAt(x, y), o = this.objAt(x, y);
       // 洞穴與山口中的寶箱、陶罐、石碑是實體障礙；開啟的容器會從 objAt 消失。
-      const interiorObstacle = (this.map.cave || this.map.pass) && o && ['chest', 'urn', 'tablet', 'lever', 'spring'].indexOf(o.type) >= 0;
+      const interiorObstacle = (this.map.cave || this.map.pass) && o && ['chest', 'urn', 'tablet'].indexOf(o.type) >= 0;
       const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat' || interiorObstacle);
       const saveCrystal = (this.map.objects || []).some(function (obj) { return obj.type === 'save' && obj.x === x && obj.y === y; });
       return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject || saveCrystal;
@@ -1104,15 +1107,7 @@
       else if (obj && obj.type === 'save') E.push(new SaveScene('save', D.townIds && D.townIds.indexOf(this.mapId) >= 0));
       else if (obj && obj.type === 'chest') this.openChest(obj);
       else if (obj && obj.type === 'urn') this.openUrn(obj);
-      else if (obj && obj.type === 'spring') {
-        const springKey = 'spring_' + (obj.id || this.mapId + '_' + obj.x + '_' + obj.y);
-        if (G.flags[springKey]) this.say('泉水已經失去靈力，無法再次恢復。');
-        else {
-          G.flags[springKey] = true;
-          G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); });
-          this.say('清涼的泉水洗去了疲勞。隊伍的兵力與戰術點全部恢復了。');
-        }
-      }
+      else if (obj && obj.type === 'spring') { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('清涼的泉水洗去了疲勞。隊伍的兵力與戰術點全部恢復了。'); }
       else if (obj && obj.type === 'lever') {
         if (G.flags[obj.flag]) this.say('拉桿已經扳下去了。');
         else { G.flags[obj.flag] = true; this.say('喀啦——拉桿扳了下去，遠處傳來沉重的石門滑開的聲音。'); }
