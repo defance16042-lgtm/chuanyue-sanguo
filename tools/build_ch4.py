@@ -99,6 +99,7 @@ out = ['// 第四章「許都風雲」大地圖與城鎮（由 tools/build_ch4.p
        '  D.townIds.push("runan_ch1");',
        '  D.worldTowns.runan_ch1 = {x: 80, y: 66, world: "world"};',
        '  D.worldGarrison.runan_ch1 = {flag: "pengtuo_down", banner: "yellow"};',
+       '  D.worldBackfill.runan_ch1 = "bocai_down";',
        '  D.maps.world.warps.forEach(w => { if (w.to === "runan") w.to = "runan_ch1"; });',
        '  D.townIds = D.townIds.concat(' + json.dumps(list(TOWNS)) + ');',
        '  D.worldIds.push("world4");',
