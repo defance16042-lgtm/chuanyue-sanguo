@@ -9,7 +9,7 @@ window.addEventListener('load', function () {
     .catch(function (err) {
       const box = document.createElement('div');
       box.style.cssText = 'position:fixed;left:16px;top:16px;color:#ffd668;font:16px sans-serif;max-width:80vw';
-      box.textContent = '遊戲載入失敗：' + err.message + '。請確認 遊戲圖片資料夾與啟動頁面放在同一個資料夾。';
+      box.textContent = '遊戲載入失敗，請確認遊戲圖片資料夾與啟動頁面放在同一個資料夾。';
       document.body.appendChild(box);
     });
 });
