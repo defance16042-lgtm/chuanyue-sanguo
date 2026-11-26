@@ -501,7 +501,7 @@
         if (E.hit.ok) {
           const k = it[this.sub].k, m = G.party[this.sel];
           if (k === 'move') { this.mode = 'move'; }
-          else if (k === 'adv') { G.advisor = m.id; this.msg = m.name + '成為軍師：全隊最大 TP 增加，本人每回合多回 1 TP'; this.mode = 'browse'; G.party.forEach(function (x) { x.tp = Math.min(x.tp, G.tpMaxOf(x)); }); }
+          else if (k === 'adv') { G.advisor = m.id; this.msg = m.name + '成為軍師：全隊最大計略點增加，本人每回合多回 1 點'; this.mode = 'browse'; G.party.forEach(function (x) { x.tp = Math.min(x.tp, G.tpMaxOf(x)); }); }
           else if (k === 'unadv') { G.advisor = null; this.msg = '已解除軍師'; this.mode = 'browse'; G.party.forEach(function (x) { x.tp = Math.min(x.tp, G.tpMaxOf(x)); }); }
           else this.mode = 'browse';
         }
