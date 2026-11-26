@@ -1050,12 +1050,12 @@
     terrainHere() { return D.terrainOf[this.tileAt(this.p.x, this.p.y)] || 'plain'; }
     visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf]) && !(G.party.some(function (m) { return m.guest && m.name === n.name; })); }   // 已經加入隊伍的助戰角色，原地的 NPC 會消失
     npcAt(x, y) { return this.npcs.find(function (n) { return n.x === x && n.y === y && this.visible(n); }, this); }
-    objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]); }); }
+    objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]) && !(o.type === 'chest' && G.flags['chest_' + o.id]); }); }
     blocked(x, y) {
       const t = this.tileAt(x, y), o = this.objAt(x, y);
-      // 明確的障礙物、未開啟關門與存檔水晶擋路；其他場景物件預設可穿越，
-      // 個別物件也可用 solid:true 指定碰撞。
-      const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat');
+      // 洞穴與山口中的寶箱、陶罐、石碑是實體障礙；開啟的容器會從 objAt 消失。
+      const interiorObstacle = (this.map.cave || this.map.pass) && o && ['chest', 'urn', 'tablet'].indexOf(o.type) >= 0;
+      const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat' || interiorObstacle);
       const saveCrystal = (this.map.objects || []).some(function (obj) { return obj.type === 'save' && obj.x === x && obj.y === y; });
       return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject || saveCrystal;
     }
@@ -1357,7 +1357,7 @@
         items.push({ y: n.y * T, draw: function () { drawSprite(wc, n.sprite, n.dir, 0, n.x * T - cam.x, n.y * T - cam.y); } });
       });
       this.map.objects.forEach(function (o) {
-        if ((o.type === 'gate' && G.flags[o.flag]) || (o.type === 'urn' && G.flags['urn_' + o.id])) return;   // 開了的石門、碎了的陶罐都消失
+        if ((o.type === 'gate' && G.flags[o.flag]) || (o.type === 'urn' && G.flags['urn_' + o.id]) || (o.type === 'chest' && G.flags['chest_' + o.id])) return;   // 開啟的門、陶罐、寶箱都消失
         if (o.type !== 'save' && o.type !== 'chest' && o.type && drawCaveObj) { items.push({ y: o.y * T, draw: function () { drawCaveObj(wc, o.x * T - cam.x, o.y * T - cam.y, o); } }); return; }
         if (o.type === 'chest') { items.push({ y: o.y * T, draw: function () { drawChest(wc, o.x * T - cam.x, o.y * T - cam.y, !!G.flags['chest_' + o.id]); } }); return; }
         items.push({ y: o.y * T, draw: function () {
