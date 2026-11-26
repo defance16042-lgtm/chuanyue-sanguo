@@ -163,7 +163,8 @@
       if (E.hit.cancel) { E.pop(); return; }
       if (!E.hit.ok) return;
       if (this.mode === 'save') {
-        this.msg = Save.write(this.sel, G.snapshot()) ? '已存檔到欄位 ' + (this.sel + 1) : '存檔失敗：瀏覽器不允許儲存資料';
+        if (this.inn) G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); });
+        this.msg = Save.write(this.sel, G.snapshot()) ? (this.inn ? '隊伍已休息，並存檔到欄位 ' : '已存檔到欄位 ') + (this.sel + 1) : '存檔失敗：瀏覽器不允許儲存資料';
       } else {
         const d = Save.read(this.sel);
         if (!d) this.msg = '這個欄位沒有存檔';
@@ -174,7 +175,7 @@
     drawUI(c) {
       c.fillStyle = '#0c1030'; c.fillRect(16, 16, 224, 192);
       E.panel(c, 16, 16, 224, 192);
-      E.text(c, this.mode === 'save' ? (this.inn ? '驛館存檔' : '存檔') : '讀取', 28, 24, { size: 11, color: GOLD });
+      E.text(c, this.mode === 'save' ? (this.inn ? '驛館休息／存檔' : '存檔') : '讀取', 28, 24, { size: 11, color: GOLD });
       for (let i = 0; i < Save.SLOTS; i++) {
         const y = 48 + i * 40, d = Save.read(i);
         if (i === this.sel) { c.fillStyle = 'rgba(255,214,104,0.12)'; c.fillRect(24, y - 4, 208, 36); }
@@ -186,7 +187,7 @@
           E.text(c, '（空）', 48, y + 14, { size: 8, color: GREY });
         }
       }
-      E.text(c, this.msg || (this.inn ? '驛館可休息存檔　Z 選擇　X 返回' : 'Z 選擇　X 返回'), 28, 184, { size: 8, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || (this.inn ? '選擇欄位即可休息並存檔　Z 確認　X 返回' : 'Z 選擇　X 返回'), 28, 184, { size: 8, color: this.msg ? GOLD : GREY });
     }
   }
 
@@ -1071,7 +1072,11 @@
         f.t += dt;
         if (f.t >= FADE_MS) {
           if (f.phase === 'out') {
-            this.loadMap(f.warp.to, { x: f.warp.tx, y: f.warp.ty, dir: f.warp.dir });
+            const fromMap = this.map, destination = D.maps[f.warp.to];
+            const stair = destination && destination.warps && destination.warps.find(function (w) { return w.to === self.mapId; });
+            const pairedStairs = stair && destination && (fromMap.cave || fromMap.pass) && (destination.cave || destination.pass);
+            const landing = pairedStairs ? { x: stair.x, y: stair.y, dir: OPP[stair.dir] || f.warp.dir } : { x: f.warp.tx, y: f.warp.ty, dir: f.warp.dir };
+            this.loadMap(f.warp.to, landing);
             this.fade = { phase: 'in', t: 0 };
           } else this.fade = null;
         }
@@ -1297,6 +1302,11 @@
         if (o.type === 'chest') { items.push({ y: o.y * T, draw: function () { drawChest(wc, o.x * T - cam.x, o.y * T - cam.y, !!G.flags['chest_' + o.id]); } }); return; }
         items.push({ y: o.y * T, draw: function () {
           wc.drawImage(E.images.objects, (Math.floor(E.time / 450) % 2) * 16, 0, 16, 16, o.x * T - cam.x, o.y * T - cam.y, 16, 16);
+          if (o.label) {
+            const lx = Math.round(o.x * T + 8 - cam.x), ly = Math.round(o.y * T - 6 - cam.y);
+            wc.fillStyle = '#3a2410'; wc.fillRect(lx - 12, ly - 1, 24, 8);
+            E.text(wc, o.label, lx, ly, { size: 6, color: '#ffe9a0', align: 'center' });
+          }
         } });
       });
       this.followers(cam).forEach(function (f) {   // 隊伍第 2~4 位跟在後面走
