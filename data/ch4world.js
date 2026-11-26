@@ -7,6 +7,7 @@
   D.townIds.push("runan_ch1");
   D.worldTowns.runan_ch1 = {x: 80, y: 66, world: "world"};
   D.worldGarrison.runan_ch1 = {flag: "pengtuo_down", banner: "yellow"};
+  D.worldBackfill.runan_ch1 = "bocai_down";
   D.maps.world.warps.forEach(w => { if (w.to === "runan") w.to = "runan_ch1"; });
   D.townIds = D.townIds.concat(["xudu", "runan", "guandu", "yanjin", "baima", "ye"]);
   D.worldIds.push("world4");
