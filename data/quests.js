@@ -9,7 +9,7 @@
     { done: 'boss_down',      title: '討伐涿縣的黃巾首領程遠志', world: 'world', to: 'zhuoxian', where: '涿縣南郊的黃巾營寨', hint: '先在涿縣備好傷藥，再往南走進黃巾營寨。' },
     { done: 'boss2_down',     title: '收復被黃巾佔領的廣陽', world: 'world', to: 'guangyang', where: '廣陽', hint: '廣陽在涿縣的東邊。' },
     { done: 'bocai_down',     title: '趕往潁川長社，支援皇甫嵩對抗波才', world: 'world', to: 'changshe', where: '長社', hint: '長社在大地圖最南邊，沿路會經過潁川道。' },
-    { done: 'pengtuo_down',   title: '到汝南討伐水賊彭脫', world: 'world', to: 'runan', where: '汝南', hint: '汝南在長社的東邊，水鄉地形，海軍與水賊較多。' },
+    { done: 'pengtuo_down',   title: '到汝南討伐水賊彭脫', world: 'world', to: 'runan_ch1', where: '汝南', hint: '汝南在長社的東邊，水鄉地形，海軍與水賊較多。' },
     { done: 'zhaohong_down',  title: '前往宛城，擊敗黃巾趙弘', world: 'world', to: 'wancheng', where: '宛城', hint: '宛城在大地圖西南。' },
     { done: 'hanzhong_down',  title: '繼續攻打宛城裡的韓忠', world: 'world', to: 'wancheng', where: '宛城', hint: '趙弘倒下後，韓忠還守在城裡。' },
     { done: 'busi_down',      title: '到東郡倉亭打敗黃河邊的卜巳', world: 'world', to: 'dongjun', where: '東郡・倉亭', hint: '東郡在大地圖東邊靠海。' },
