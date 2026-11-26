@@ -145,10 +145,10 @@
     t.buffs[skill.rider.stat] = { mult: skill.rider.mult, turns: skill.rider.turns + 1 };
     ev.push({ type: 'status', target: t, text: t.name + ({ spd: '行動遲緩', def: '防禦崩潰', atk: '攻擊下降' }[skill.rider.stat] || '能力下降') });
   }
-  function hurt(t, dmg, ev) {
+  function hurt(t, dmg, ev, critical) {
     if (t.luck && curB && curB.rng() < t.luck * 0.003) { ev.push({ type: 'msg', text: t.name + '閃過了攻擊！' }); return; }
     t.hp = Math.max(0, t.hp - dmg);
-    ev.push({ type: 'dmg', target: t, amount: dmg, dead: t.hp <= 0, hpAfter: t.hp });
+    ev.push({ type: 'dmg', target: t, amount: dmg, dead: t.hp <= 0, hpAfter: t.hp, critical: !!critical });
   }
 
   // 要打誰：若行動者混亂，目標改成隨機（可能打到自己人）
@@ -271,7 +271,9 @@
         const hits = (skill && skill.hits) || 1;
         for (let i = 0; i < hits && t.hp > 0; i++) {
           const hp0 = t.hp, pw = power0 * (1 + ((skill && skill.lowBonus) || 0) * (1 - t.hp / t.hpMax));   // 斬將：對方兵力越少越痛
-          hurt(t, physDamage(b, a, t, pw), resEv);
+          const critical = !skill && b.rng() < clamp(0.08 + (a.luck || 0) * 0.002, 0.08, 0.3);
+          const damage = physDamage(b, a, t, pw);
+          hurt(t, critical ? Math.round(damage * 1.5) : damage, resEv, critical);
           if (skill && skill.leech && hp0 > t.hp && a.hp > 0) {   // 飲血：把造成傷害的一部分吸回自己
             const g = Math.min(Math.round((hp0 - t.hp) * skill.leech), a.hpMax - a.hp);
             if (g > 0) { a.hp += g; resEv.push({ type: 'heal', target: a, amount: g, hpAfter: a.hp }); }

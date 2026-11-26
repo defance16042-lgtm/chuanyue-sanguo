@@ -265,7 +265,7 @@
   class MenuScene {
     constructor() { this.sel = 0; }
     update() {
-      const items = 10;
+      const items = 11;
       if (E.hit.up) this.sel = (this.sel + items - 1) % items;
       if (E.hit.down) this.sel = (this.sel + 1) % items;
       if (E.hit.cancel) { E.pop(); return; }
@@ -279,16 +279,48 @@
         else if (k === 5) E.push(new FieldSkillScene());
         else if (k === 6) E.push(new QuestScene());
         else if (k === 7) E.push(new SaveScene('load'));
-        else if (k === 8) E.replaceAll(new TitleScene());
+        else if (k === 8) E.push(new AudioSettingsScene());
+        else if (k === 9) E.replaceAll(new TitleScene());
         else E.pop();
       }
     }
     drawUI(c) {
-      E.panel(c, 168, 8, 80, 172);
-      E.menuList(c, ['角色資料', '隊伍編成', '陣形', '裝備', '背包', '計謀', '任務', '讀取', '回標題', '關閉'], this.sel, 178, 16, 13);
+      E.panel(c, 168, 4, 80, 184);
+      E.menuList(c, ['角色資料', '隊伍編成', '陣形', '裝備', '背包', '計謀', '任務', '讀取', '音量設定', '回標題', '關閉'], this.sel, 178, 10, 13);
       E.text(c, '金 ' + (G.gold || 0), 178, 152, { size: 9, color: GOLD });
       E.text(c, '存檔請到', 178, 164, { size: 7, color: GREY });
       E.text(c, '藍色水晶旁', 178, 172, { size: 7, color: GREY });
+    }
+  }
+
+  // ------------------------------------------------------------ 音量設定
+  class AudioSettingsScene {
+    constructor() { this.sel = 0; }
+    volumes() { return window.Audio2 ? window.Audio2.getVolumes() : { music: 0.3, sfx: 0.3 }; }
+    update() {
+      if (E.hit.cancel || E.hit.ok && this.sel === 2) { E.pop(); return; }
+      if (E.hit.up) this.sel = (this.sel + 2) % 3;
+      if (E.hit.down) this.sel = (this.sel + 1) % 3;
+      if (this.sel < 2 && (E.hit.left || E.hit.right)) {
+        const v = this.volumes(), key = this.sel === 0 ? 'music' : 'sfx';
+        const next = Math.max(0, Math.min(1, v[key] + (E.hit.right ? 0.1 : -0.1)));
+        if (window.Audio2) (key === 'music' ? window.Audio2.setMusicVolume : window.Audio2.setSfxVolume)(next);
+        if (this.sel === 1 && window.Audio2) window.Audio2.sfx('hit');
+      }
+    }
+    drawUI(c) {
+      E.panel(c, 35, 48, 186, 124);
+      E.text(c, '音量設定', 128, 56, { align: 'center', color: GOLD });
+      const v = this.volumes();
+      [['音樂音量', v.music], ['音效音量', v.sfx]].forEach(function (row, i) {
+        const y = 82 + i * 30;
+        E.text(c, row[0], 48, y, { size: 9, color: this.sel === i ? GOLD : '#f4f4ff' });
+        c.fillStyle = '#302b39'; c.fillRect(110, y + 3, 78, 7);
+        c.fillStyle = '#e5b94e'; c.fillRect(110, y + 3, Math.round(78 * row[1]), 7);
+        E.text(c, Math.round(row[1] * 100) + '%', 194, y, { size: 8, color: '#f4f4ff' });
+      }, this);
+      E.text(c, '返回', 128, 145, { align: 'center', size: 9, color: this.sel === 2 ? GOLD : '#f4f4ff' });
+      E.text(c, '左右調整　確認／取消返回', 128, 160, { align: 'center', size: 7, color: GREY });
     }
   }
 
@@ -1510,5 +1542,5 @@
     }
   }
 
-  window.Scenes = { RecruitOffer: RecruitOfferScene, Hall: HallScene, Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene, BattleForm: BattleFormScene, FieldSkill: FieldSkillScene, Quest: QuestScene };
+  window.Scenes = { RecruitOffer: RecruitOfferScene, Hall: HallScene, Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene, BattleForm: BattleFormScene, FieldSkill: FieldSkillScene, Quest: QuestScene, AudioSettings: AudioSettingsScene };
 })();

@@ -113,7 +113,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       else if (ev.type === 'dmg') {
         const p = this.unitPos(ev.target);
         ev.target.shake = 260; ev.target.dhp = ev.hpAfter != null ? ev.hpAfter : ev.target.hp;
-        this.floats.push({ x: p.x, y: p.y, text: String(ev.amount), color: ev.target.side === 'enemy' ? '#fff' : RED, t: 0 });
+        this.floats.push({ x: p.x, y: p.y, text: String(ev.amount), color: ev.critical ? GOLD : ev.target.side === 'enemy' ? '#fff' : RED, t: 0 });
+        if (ev.critical) { if (window.Audio2) window.Audio2.sfx('critical'); this.floats.push({ x: p.x, y: p.y - 12, text: '爆擊！', color: GOLD, t: 0 }); }
         this.wait = DMG_MS;
         if (ev.dead) this.msgText = ev.target.name + (ev.target.side === 'enemy' ? '被擊潰了！' : '倒下了！');
       } else if (ev.type === 'heal' || ev.type === 'tp') {
