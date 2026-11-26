@@ -29,13 +29,14 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.evaluate(() => Engine.replaceAll(new Scenes.Map('cave1', DATA.maps.cave1.start))); await sleep(500); check('cave music in cave', (await cur()) === 'cave', await cur());
   await page.evaluate(() => Engine.push(new Scenes.Battle(['turban', 'turban'], { boss: false, onEnd() {} }))); await sleep(500); check('normal battle music', (await cur()) === 'battle', await cur());
   await page.evaluate(() => { Engine.pop(); Engine.push(new Scenes.Battle(['chengyuanzhi', 'turban'], { boss: true, onEnd() {} })); }); await sleep(500); check('boss battle music', (await cur()) === 'boss', await cur());
-  await page.evaluate(() => { Engine.top().result = 'win'; }); await sleep(500); check('victory jingle after win', (await cur()) === 'victory', await cur());
+  await page.evaluate(() => { Engine.top().result = 'win'; }); const victoryTrack = await waitTrack('victory'); check('victory jingle after win', victoryTrack === 'victory', victoryTrack);
   const state = await page.evaluate(() => Audio2.state && Audio2.state());
   const names = await page.evaluate(() => { const s = new Set(); Object.values(DATA.battle.skills).forEach(k => k.fx && s.add(k.fx)); ['hit', 'blade', 'arrow', 'axe', 'wave'].forEach(x => s.add(x)); s.forEach(n => Audio2.sfx(n)); return s.size; });
   check('every skill effect has a sound', names >= 36, names);
-  await sleep(1500);
-  await page.keyboard.press('m'); check('M mutes', await page.evaluate(() => Audio2.isMuted()) === true);
-  await page.keyboard.press('m'); check('M unmutes', await page.evaluate(() => Audio2.isMuted()) === false);
+  await sleep(300);
+  // M 是大地圖快捷鍵，不是靜音鍵；直接驗證音樂靜音 API，避免把地圖操作誤當音量控制。
+  await page.evaluate(() => Audio2.setMusicMuted(true)); check('music mute API', await page.evaluate(() => Audio2.isMusicMuted()) === true);
+  await page.evaluate(() => Audio2.setMusicMuted(false)); check('music unmute API', await page.evaluate(() => Audio2.isMusicMuted()) === false);
   check('no page errors', errors.length === 0, errors);
   console.log(pass + ' passed, ' + fail + ' failed');
   await br.close(); process.exit(fail ? 1 : 0);
