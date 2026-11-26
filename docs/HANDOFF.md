@@ -193,3 +193,11 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - 本項目前為已確認規格；尚未完成整批頭像繪製或整合。正式修改前需盤點目前頭像圖集尺寸、角色索引與介面呼叫，並只替換頭像素材／來源，不動戰鬥人物資產。
 
 - 註：v0.53.1 的名將畫像仍是 48×48 格（portraits.png 第 116 格起，由 tools/portrait_art.py＋hist_specs.py 產生），沒有動戰鬥人物大小或圖集格尺寸；上面「頭像高解析度」規格若要實作，請以 portrait_art.py 的 G／SS 繪圖座標（96 格、8 倍超取樣）為基礎放大輸出，讓同一套設計共用大小頭像。
+
+## v0.54.0 第四章批次2a（《演義》主線＋五關道）
+- data/ch4b.js：改寫 chezhou_after（劉備、張飛北上，關羽土山約三事降曹，flag ch4_guan_cao）、許都 xd_caocao3 贈赤兔馬／漢壽亭侯印／舊綠錦袍（flag xd_chitu）、白馬／延津／官渡辭曹（ch4_guan_leave）。
+- 五關道：地圖 wg1–wg5（24×26，頭目站在隔牆唯一通道上擋路，南出口進、北出口出），入口為 world4 的 D.ch4Entry（need ch4_guan_leave），wg5 北出口回 world4 (58,7) 通鄴城；頭目戰群 wgNboss／wgNg1／wgNg2。
+- 鄴城需 wg5_down 才觸發袁紹重逢（recruit liubei／zhangfei、flag ye_meet、ch4_end）。
+- 孟坦為一般護衛（非 boss 旗標）；兩個 boss 旗標同戰會讓 sim 卡住，之後設計請避免。
+- 測試：tests/ch4b_test.js、ch4_test.js 已改成新流程。
+- 待做（批次2b）：三個村莊、兩個洞穴、四個支線（附導航資訊）、新兵書《孫子》。

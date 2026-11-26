@@ -10,7 +10,8 @@ ROADS = [('xudu', 'runan'), ('xudu', 'guandu'), ('guandu', 'yanjin'), ('yanjin',
 GATE = (2, 35)
 GARRISON = {'runan': ('chezhou_down', 'darkred'), 'baima': ('yanliang_down', 'gold'), 'yanjin': ('wenchou_down', 'blue')}
 SOLID = set('T~')
-RIVER_Y = 12   # 黃河：橫貫北方，道路穿過處變成渡橋
+RIVER_Y = 12
+ENTRY = {}   # 黃河：橫貫北方，道路穿過處變成渡橋
 
 def make_world():
     g = [['.'] * W for _ in range(H)]
@@ -55,6 +56,12 @@ def make_world():
         for dx, ch in ((-1, 'e'), (0, 'u'), (1, 'j')): g[y - 1][x + dx] = ch
         g[y][x - 1] = 'l'; g[y][x + 1] = 'r'
     g[gy][gx] = 'G'
+    # 五關道入口：官渡東邊的空地上放一塊關口圖塊（過五關用）
+    gdx, gdy = TOWNS['guandu']
+    for dx in range(4, 10):
+        if all(g[gdy + dy][gdx + dx + ddx] in '.' for dy in (0, 1) for ddx in (-1, 0, 1)):
+            g[gdy][gdx + dx] = 'P'; ENTRY.update(x=gdx + dx, y=gdy); break
+    assert ENTRY, 'no space for 五關道'
     for dy in (-1, 1): g[gy + dy][gx] = 'Q'; g[gy + dy][gx + 1] = 'Q'
     for y in range(1, H - 1):
         for x in range(1, W - 1):
@@ -66,6 +73,7 @@ def make_world():
             nx, ny = x + dx, y + dy
             if 0 <= nx < W and 0 <= ny < H and (nx, ny) not in seen and g[ny][nx] not in SOLID: seen.add((nx, ny)); q.append((nx, ny))
     for t, (x, y) in TOWNS.items(): assert (x, y + 1) in seen, ('unreachable', t)
+    assert any((ENTRY['x'] + a, ENTRY['y'] + b) in seen for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1))), 'entry unreachable'
     rows = [''.join(rw).replace('.', 'g') for rw in g]
     tiers = sorted(set(TIER.values())); zg = []
     for by2 in range(H // 4):
@@ -105,7 +113,7 @@ out = ['// 第四章「許都風雲」大地圖與城鎮（由 tools/build_ch4.p
        '  D.worldIds.push("world4");',
        '  Object.assign(D.worldTowns, ' + json.dumps({k: {'x': x, 'y': y, 'world': 'world4'} for k, (x, y) in TOWNS.items()}) + ');',
        '  Object.assign(D.worldGarrison, ' + json.dumps({k: {'flag': v[0], 'banner': v[1]} for k, v in GARRISON.items()}) + ');',
-       '  D.ch4Doors = {};']
+       '  D.ch4Doors = {};', '  D.ch4Entry = ' + json.dumps(ENTRY) + ';']
 warps = []
 for t, (x, y) in TOWNS.items():
     warps.append(dict(x=x, y=y, to=t, tx=11, ty=18, dir='up', need='seen_' + t, deny='world_garrison' if t in GARRISON else 'world_unknown', bx=x, by=y + 1))

@@ -80,11 +80,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.evaluate(() => { while (Engine.top().constructor.name !== 'MapScene') Engine.pop(); Game.flags.chezhou_down = true; Engine.push(new Scenes.Dialog(DATA.dialogue.chezhou_after)); }); await talk();
   check('車冑戰後：叛曹', await page.evaluate(() => !!Game.flags.ch4_rebel));
 
-  // 鄴城：袁紹
-  await page.evaluate(() => { Engine.replaceAll(new Scenes.Map('ye', { x: 11, y: 9, dir: 'up' })); }); await sleep(500); await talk();
-  await page.evaluate(() => { Engine.replaceAll(new Scenes.Map('ye', { x: 11, y: 8, dir: 'up' })); }); await sleep(400);
-  await tap('z', 60, 400); await talk();
-  check('見過袁紹', await page.evaluate(() => !!Game.flags.ye_meet));
+  await page.evaluate(() => { Game.flags.xd_chitu = true; });
 
   // 白馬：顏良
   await page.evaluate(() => { Engine.replaceAll(new Scenes.Map('baima', { x: 12, y: 15, dir: 'down' })); }); await sleep(400);
@@ -98,13 +94,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('文丑開戰', (await top()) === 'BattleScene', await top());
   await page.evaluate(() => { while (Engine.top().constructor.name !== 'MapScene') Engine.pop(); Game.flags.wenchou_down = true; Engine.push(new Scenes.Dialog(DATA.dialogue.wenchou_after)); }); await talk();
 
-  // 官渡
+  // 官渡辭曹
   await page.evaluate(() => { Engine.replaceAll(new Scenes.Map('guandu', { x: 11, y: 9, dir: 'up' })); }); await sleep(500); await talk();
   await page.evaluate(() => { Engine.replaceAll(new Scenes.Map('guandu', { x: 11, y: 7, dir: 'up' })); }); await sleep(400);
   await tap('z', 60, 400); await talk();
-  check('官渡：前半結束', await page.evaluate(() => !!Game.flags.ch4_part1_end));
-  const qe = await page.evaluate(() => { const fl = Game.flags; return DATA.mainQuest.filter(q => q.world === 'world4').every(q => typeof q.done === 'function' ? q.done(fl) : fl[q.done]); });
-  check('第四章（前半）主線任務全部完成', qe);
+  check('官渡：辭曹', await page.evaluate(() => !!Game.flags.ch4_guan_leave));
+  // 鄴城重逢
+  await page.evaluate(() => { Game.flags.wg5_down = true; Engine.replaceAll(new Scenes.Map('ye', { x: 11, y: 9, dir: 'up' })); }); await sleep(500); await talk();
+  await page.evaluate(() => { Engine.replaceAll(new Scenes.Map('ye', { x: 11, y: 8, dir: 'up' })); }); await sleep(400);
+  await tap('z', 60, 400); await talk();
+  check('鄴城重逢', await page.evaluate(() => !!Game.flags.ye_meet && !!Game.flags.ch4_end));
+  const qe = await page.evaluate(() => { const fl = Game.flags; fl.xd_chitu = fl.wg5_down = true; return DATA.mainQuest.filter(q => q.world === 'world4').every(q => typeof q.done === 'function' ? q.done(fl) : fl[q.done]); });
+  check('第四章主線任務全部完成', qe);
   const zones = await page.evaluate(() => DATA.maps.world4.zoneTiers);
   check('world4 zoneTiers = 14,15,16', JSON.stringify(zones) === '[14,15,16]', zones);
   check('no page errors', errors.length === 0, errors);
