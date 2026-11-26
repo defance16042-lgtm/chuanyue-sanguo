@@ -9,6 +9,48 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
   const MSG_MS = 520, DMG_MS = 480;
   // 戰鬥小人（24×24，有武器與揮砍／施法動作）所在的列；沒有的人暫時用地圖小人
   const BATTLE_ROW = { nyao: 0, liubei: 1, guanyu: 2, zhangfei: 3, caocao: 4, luzhi: 5 };
+  // 依實際裝備種類繪製手持像素武器；物理攻擊時隨動作揮砍或突刺。
+  function drawHeldWeapon(c, u, x, y, enemy, dead) {
+    if (dead || !u) return;
+    const type = u.wtype || u.weapon || '劍', anim = u.anim;
+    const attacking = anim && anim.kind === 'swing';
+    let angle = 0.16, reach = 0;
+    if (attacking) {
+      if (type === '槍' || type === '矛') reach = anim.t >= 150 && anim.t < 360 ? 5 : 0;
+      else if (anim.t < 150) angle = -0.95;
+      else if (anim.t < 360) angle = 0.85;
+      else angle = 0.18;
+    }
+    c.save();
+    c.translate(Math.round(x + reach), Math.round(y));
+    if (enemy) c.scale(-1, 1);
+    c.rotate(angle);
+    c.fillStyle = '#6e4228'; c.fillRect(0, -1, 4, 2); // 握柄
+    if (type === '弓') {
+      c.strokeStyle = '#b77b38'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(4, -6); c.quadraticCurveTo(11, 0, 4, 6); c.stroke();
+      c.strokeStyle = '#e8dfc4'; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(4, -6); c.lineTo(4, 6); c.stroke();
+    } else if (type === '扇') {
+      c.fillStyle = '#e8d9a0'; c.fillRect(4, -1, 2, 2);
+      c.strokeStyle = '#efe0ad'; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(5, 0); c.lineTo(11, -5); c.moveTo(5, 0); c.lineTo(12, -2); c.moveTo(5, 0); c.lineTo(12, 1); c.moveTo(5, 0); c.lineTo(10, 5); c.stroke();
+      c.fillStyle = '#b43232'; c.fillRect(8, -1, 4, 2);
+    } else if (type === '斧') {
+      c.fillStyle = '#c69a58'; c.fillRect(3, -1, 9, 2);
+      c.fillStyle = '#aaaeb8'; c.fillRect(10, -5, 3, 9); c.fillRect(8, -5, 4, 2);
+      c.fillStyle = '#eef2f4'; c.fillRect(12, -4, 1, 7);
+    } else if (type === '槍' || type === '矛') {
+      c.fillStyle = '#8b5b32'; c.fillRect(3, -1, 13, 2);
+      c.fillStyle = '#c6d4de'; c.fillRect(14, -2, 3, 4); c.fillRect(16, -3, 2, 6);
+      c.fillStyle = '#f5f6e8'; c.fillRect(17, -1, 2, 2);
+    } else {
+      c.fillStyle = '#d9dfe5'; c.fillRect(3, -2, 9, 4); c.fillRect(12, -1, 2, 2);
+      c.fillStyle = '#f7f5dd'; c.fillRect(5, -1, 7, 1); c.fillRect(13, 0, 2, 1);
+      c.fillStyle = '#d1a744'; c.fillRect(3, -3, 1, 6);
+    }
+    c.restore();
+  }
 
   const ROW_X = [94, 68, 44];   // 前排、中排、後排的小人 x 座標
   class BattleScene {
@@ -398,6 +440,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (hurt && !dead) frame = 6;
         if (dead) frame = 7;
         { const k = E.images.benemy_hd ? 2 : 1; wc.drawImage(E.images.benemy_hd || E.images.benemy16, frame * 24 * k, e.sprite * 16 * k, 24 * k, 16 * k, e.x + dx, e.y, 24, 16); }
+        drawHeldWeapon(wc, e, e.x + dx + 5, e.y + 9, true, dead);
         wc.globalAlpha = 1;
         if (!dead) self.statusFx(wc, e, e.x + 12 + dx, e.y);
       });
@@ -472,6 +515,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         wc.drawImage(E.images.sprites_hd || E.images.sprites, ((cmd || an) ? 7 : 6) * k2, u.ref.sprite * k2, k2, k2, u.x + sx + off, u.y, 16, 16);
         wc.globalAlpha = 1;
       }
+      drawHeldWeapon(wc, u, u.x + (row !== undefined ? 18 : 12) + sx + off, u.y + 9, false, dead);
       this.statusFx(wc, u, u.x + 12 + off + sx, u.y);
       if (an && an.kind === 'cast' && !dead) {   // 施法光圈
         const r = 4 + an.t / 60;
