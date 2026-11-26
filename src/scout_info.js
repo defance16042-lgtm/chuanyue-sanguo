@@ -19,7 +19,7 @@
     ];
     c.fillStyle = 'rgba(4,7,20,0.97)'; c.fillRect(4, 4, 248, 216); window.Engine.panel(c, 4, 4, 248, 216);
     window.Engine.text(c, '敵將偵察：' + t.name, 12, 10, { size: 10, color: '#ffd668' });
-    window.Engine.text(c, '↑↓換敵將　X返回', 244, 11, { size: 6, color: '#8a8aa0', align: 'right' });
+    window.Engine.text(c, '上下切換敵將　返回', 244, 11, { size: 6, color: '#8a8aa0', align: 'right' });
     lines.forEach(function (line, i) {
       const wrapped = [];
       for (let n = 0; n < line.length; n += 27) wrapped.push(line.slice(n, n + 27));
