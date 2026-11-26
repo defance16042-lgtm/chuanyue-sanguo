@@ -974,8 +974,9 @@
       const t = this.tileAt(x, y), o = this.objAt(x, y);
       // 明確的障礙物、未開啟關門與存檔水晶擋路；其他場景物件預設可穿越，
       // 個別物件也可用 solid:true 指定碰撞。
-      const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat' || o.type === 'save');
-      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject;
+      const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat');
+      const saveCrystal = (this.map.objects || []).some(function (obj) { return obj.type === 'save' && obj.x === x && obj.y === y; });
+      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject || saveCrystal;
     }
     interact() {
       const p = this.p, v = DIRV[p.dir], tx = p.x + v[0], ty = p.y + v[1];
