@@ -28,7 +28,9 @@
     zhangkai:     ['b', ['泰山劫道', '亡命一搏', '山賊亂刀', '斷路一斬'], ['劫糧令', '賊寨號角']],
     houcheng:     ['b', ['并州疾刺', '同袍護陣', '連環弩射', '追風一擊'], ['并州軍令', '同進同退']],
     songxian:     ['b', ['長戟鉤擊', '戟陣迴旋', '長戟橫掃', '鉤鎌連擊'], ['戟陣令', '并州鼓角']],
-    gaoshun:      ['b', ['陷陣衝鋒', '密陣如牆', '七百死士', '所攻必破'], ['陷陣令', '不飲酒的軍規']]
+    gaoshun:      ['b', ['陷陣衝鋒', '密陣如牆', '七百死士', '所攻必破'], ['陷陣令', '不飲酒的軍規']],
+    caoren:       ['b', ['天人將軍槍', '鐵壁迎擊', '樊城死守', '突圍救主'], ['曹仁軍令', '八門金鎖']],
+    shenpei:      ['t', ['鄴城伏弩', '堅壁護城', '審配固守', '萬弩齊發'], ['鄴城籌糧', '死守不降']]
   };
   // ---- 每位將領的專屬效果設計（個人計謀 4 招：Lv1／5／10／18；軍師計 2 招）。每人效果組合不同，不再套同一個型態模板。
   const ph = function (tp, power, fx, o) { return Object.assign({ tp: tp, kind: 'phys', target: 'one', power: power, fx: fx }, o || {}); };
@@ -66,6 +68,8 @@
     houcheng: [ph(3, 0.95, 'thrust', { hits: 2 }), ba(4, 'def', 1.3, 3, 'up_b'), ph(6, 0.7, 'multithrust', { hits: 3 }), ph(8, 2.8, 'cross', { rider: rd('spd', 0.7, 3) }), ba(6, 'atk', 1.3, 4, 'up_r'), ht(5, 0.05, 4, 'leaf')],
     songxian: [ph(3, 1.8, 'cross', { rider: rd('def', 0.85, 3) }), bs(4, 'def', 1.5, 3, 'up_b', { extra: { stat: 'atk', mult: 1.2 } }), pa(6, 1.2, 'whirl'), ph(9, 1.0, 'axe', { hits: 3 }), ba(6, 'def', 1.35, 4, 'up_b'), db(5, 'spd', 0.7, 3, 'trap')],
     gaoshun: [ph(3, 1.8, 'multithrust'), ba(5, 'def', 1.6, 3, 'aura'), pa(6, 0.7, 'thrust', { hits: 2 }), ph(9, 3.3, 'dragon', { rider: rd('def', 0.6, 3) }), ba(7, 'def', 1.5, 4, 'up_b', { extra: { stat: 'atk', mult: 1.15 } }), cl(6, 0.5, 'purify')],
+    caoren: [ph(3, 1.9, 'thrust', { rider: rd('def', 0.85, 3) }), bs(4, 'def', 1.7, 3, 'up_b', { extra: { stat: 'atk', mult: 1.15 } }), pa(6, 1.0, 'cross', { rider: rd('spd', 0.8, 3) }), ph(9, 3.4, 'dragon', { rider: rd('def', 0.65, 3) }), ba(6, 'def', 1.5, 4, 'up_b', { extra: { stat: 'lead', mult: 1.1 } }), cl(6, 0.45, 'purify')],
+    shenpei: [tc(4, 6, 2.0, 1.3, 'fire'), ba(4, 'def', 1.45, 3, 'up_b'), db(6, 'spd', 0.65, 3, 'trap'), tc(9, 13, 3.9, 2.1, 'bolt', { rider: rd('def', 0.75, 3) }), ht(6, 0.06, 4, 'leaf'), st(6, 1, 'dizzy')],
     chezhou: [ph(3, 1.7, 'thrust'), ba(4, 'def', 1.3, 3, 'up_b'), ph(6, 0.75, 'multithrust', { hits: 3 }), ph(9, 3.2, 'cross', { rider: rd('def', 0.65, 3) }), hl(6, 1.8), ba(6, 'atk', 1.3, 4, 'up_r')],
     yanliang: [ph(3, 2.0, 'slash'), bs(3, 'spd', 1.4, 3, 'wind', { extra: { stat: 'atk', mult: 1.3 } }), pa(6, 1.2, 'axe', { rider: rd('def', 0.8, 3) }), ph(9, 3.5, 'bloodslash', { leech: 0.2 }), ba(6, 'spd', 1.3, 4, 'wind'), db(6, 'atk', 0.65, 3, 'roar')],
     wenchou: [ph(3, 1.0, 'thrust', { hits: 2 }), bs(3, 'atk', 1.6, 3, 'rage'), pa(6, 1.1, 'multithrust', { rider: rd('spd', 0.8, 3) }), ph(9, 3.4, 'execute', { lowBonus: 1.2 }), ba(6, 'atk', 1.35, 4, 'up_r', { extra: { stat: 'spd', mult: 1.1 } }), db(6, 'def', 0.7, 3, 'crack')]
@@ -93,6 +97,8 @@
     houcheng: [['并州連弩', ph(9, 0.6, 'multithrust', { hits: 5 })], ['同袍共進', ba(10, 'spd', 1.6, 4, 'wind', { extra: X('def', 1.2) })], ['追風奪馬', ph(12, 3.8, 'thrust', { rider: rd('spd', 0.6, 3) })]],
     songxian: [['鉤鎌斷足', ph(9, 3.0, 'cross', { rider: rd('spd', 0.6, 3) })], ['戟陣固守', ba(10, 'def', 1.7, 4, 'up_b')], ['長戟回旋', pa(12, 1.8, 'whirl', { rider: rd('def', 0.75, 3) })]],
     gaoshun: [['七百敢死', ba(11, 'atk', 1.5, 4, 'rage', { extra: X('def', 1.4) })], ['陷陣無前', pa(12, 1.7, 'multithrust', { rider: rd('def', 0.7, 3) })], ['所向披靡', ph(14, 4.5, 'dragon', { rider: rd('def', 0.5, 3) })]],
+    caoren: [['天人軍陣', ba(10, 'def', 1.7, 4, 'up_b', { extra: X('atk', 1.2) })], ['單騎入陣', ph(11, 3.6, 'cross', { rider: rd('atk', 0.7, 3) })], ['樊城不下', bs(12, 'def', 2.4, 4, 'aura', { extra: X('lead', 1.2) })]],
+    shenpei: [['鄴城籌策', ht(10, 0.09, 5, 'leaf')], ['強弩連環', tc(11, 15, 4.1, 2.4, 'thunder', { rider: rd('spd', 0.7, 3) })], ['死守鄴城', ba(12, 'def', 1.7, 4, 'aura', { extra: X('int', 1.2) })]],
     chezhou: [['刺史鎮州', ba(10, 'def', 1.6, 4, 'up_b')], ['州兵連刺', ph(10, 0.7, 'multithrust', { hits: 4 })], ['守土絕斬', ph(13, 3.8, 'cross', { rider: rd('atk', 0.7, 3) })]],
     yanliang: [['河北先鋒', ba(10, 'atk', 1.5, 4, 'up_r', { extra: X('spd', 1.2) })], ['大刀開山', pa(12, 1.8, 'axe', { rider: rd('def', 0.7, 3) })], ['萬軍取首', ph(14, 4.4, 'execute', { lowBonus: 1.6 })]],
     wenchou: [['藍纓穿雲', ph(10, 0.8, 'thrust', { hits: 4 })], ['雙壁怒火', bs(10, 'atk', 1.9, 3, 'rage', { extra: X('spd', 1.25) })], ['替友雪恨', ph(14, 4.4, 'bloodslash', { leech: 0.35 })]]

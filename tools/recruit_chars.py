@@ -36,4 +36,9 @@ RC = [
     ("yanliang",  dict(pal=P(1, BLK, (150, 130, 50), (200, 60, 50)), beard="short", wild=True, hat=(130, 110, 40)), "glaive"),
     ("wenchou",   dict(pal=P(2, BLK, (60, 90, 140), (230, 200, 90)), beard="long", wild=True, hat=(44, 70, 120)), "spear"),
     ("yuanshao",  dict(pal=P(0, BLK, (170, 130, 50), (120, 40, 40)), beard="long", wild=False, hat=(140, 100, 36), plume=(200, 60, 50)), "swords"),
+    # ---- 第五章人物（地圖第 66 列起、戰鬥第 60 列起）
+    ("caoren",    dict(pal=P(1, BLK, (66, 86, 130), (200, 200, 220)), beard="short", wild=False, hat=(52, 70, 112)), "spear"),
+    ("shenpei",   dict(pal=P(1, BLK, (120, 84, 50), (210, 180, 90)), beard="long", wild=False, hat=(96, 66, 40)), "fan"),
+    ("xuyou",     dict(pal=P(0, BLK, (100, 110, 70), (220, 200, 110)), beard="short", wild=False, hat=(76, 84, 54)), "fan"),
+    ("zhanghe",   dict(pal=P(1, BLK, (76, 104, 116), (220, 210, 160)), beard="short", wild=False, hat=(64, 88, 100), plume=(200, 190, 120)), "glaive"),
 ]

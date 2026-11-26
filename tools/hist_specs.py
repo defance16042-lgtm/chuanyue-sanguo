@@ -128,4 +128,9 @@ HIST = {
  "houcheng|侯成": S(bg=(70, 80, 70), armor=(92, 104, 92), trim=(200, 190, 140), head="helm_dome", headc=(120, 130, 116), face="long", w=21, brow="knit", eye="droop", mouth="frown", nose="flat", beard="stache", stache="pencil", skin=SK[1], body="armor"),
  "songxian|宋憲": S(bg=(84, 60, 48), armor=(120, 90, 64), trim=(210, 170, 90), head="tiger", headc=(150, 120, 70), face="square", w=25, brow="thick", eye="fierce", mouth="shout", nose="big", beard="mutton", skin=SK[3], body="armor"),
  "chezhou|車冑": S(bg=(66, 70, 84), armor=(84, 88, 108), trim=(190, 160, 80), head="fu", headc=(48, 52, 70), face="pointed", w=21, brow="calm", eye="wise", mouth="flat", nose="sharp", beard="goatee", stache="pencil", skin=SK[1], body="robe"),
+
+ "caoren|曹仁": S(bg=(46, 62, 96), armor=(66, 86, 130), trim=(200, 200, 220), head="helm_dome", headc=(52, 70, 112), face="square", w=25, brow="thick", eye="fierce", mouth="flat", nose="big", beard="stache", stache="std", skin=SK[1], body="armor"),
+ "shenpei|審配": S(bg=(80, 60, 40), armor=(120, 84, 50), trim=(210, 180, 90), head="guan", headc=(96, 66, 40), face="long", w=21, brow="knit", eye="narrow", mouth="frown", nose="sharp", beard="long", beardc=(50, 40, 36), skin=SK[1], body="robe"),
+ "xuyou|許攸": S(bg=(70, 80, 56), armor=(100, 110, 70), trim=(220, 200, 110), head="guan", headc=(76, 84, 54), face="pointed", w=20, brow="raised", eye="wise", mouth="grin", nose="hawk", beard="goatee", stache="pencil", skin=SK[0], body="robe"),
+ "zhanghe|張郃": S(bg=(52, 70, 80), armor=(76, 104, 116), trim=(220, 210, 160), head="helm_wing", headc=(64, 88, 100), face="long", w=22, brow="sword", eye="wise", mouth="smirk" if False else "flat", nose="sharp", beard="stache", stache="handle", skin=SK[1], body="armor"),
 }

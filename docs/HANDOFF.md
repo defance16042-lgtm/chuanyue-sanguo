@@ -209,3 +209,12 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - 支線導航沿用 scenes.js 的 sideQuestGuide（以 gen_caveN_x 與 chest.map 推出目的地地圖），給任務座標是 spotNear／freeSpot 算出來的，不要手改。
 - 測試：tests/ch4c_test.js（18 項）。模擬：cave8boss Lv62 約 87%、cave9boss Lv62 約 100%（Lv58 約 30–36%），屬選擇性高難度內容。
 - 待做：第五章（官渡之戰、烏巢火攻）；第四章敵將偵察資料可再補。
+
+## v0.58.0 第五章批次1（官渡烽火主線）
+- tools/build_ch5.py → data/ch5world.js：world5（80×60）與五城 yangwu／liyangcheng／cangting／xinye／xiangyang（'seen_' 旗標與 worldBackfill 控制開城）。world4 在 (78,26) 加 'P' 關門（need ch5_xun）通往 world5 (3,24)；回程落在 world4 (77,26)。
+- data/ch5.js：敵人（yuan_vet 等 6 種）、頭目 caoren／chunyuqiong／shenpei／yuanshang／caimao（boss24–28）、15 件裝備、W6／A6 商店、房屋（沿用第四章建屋做法）、烏巢單層戰場 wuchao（入口為 world5 陽武東邊的 'P' 圖塊，need wuchao_plan，由 ch5.js 載入時找空地放）、助戰 xuyou／zhanghe（自帶計謀，非招收），主線對話與任務。
+- 招收：caoren（猛將型）、shenpei（謀士型）進 recruit.js INFO／PROF 與 recruit_skills.js T／KIT／LATE（KIT 內不要用 X()，它在後面才宣告）。
+- 與企劃的差異：淳于瓊、袁尚、蔡瑁不做招收（沒有專屬美術）；烏巢火攻以對話演出，沒有新增戰鬥機制。
+- 流程旗標：ch5_start → caoren_down → ch5_xun → yw_scout_down → xuyou_join → wuchao_plan → chunyuqiong_down（張郃 zhanghe_join）→ shenpei_down → yuanshang_down → caimao_down（客串離隊 ch5_liubiao）→ ch5_end。
+- 測試：tests/ch5_test.js（14 項）。Lv62 模擬：曹仁 92%、淳于瓊 75%、審配 69%、袁尚 60%、蔡瑁 80%。
+- 待做（批次2）：第五章村莊、洞穴、關口、支線 4 條、新兵書、荊州結尾。

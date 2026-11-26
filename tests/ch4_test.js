@@ -104,7 +104,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.evaluate(() => { Engine.replaceAll(new Scenes.Map('ye', { x: 11, y: 8, dir: 'up' })); }); await sleep(400);
   await tap('z', 60, 400); await talk();
   check('鄴城重逢', await page.evaluate(() => !!Game.flags.ye_meet && !!Game.flags.ch4_end));
-  const qe = await page.evaluate(() => { const fl = Game.flags; fl.xd_chitu = fl.wg5_down = true; return DATA.mainQuest.filter(q => q.world === 'world4').every(q => typeof q.done === 'function' ? q.done(fl) : fl[q.done]); });
+  const qe = await page.evaluate(() => { const fl = Game.flags; fl.xd_chitu = fl.wg5_down = true; return DATA.mainQuest.filter(q => q.world === 'world4' && !/^(ch5_|caoren_down|wuchao_plan)/.test(q.done)).every(q => typeof q.done === 'function' ? q.done(fl) : fl[q.done]); });
   check('第四章主線任務全部完成', qe);
   const zones = await page.evaluate(() => DATA.maps.world4.zoneTiers);
   check('world4 zoneTiers = 14,15,16', JSON.stringify(zones) === '[14,15,16]', zones);
