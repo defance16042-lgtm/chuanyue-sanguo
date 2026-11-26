@@ -972,10 +972,11 @@
     objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]); }); }
     blocked(x, y) {
       const t = this.tileAt(x, y), o = this.objAt(x, y);
-      // 只有明確的大型障礙／未開啟關門擋路；火把、骸骨、石碑、存檔點、
-      // 拉桿、泉水、雕像等場景物件不再一律封死通道。資料可用 solid:true 個別指定。
+      // 明確的障礙物、未開啟關門與存檔水晶擋路；其他場景物件預設可穿越，
+      // 個別物件也可用 solid:true 指定碰撞。
       const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat');
-      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject;
+      const saveCrystal = (this.map.objects || []).some(function (obj) { return obj.type === 'save' && obj.x === x && obj.y === y; });
+      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject || saveCrystal;
     }
     interact() {
       const p = this.p, v = DIRV[p.dir], tx = p.x + v[0], ty = p.y + v[1];

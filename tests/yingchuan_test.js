@@ -25,7 +25,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // 地圖資料：每列等長、字元都在 legend、NPC／傳送點落在可走的格子、對話都存在
   const md = await page.evaluate(() => {
     const D = DATA, out = [];
-    ['yingchuan', 'changshe', 'runan', 'wancheng', 'dongjun', 'jizhou', 'guangzong', 'xiaquyang', 'gzcity', 'anxi', 'heishan', 'youbei', 'pingyuan', 'suanzao', 'sishui'].forEach(id => {
+    ['yingchuan', 'changshe', 'runan_ch1', 'runan', 'wancheng', 'dongjun', 'jizhou', 'guangzong', 'xiaquyang', 'gzcity', 'anxi', 'heishan', 'youbei', 'pingyuan', 'suanzao', 'sishui'].forEach(id => {
       const m = D.maps[id], w = m.tiles[0].length;
       if (!m.tiles.every(r => r.length === w)) out.push(id + ' ragged');
       m.tiles.forEach((r, y) => [...r].forEach((ch, x) => { if (!(ch in D.legend)) out.push(id + ' bad tile ' + ch); }));
@@ -62,8 +62,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('Huangfu Song first talk sets huangfu_met', s.flags.huangfu_met === true, s.flags);
   await face('changshe', 12, 4, 'up'); s = await S();    // 曹操 (12,3)
   check('Cao Cao joins as a guest (5th slot)', s.ids.includes('caocao') && s.flags.guest_caocao && s.n === 5, s.ids);
-  const cc = await page.evaluate(() => { const m = Game.party.find(x => x.id === 'caocao'); return { guest: m.guest, p: Game.portraitOf(m), skills: BattleLogic.skillsFor(m, Game.flags).map(k => k.name) }; });
-  check('Cao Cao is a guest with portrait and skills', cc.guest && cc.p === 5 && cc.skills.includes('亂世奇謀'), cc);
+  const cc = await page.evaluate(() => { const m = Game.party.find(x => x.id === 'caocao'); return { guest: m.guest, p: Game.portraitOf(m), expected: DATA.characters.caocao.portrait, skills: BattleLogic.skillsFor(m, Game.flags).map(k => k.name) }; });
+  check('Cao Cao is a guest with portrait and skills', cc.guest && cc.p === cc.expected && cc.skills.includes('亂世奇謀'), cc);
   await go('changshe', 5, 7, 'up'); await sleep(150); await tap('z'); await sleep(300); await talk();
   await sleep(800);
   const bt = await page.evaluate(() => { const t = Engine.top(); return { sc: t.constructor.name, fire: t.b && t.b.fire && t.b.fire.rounds, boss: t.b && t.b.enemies.map(e => e.id) }; });
@@ -90,12 +90,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.evaluate(() => { Game.flags.bocai_down = true; });
   let r = await page.evaluate(() => { const g = DATA.battle.groups; return ['boss4', 'boss5', 'boss6', 'field4'].every(k => g[k] && g[k].every(grp => grp.every(id => DATA.battle.enemies[id] && DATA.battle.enemies[id].sprite < 12))); });
   check('new battle groups reference real enemies with sprites', r);
-  await viaWorld('runan');
-  s = await S(); check('east exit of yingchuan leads to runan once bocai is down', s.map === 'runan', s.map);
+  await viaWorld('runan_ch1');
+  s = await S(); check('east exit of yingchuan leads to chapter-one runan once bocai is down', s.map === 'runan_ch1', s.map);
   await talk();
   await viaWorld('wancheng'); await talk(); s = await S();
   check('runan east gate blocked until pengtuo is down', s.map === 'world', s.map);
-  await go('runan', 19, 10, 'left'); await sleep(150); await tap('z'); await sleep(300); await talk(); await sleep(600);
+  await go('runan_ch1', 19, 10, 'left'); await sleep(150); await tap('z'); await sleep(300); await talk(); await sleep(600);
   check('talking to pengtuo starts boss4', (await S()).scene === 'BattleScene');
   await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
   for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');

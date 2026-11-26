@@ -1,6 +1,14 @@
 // 第四章「許都風雲」大地圖與城鎮（由 tools/build_ch4.py 產生，請改 py 再重新產生）
 (function () {
   const D = window.DATA;
+  // 第一章已有汝南；保留舊地圖與廣陽大地圖入口，避免第四章同名城鎮覆蓋。
+  D.maps.runan_ch1 = D.maps.runan;
+  D.maps.wancheng.home = {map: "runan_ch1"};
+  D.townIds.push("runan_ch1");
+  D.worldTowns.runan_ch1 = {x: 80, y: 66, world: "world"};
+  D.worldGarrison.runan_ch1 = {flag: "pengtuo_down", banner: "yellow"};
+  D.worldBackfill.runan_ch1 = "bocai_down";
+  D.maps.world.warps.forEach(w => { if (w.to === "runan") w.to = "runan_ch1"; });
   D.townIds = D.townIds.concat(["xudu", "runan", "guandu", "yanjin", "baima", "ye"]);
   D.worldIds.push("world4");
   Object.assign(D.worldTowns, {"xudu": {"x": 16, "y": 34, "world": "world4"}, "runan": {"x": 30, "y": 50, "world": "world4"}, "guandu": {"x": 36, "y": 28, "world": "world4"}, "yanjin": {"x": 50, "y": 20, "world": "world4"}, "baima": {"x": 64, "y": 22, "world": "world4"}, "ye": {"x": 58, "y": 6, "world": "world4"}});
