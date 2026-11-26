@@ -519,8 +519,8 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (e.fade <= 0) return;
         const y = self.rowY(i), dead = self.H(e) <= 0;
         const sel = self.state === 'target' && self.targetSide === 'enemy' && self.targets[self.targetSel] === e;
-        E.text(c, e.name, 248, y + 2, { size: 10, align: 'right', color: dead ? GREY : (sel ? GOLD : '#fff') });
-        E.text(c, String(self.H(e)), 248, y + 16, { size: 10, align: 'right', color: dead ? GREY : '#fff' });
+        E.text(c, e.name, 244, y + 2, { size: 10, align: 'right', color: dead ? GREY : (sel ? GOLD : '#fff') });
+        E.text(c, String(self.H(e)), 244, y + 16, { size: 10, align: 'right', color: dead ? GREY : '#fff' });
         self.bar(c, 216 - self.barLen(e), y + 19, self.barLen(e), self.H(e) / e.hpMax, window.DATA.terrainColors[e.home] || '#6ccf4a');
         const bf = [];
         if (e.confused > 0) bf.push('亂');
