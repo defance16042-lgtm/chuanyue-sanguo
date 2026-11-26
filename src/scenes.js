@@ -327,8 +327,7 @@
   const DIRS = ['東', '東南', '南', '西南', '西', '西北', '北', '東北'];
   function compass(from, to) {
     const dx = to.x - from.x, dy = to.y - from.y, a = Math.atan2(dy, dx), k = (Math.round(a / (Math.PI / 4)) + 8) % 8;
-    const d = Math.abs(dx) + Math.abs(dy);
-    return DIRS[k] + '方，約 ' + d + ' 步';
+    return DIRS[k] + '方';
   }
   function mainStep() {
     const fl = G.flags;
@@ -355,21 +354,25 @@
     const lines = [];
     if (st === 0) {
       lines.push('委託人：' + (giverMap ? giverMap.name : q.giver));
-      lines.push('位置：' + q.giver + ' 地圖座標 (' + q.npc.x + ',' + q.npc.y + ')');
-      if (town) lines.push('大地圖入口座標：(' + town.x + ',' + town.y + ')');
+      if (town && D.maps[G.mapId] && D.maps[G.mapId].world && G.mapId === town.world) lines.push('方位：' + compass(G.pos, town));
       return lines;
     }
     if (st === 2) return ['任務已完成並領取報酬。'];
-    if (st === 3) return ['目標已完成，請返回' + (giverMap ? giverMap.name : q.giver), '委託人座標：(' + q.npc.x + ',' + q.npc.y + ')'];
+    if (st === 3) {
+      const back = ['目標已完成，請返回' + (giverMap ? giverMap.name : q.giver) + '向委託人回報。'];
+      if (G.mapId === q.giver) back.push('方位：' + compass(G.pos, q.npc));
+      else if (town && D.maps[G.mapId] && D.maps[G.mapId].world && G.mapId === town.world) back.push('方位：' + compass(G.pos, town));
+      return back;
+    }
     lines.push('目的地：' + q.where);
-    if (dest) lines.push('目的地地圖：' + dest.name + '（' + destId + '）');
-    if (q.kind === 'fetch') lines.push('物件座標：(' + q.chest.x + ',' + q.chest.y + ')');
+    if (dest) lines.push('目的地：' + dest.name);
+    if (q.kind === 'fetch') lines.push('目標：' + q.itemName);
     else lines.push('目標：' + q.targetName + '（地圖深處守將）');
-    if (G.mapId === q.giver) lines.push('方向：' + compass(G.pos, q.npc) + '，先離城前往目標區域。');
-    else if (G.mapId === destId && q.kind === 'fetch') lines.push('方向：' + compass(G.pos, q.chest) + '，前往任務物件。');
-    else if (town && D.maps[G.mapId] && D.maps[G.mapId].world && G.mapId === town.world) lines.push('方向：先往委託城鎮 ' + compass(G.pos, town));
-    else if (town) lines.push('路線：先前往' + (giverMap ? giverMap.name : q.giver) + '附近，再依任務地點進入目標區域。');
-    lines.push('回報：' + (giverMap ? giverMap.name : q.giver) + '，NPC座標 (' + q.npc.x + ',' + q.npc.y + ')');
+    if (G.mapId === q.giver) lines.push('方位：' + compass(G.pos, q.npc) + '，離城前往目標區域。');
+    else if (G.mapId === destId && q.kind === 'fetch') lines.push('方位：' + compass(G.pos, q.chest) + '，前往任務物件。');
+    else if (town && D.maps[G.mapId] && D.maps[G.mapId].world && G.mapId === town.world) lines.push('方位：委託城鎮在' + compass(G.pos, town));
+    else if (town) lines.push('先前往' + (giverMap ? giverMap.name : q.giver) + '附近，再依任務地點進入目標區域。');
+    lines.push('回報：' + (giverMap ? giverMap.name : q.giver));
     return lines;
   }
   function wrap(text, n) { const out = []; for (let i = 0; i < text.length; i += n) out.push(text.slice(i, i + n)); return out; }
