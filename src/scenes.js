@@ -924,6 +924,62 @@
     r('#f0d060', 7, 8, 2, 3);
     if (open) r('#f0d060', 5, 7, 6, 2);
   }
+  class WorldMapScene {
+    constructor() {
+      const listed = (D.worldIds || []).concat(Object.keys(D.maps).filter(function (id) { return D.maps[id] && D.maps[id].world; }));
+      this.regions = listed.filter(function (id, i) { return D.maps[id] && D.maps[id].world && listed.indexOf(id) === i; });
+      if (!this.regions.length) this.regions = ['world'].filter(function (id) { return !!D.maps[id]; });
+      const here = D.maps[G.mapId] && D.maps[G.mapId].world ? G.mapId
+        : (D.worldTowns && D.worldTowns[G.mapId] && D.worldTowns[G.mapId].world)
+          || (D.worldTowns && D.worldTowns[G.flags.lastTown] && D.worldTowns[G.flags.lastTown].world)
+          || this.regions[0];
+      this.sel = Math.max(0, this.regions.indexOf(here));
+    }
+    update() {
+      if (E.hit.cancel || E.hit.map) { E.pop(); return; }
+      if (E.hit.left) this.sel = (this.sel + this.regions.length - 1) % this.regions.length;
+      if (E.hit.right) this.sel = (this.sel + 1) % this.regions.length;
+    }
+    drawUI(c) {
+      const id = this.regions[this.sel], map = D.maps[id];
+      c.fillStyle = 'rgba(3,5,18,0.94)'; c.fillRect(4, 4, 248, 216); E.panel(c, 4, 4, 248, 216);
+      E.text(c, map.name || '大地圖', 14, 10, { size: 10, color: GOLD });
+      E.text(c, '←→切換地區　M／X 關閉', 244, 12, { size: 6, color: GREY, align: 'right' });
+      const rows = map.tiles || [], mw = rows[0] ? rows[0].length : 1, mh = rows.length || 1;
+      const scale = Math.min(2, 220 / mw, 146 / mh), dw = mw * scale, dh = mh * scale;
+      const ox = Math.round((W - dw) / 2), oy = 32;
+      const oldSmoothing = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false;
+      rows.forEach(function (row, y) {
+        for (let x = 0; x < row.length; x++) {
+          const tile = D.legend[row[x]];
+          if (tile == null) continue;
+          if (E.images.tiles) c.drawImage(E.images.tiles, tile * 16, 0, 16, 16, ox + x * scale, oy + y * scale, scale + 0.1, scale + 0.1);
+          else { c.fillStyle = tile === 21 ? '#18344c' : tile === 20 ? '#55505a' : tile === 19 ? '#254c32' : '#596348'; c.fillRect(ox + x * scale, oy + y * scale, scale + 0.1, scale + 0.1); }
+        }
+      });
+      const towns = Object.keys(D.worldTowns || {}).filter(function (name) { return D.worldTowns[name].world === id; });
+      towns.forEach(function (name) {
+        const t = D.worldTowns[name], x = ox + t.x * scale, y = oy + t.y * scale;
+        c.fillStyle = '#ffd668'; c.fillRect(Math.round(x), Math.round(y), 3, 3);
+        if (G.flags['seen_' + name]) E.text(c, D.maps[name] ? D.maps[name].name : name, x + 3, y - 3, { size: 5, color: '#fff3c2' });
+      });
+      let pos = null, near = '';
+      if (G.mapId === id && G.pos) pos = G.pos;
+      else if (D.worldTowns && D.worldTowns[G.mapId] && D.worldTowns[G.mapId].world === id) { pos = D.worldTowns[G.mapId]; near = D.maps[G.mapId].name; }
+      else {
+        const last = G.flags.lastTown, town = D.worldTowns && D.worldTowns[last];
+        if (town && town.world === id) { pos = town; near = (D.maps[last] ? D.maps[last].name : last) + '附近'; }
+      }
+      if (pos) {
+        const px = Math.round(ox + pos.x * scale), py = Math.round(oy + pos.y * scale);
+        c.fillStyle = '#ff604f'; c.fillRect(px - 1, py - 1, 5, 5);
+        E.text(c, '目前位置' + (near ? '：' + near : ''), 14, 190, { size: 7, color: '#ff9a8a' });
+      } else E.text(c, '目前位置不在這個地區', 14, 190, { size: 7, color: GREY });
+      E.text(c, '金點代表城鎮　方向鍵左右切換地區', 14, 202, { size: 7, color: GREY });
+      c.imageSmoothingEnabled = oldSmoothing;
+    }
+  }
+
   class MapScene {
     constructor(mapId, spawn) { this.fade = null; this.loadMap(mapId, spawn); }
     loadMap(mapId, spawn) {
@@ -1100,6 +1156,7 @@
         });
         if (ev) { G.flags[ev.once] = true; E.push(new DialogScene(D.dialogue[ev.dialogue])); return; }
       }
+      if (E.hit.map) { E.push(new WorldMapScene()); return; }
       if (E.hit.cancel) { E.push(new MenuScene()); return; }
       if (E.hit.ok) { this.interact(); return; }
       const d = E.heldDir();
@@ -1361,6 +1418,7 @@
           E.text(c, nm, sx, sy, { size: 7, align: 'center', color: held ? '#ffb4a0' : (seen ? '#fff6c8' : '#b0b0c0') });
         });
       }
+      E.text(c, 'M 大地圖', 244, 213, { size: 6, align: 'right', color: GREY });
       if (this.banner > 0) {
         const w = E.measure(c, this.map.name, 10) + 24;
         E.panel(c, Math.round((W - w) / 2), 6, w, 20);
