@@ -94,6 +94,12 @@ make_town = _ns['make_town']; doors_of = _ns['doors_of']
 rows, tiers, zg = make_world()
 out = ['// 第四章「許都風雲」大地圖與城鎮（由 tools/build_ch4.py 產生，請改 py 再重新產生）',
        '(function () {', '  const D = window.DATA;',
+       '  D.maps.runan_ch1 = D.maps.runan;',
+       '  D.maps.runan_ch1.home = {map: "world"};',
+       '  D.townIds.push("runan_ch1");',
+       '  D.worldTowns.runan_ch1 = {x: 80, y: 66, world: "world"};',
+       '  D.worldGarrison.runan_ch1 = {flag: "pengtuo_down", banner: "yellow"};',
+       '  D.maps.world.warps.forEach(w => { if (w.to === "runan") w.to = "runan_ch1"; });',
        '  D.townIds = D.townIds.concat(' + json.dumps(list(TOWNS)) + ');',
        '  D.worldIds.push("world4");',
        '  Object.assign(D.worldTowns, ' + json.dumps({k: {'x': x, 'y': y, 'world': 'world4'} for k, (x, y) in TOWNS.items()}) + ');',
