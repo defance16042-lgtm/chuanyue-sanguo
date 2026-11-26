@@ -124,7 +124,7 @@ GitHub Actions 會安裝 Playwright／Chromium，依序執行 `tests/*_test.js` 
 
 ## 專案狀態
 
-專案持續開發中。最新章節進度、技術注意事項與下一批工作請查看 [docs/HANDOFF.md](docs/HANDOFF.md)、[第四章企劃](docs/CHAPTER4_PLAN.md)、[劇情決策與 RE 報告](docs/RE_REPORT.md) 及 [三國主線總企劃（史實 × 演義）](docs/STORY_MASTER_PLAN.md)。如回報問題，請附上版本號、操作步驟及畫面截圖。
+專案持續開發中。最新章節進度、技術注意事項與下一批工作請查看 [docs/HANDOFF.md](docs/HANDOFF.md)、[第四章企劃](docs/CHAPTER4_PLAN.md)、[第五章企劃](docs/CHAPTER5_PLAN.md)、[劇情決策與 RE 報告](docs/RE_REPORT.md) 及 [三國主線總企劃（史實 × 演義）](docs/STORY_MASTER_PLAN.md)。如回報問題，請附上版本號、操作步驟及畫面截圖。
 
 
 ### 後續已確認的劇情規劃（尚未實作）
