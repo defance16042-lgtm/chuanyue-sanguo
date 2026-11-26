@@ -160,9 +160,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // ---- 全體攻擊
   await page.evaluate(() => { Engine.top().startBattle(['turban', 'turban', 'archer'], false); });
   for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
-  await tap('ArrowRight'); await shot('allatk_menu'); await tap('z');
+  await tap('ArrowRight'); await shot('allatk_menu'); await tap('z'); await tap('z');
   const plans = await page.evaluate(() => Engine.top().plans.map(p => p && p.type + (p.auto ? ':auto' : '')));
-  check('全體攻擊 sets an auto attack for all 4 members at once', plans.length === 4 && plans.every(x => x === 'attack:auto'), plans);
+  check('選擇全體普通攻擊後全員設定自動普通攻擊', plans.length === 4 && plans.every(x => x === 'attack:auto'), plans);
   s = await fightByKeys({ script: [['ArrowRight', 'z']] });
   check('all-attack battle finishes', s && s.scene === 'MapScene', s && s.scene);
   for (let i = 0; i < 6 && (await S()).scene !== 'MapScene'; i++) await tap('z');
@@ -210,7 +210,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   // ---- 全體攻擊：按一次就自動打到底（不再每回合問指令），再按一下取消
   await page.evaluate(() => { Game.party.forEach(m => { m.atk = 12; m.lead = 0; m.luck = 0; m.hp = m.hpMax = 999; }); Engine.top().startBattle(['captain', 'bandit'], false); });
   for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
-  await tap('ArrowRight'); await tap('z');
+  await tap('ArrowRight'); await tap('z'); await tap('z');
   let cmdAgain = false, maxRound = 0;
   for (let i = 0; i < 400; i++) {
     const t = await page.evaluate(() => { const b = Engine.top(); return { sc: b.constructor.name, st: b.state, r: b.b && b.b.round, auto: b.auto }; });
@@ -223,7 +223,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   for (let i = 0; i < 12 && (await S()).scene !== 'MapScene'; i++) await tap('z', 40, 300);
   await page.evaluate(() => { Game.party.forEach(m => { m.atk = 1; m.hp = m.hpMax = 999; }); Engine.top().startBattle(['bandit', 'bandit', 'captain'], false); });
   for (let i = 0; i < 20 && (await S()).state !== 'cmd'; i++) await tap('z', 40, 120);
-  await tap('ArrowRight'); await tap('z'); await sleep(300);
+  await tap('ArrowRight'); await tap('z'); await tap('z'); await sleep(300);
   const wasAuto = await page.evaluate(() => Engine.top().auto);
   await tap('z', 40, 100);
   const nowAuto = await page.evaluate(() => Engine.top().auto);
