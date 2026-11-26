@@ -2,7 +2,8 @@
 // 場景決定曲目：標題、村莊、大地圖、洞穴、一般戰鬥、將領戰（高潮）、勝利、戰敗；計謀特效各有專屬音效。按 M 鍵可靜音。
 (function () {
   const A = window.Audio2 = {};
-  let ctx = null, master = null, muted = false, wantTrack = null, cur = null, noiseBuf = null;
+  let ctx = null, musicBus = null, sfxBus = null, musicVolume = 0.3, sfxVolume = 0.3, muted = false, wantTrack = null, cur = null, noiseBuf = null;
+  try { const mv0 = localStorage.getItem('chuanyue-music-volume'), sv0 = localStorage.getItem('chuanyue-sfx-volume'); if (mv0 !== null && Number.isFinite(Number(mv0))) musicVolume = Math.max(0, Math.min(1, Number(mv0))); if (sv0 !== null && Number.isFinite(Number(sv0))) sfxVolume = Math.max(0, Math.min(1, Number(sv0))); } catch (e) { /* 沒有儲存空間也沒關係 */ }
   try { muted = localStorage.getItem('chuanyue-muted') === '1'; } catch (e) { /* 沒有儲存空間也沒關係 */ }
 
   // ---------- 記譜：音名 → MIDI ----------
@@ -149,7 +150,7 @@
     stopTrack();
     const tr = TRACKS[id]; if (!tr || !ctx) return;
     const c = compile(tr), bus = ctx.createGain(), step = 60 / tr.bpm / 4;
-    bus.gain.value = 1; bus.connect(master);
+    bus.gain.value = 1; bus.connect(musicBus);
     const st = { id: id, bus: bus, t0: ctx.currentTime + 0.08, pass: 0, idx: c.vs.map(function () { return 0; }), c: c, step: step, loop: tr.loop, done: false };
     cur = st; pump(st); st.timer = setInterval(function () { pump(st); }, 40);
   }
@@ -186,55 +187,67 @@
   A.init = function () {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-    ctx = new AC(); master = ctx.createGain(); master.gain.value = muted ? 0 : 0.3; master.connect(ctx.destination);
+    ctx = new AC(); musicBus = ctx.createGain(); sfxBus = ctx.createGain(); musicBus.gain.value = muted ? 0 : musicVolume; sfxBus.gain.value = muted ? 0 : sfxVolume; musicBus.connect(ctx.destination); sfxBus.connect(ctx.destination);
     if (wantTrack) startTrack(wantTrack);
   };
   A.play = function (id) { if (id === wantTrack) return; wantTrack = id; if (ctx && ctx.state === 'running') startTrack(id); else if (ctx) { ctx.resume(); startTrack(id); } };
   A.current = function () { return wantTrack; };
-  A.setMuted = function (m) { muted = m; try { localStorage.setItem('chuanyue-muted', m ? '1' : '0'); } catch (e) { /* 忽略 */ } if (master) master.gain.value = m ? 0 : 0.3; };
+  A.setMuted = function (m) { muted = m; try { localStorage.setItem('chuanyue-muted', m ? '1' : '0'); } catch (e) { /* 忽略 */ } if (musicBus) musicBus.gain.value = m ? 0 : musicVolume; if (sfxBus) sfxBus.gain.value = m ? 0 : sfxVolume; };
   A.isMuted = function () { return muted; };
+  A.getVolumes = function () { return { music: musicVolume, sfx: sfxVolume }; };
+  A.setMusicVolume = function (v) { musicVolume = Math.max(0, Math.min(1, Number(v) || 0)); try { localStorage.setItem('chuanyue-music-volume', String(musicVolume)); } catch (e) { /* 忽略 */ } if (musicBus) musicBus.gain.value = muted ? 0 : musicVolume; };
+  A.setSfxVolume = function (v) { sfxVolume = Math.max(0, Math.min(1, Number(v) || 0)); try { localStorage.setItem('chuanyue-sfx-volume', String(sfxVolume)); } catch (e) { /* 忽略 */ } if (sfxBus) sfxBus.gain.value = muted ? 0 : sfxVolume; };
 
   // ---------- 計謀與攻擊音效（依特效名稱） ----------
   function tone(t, f0, f1, dur, vol, type) {
     const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type || 'square'; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + dur + 0.02);
   }
   const arpUp = function (t, base, steps, gap, vol, type) { steps.forEach(function (s, i) { tone(t + i * gap, hz(base + s), 0, 0.16, vol, type || 'triangle'); }); };
   const SFX = {
-    hit: function (t) { noiseHit(master, t, 0.09, 0.25, 800, 6000); tone(t, 220, 80, 0.08, 0.18); },
-    blade: function (t) { noiseHit(master, t, 0.12, 0.22, 3000, 12000); tone(t, 900, 300, 0.1, 0.1, 'sawtooth'); },
-    thrust: function (t) { tone(t, 300, 1200, 0.1, 0.12, 'sawtooth'); noiseHit(master, t + 0.08, 0.07, 0.2, 1500, 8000); },
-    heavy: function (t) { noiseHit(master, t, 0.2, 0.35, 200, 3000); tone(t, 140, 40, 0.2, 0.3, 'sine'); },
-    arrow: function (t) { tone(t, 1800, 700, 0.14, 0.08, 'sawtooth'); noiseHit(master, t + 0.12, 0.05, 0.15, 2000, 9000); },
-    fire: function (t) { noiseHit(master, t, 0.6, 0.3, 300, 2500); tone(t, 200, 500, 0.5, 0.08, 'sawtooth'); },
-    thunder: function (t) { noiseHit(master, t, 0.08, 0.5, 2000, 14000); noiseHit(master, t + 0.06, 0.5, 0.35, 80, 900); tone(t + 0.04, 90, 35, 0.45, 0.3, 'sine'); },
-    rock: function (t) { [0, 0.16, 0.32].forEach(function (d) { noiseHit(master, t + d + 0.1, 0.18, 0.35, 100, 1200); tone(t + d + 0.1, 100, 35, 0.16, 0.3, 'sine'); }); tone(t, 900, 150, 0.1, 0.05, 'sawtooth'); },
-    water: function (t) { noiseHit(master, t, 0.8, 0.22, 400, 3500); for (let i = 0; i < 5; i++) tone(t + i * 0.1, 500 + i * 140, 0, 0.08, 0.06, 'sine'); },
-    smoke: function (t) { noiseHit(master, t, 0.7, 0.18, 150, 1500); tone(t, 180, 90, 0.6, 0.06, 'sawtooth'); },
-    rain: function (t) { for (let i = 0; i < 8; i++) { tone(t + i * 0.07, 1500 - i * 80, 600, 0.07, 0.05, 'sawtooth'); noiseHit(master, t + i * 0.07 + 0.05, 0.03, 0.1, 3000, 9000); } },
-    crack: function (t) { noiseHit(master, t, 0.05, 0.4, 1500, 9000); noiseHit(master, t + 0.1, 0.05, 0.3, 1500, 9000); tone(t, 500, 120, 0.25, 0.1, 'square'); },
-    roar: function (t) { tone(t, 90, 60, 0.5, 0.2, 'sawtooth'); tone(t, 135, 90, 0.5, 0.12, 'sawtooth'); noiseHit(master, t, 0.5, 0.12, 200, 2500); },
+    hit: function (t) { noiseHit(sfxBus, t, 0.09, 0.25, 800, 6000); tone(t, 220, 80, 0.08, 0.18); },
+    blade: function (t) { noiseHit(sfxBus, t, 0.12, 0.22, 3000, 12000); tone(t, 900, 300, 0.1, 0.1, 'sawtooth'); },
+    thrust: function (t) { tone(t, 300, 1200, 0.1, 0.12, 'sawtooth'); noiseHit(sfxBus, t + 0.08, 0.07, 0.2, 1500, 8000); },
+    heavy: function (t) { noiseHit(sfxBus, t, 0.2, 0.35, 200, 3000); tone(t, 140, 40, 0.2, 0.3, 'sine'); },
+    arrow: function (t) { tone(t, 1800, 700, 0.14, 0.08, 'sawtooth'); noiseHit(sfxBus, t + 0.12, 0.05, 0.15, 2000, 9000); },
+    fire: function (t) { noiseHit(sfxBus, t, 0.6, 0.3, 300, 2500); tone(t, 200, 500, 0.5, 0.08, 'sawtooth'); },
+    thunder: function (t) { noiseHit(sfxBus, t, 0.08, 0.5, 2000, 14000); noiseHit(sfxBus, t + 0.06, 0.5, 0.35, 80, 900); tone(t + 0.04, 90, 35, 0.45, 0.3, 'sine'); },
+    rock: function (t) { [0, 0.16, 0.32].forEach(function (d) { noiseHit(sfxBus, t + d + 0.1, 0.18, 0.35, 100, 1200); tone(t + d + 0.1, 100, 35, 0.16, 0.3, 'sine'); }); tone(t, 900, 150, 0.1, 0.05, 'sawtooth'); },
+    water: function (t) { noiseHit(sfxBus, t, 0.8, 0.22, 400, 3500); for (let i = 0; i < 5; i++) tone(t + i * 0.1, 500 + i * 140, 0, 0.08, 0.06, 'sine'); },
+    smoke: function (t) { noiseHit(sfxBus, t, 0.7, 0.18, 150, 1500); tone(t, 180, 90, 0.6, 0.06, 'sawtooth'); },
+    rain: function (t) { for (let i = 0; i < 8; i++) { tone(t + i * 0.07, 1500 - i * 80, 600, 0.07, 0.05, 'sawtooth'); noiseHit(sfxBus, t + i * 0.07 + 0.05, 0.03, 0.1, 3000, 9000); } },
+    crack: function (t) { noiseHit(sfxBus, t, 0.05, 0.4, 1500, 9000); noiseHit(sfxBus, t + 0.1, 0.05, 0.3, 1500, 9000); tone(t, 500, 120, 0.25, 0.1, 'square'); },
+    roar: function (t) { tone(t, 90, 60, 0.5, 0.2, 'sawtooth'); tone(t, 135, 90, 0.5, 0.12, 'sawtooth'); noiseHit(sfxBus, t, 0.5, 0.12, 200, 2500); },
     dizzy: function (t) { arpUp(t, 84, [0, 4, 7, 4, 0, 4], 0.07, 0.08, 'square'); },
-    banner: function (t) { arpUp(t, 60, [0, 7, 12], 0.09, 0.14, 'square'); noiseHit(master, t + 0.2, 0.3, 0.1, 500, 3000); },
-    rage: function (t) { tone(t, 70, 160, 0.5, 0.2, 'sawtooth'); noiseHit(master, t, 0.5, 0.2, 200, 2500); },
-    wind: function (t) { noiseHit(master, t, 0.5, 0.2, 1200, 7000); tone(t, 400, 1600, 0.45, 0.05, 'sine'); },
+    banner: function (t) { arpUp(t, 60, [0, 7, 12], 0.09, 0.14, 'square'); noiseHit(sfxBus, t + 0.2, 0.3, 0.1, 500, 3000); },
+    rage: function (t) { tone(t, 70, 160, 0.5, 0.2, 'sawtooth'); noiseHit(sfxBus, t, 0.5, 0.2, 200, 2500); },
+    wind: function (t) { noiseHit(sfxBus, t, 0.5, 0.2, 1200, 7000); tone(t, 400, 1600, 0.45, 0.05, 'sine'); },
     bagua: function (t) { arpUp(t, 62, [0, 3, 7, 10, 14, 10, 7, 3], 0.08, 0.1, 'triangle'); },
     buff: function (t) { arpUp(t, 72, [0, 4, 7, 12], 0.07, 0.13, 'triangle'); },
     heal: function (t) { arpUp(t, 76, [0, 4, 7, 11, 14], 0.08, 0.12, 'sine'); },
     revive: function (t) { arpUp(t, 60, [0, 7, 12, 16, 19, 24], 0.1, 0.14, 'triangle'); tone(t, 523, 0, 0.9, 0.06, 'sine'); },
     orb: function (t) { for (let i = 0; i < 6; i++) tone(t + i * 0.08, 1200 - i * 120, 0, 0.09, 0.07, 'sine'); arpUp(t + 0.5, 79, [0, 7], 0.08, 0.1, 'sine'); },
-    mist: function (t) { noiseHit(master, t, 0.8, 0.12, 300, 2200); arpUp(t, 70, [0, 6, 3], 0.18, 0.08, 'sine'); },
+    mist: function (t) { noiseHit(sfxBus, t, 0.8, 0.12, 300, 2200); arpUp(t, 70, [0, 6, 3], 0.18, 0.08, 'sine'); },
     confuse: function (t) { for (let i = 0; i < 6; i++) tone(t + i * 0.08, 600 + (i % 2) * 300, 0, 0.08, 0.07, 'square'); },
-    cage: function (t) { for (let i = 0; i < 5; i++) { tone(t + i * 0.07, 200 - i * 10, 90, 0.1, 0.15, 'square'); noiseHit(master, t + i * 0.07, 0.05, 0.12, 400, 3000); } },
-    trap: function (t) { tone(t, 250, 900, 0.25, 0.08, 'sawtooth'); noiseHit(master, t + 0.25, 0.1, 0.25, 600, 6000); },
-    paw: function (t) { [0, 0.18, 0.36].forEach(function (d, i) { tone(t + d, 520 + i * 90, 0, 0.1, 0.12, 'triangle'); noiseHit(master, t + d, 0.04, 0.1, 1000, 5000); }); noiseHit(master, t + 0.6, 0.3, 0.2, 400, 5000); },
+    cage: function (t) { for (let i = 0; i < 5; i++) { tone(t + i * 0.07, 200 - i * 10, 90, 0.1, 0.15, 'square'); noiseHit(sfxBus, t + i * 0.07, 0.05, 0.12, 400, 3000); } },
+    trap: function (t) { tone(t, 250, 900, 0.25, 0.08, 'sawtooth'); noiseHit(sfxBus, t + 0.25, 0.1, 0.25, 600, 6000); },
+    paw: function (t) { [0, 0.18, 0.36].forEach(function (d, i) { tone(t + d, 520 + i * 90, 0, 0.1, 0.12, 'triangle'); noiseHit(sfxBus, t + d, 0.04, 0.1, 1000, 5000); }); noiseHit(sfxBus, t + 0.6, 0.3, 0.2, 400, 5000); },
     bloom: function (t) { arpUp(t, 79, [0, 2, 4, 7, 9, 12], 0.09, 0.09, 'sine'); },
     purify: function (t) { arpUp(t, 84, [0, 7, 12, 16], 0.06, 0.1, 'sine'); },
-    leaf: function (t) { arpUp(t, 72, [0, 4, 9, 7], 0.09, 0.1, 'sine'); }
+    leaf: function (t) { arpUp(t, 72, [0, 4, 9, 7], 0.09, 0.1, 'sine'); },
+    chop: function (t) { noiseHit(sfxBus, t, 0.16, 0.32, 180, 2200); tone(t, 180, 55, 0.18, 0.25, 'sine'); },
+    flurry: function (t) { [0, 0.09, 0.18].forEach(function (d, i) { tone(t + d, 760 + i * 160, 250, 0.08, 0.1, 'sawtooth'); noiseHit(sfxBus, t + d, 0.06, 0.14, 2400, 10000); }); },
+    whirl: function (t) { noiseHit(sfxBus, t, 0.42, 0.24, 900, 8000); tone(t, 180, 1100, 0.36, 0.12, 'sawtooth'); },
+    cross: function (t) { noiseHit(sfxBus, t, 0.1, 0.22, 2600, 11000); noiseHit(sfxBus, t + 0.12, 0.12, 0.25, 1800, 9500); tone(t, 620, 210, 0.22, 0.14, 'square'); },
+    dragon: function (t) { tone(t, 95, 420, 0.42, 0.22, 'sawtooth'); noiseHit(sfxBus, t + 0.08, 0.32, 0.26, 300, 4200); tone(t + 0.22, 1100, 170, 0.18, 0.14, 'sawtooth'); },
+    bloodslash: function (t) { noiseHit(sfxBus, t, 0.14, 0.26, 900, 9000); tone(t, 700, 190, 0.16, 0.13, 'sawtooth'); arpUp(t + 0.16, 64, [0, 7], 0.08, 0.08, 'sine'); },
+    multithrust: function (t) { [0, 0.11, 0.22].forEach(function (d) { tone(t + d, 250, 1450, 0.09, 0.1, 'sawtooth'); noiseHit(sfxBus, t + d + 0.06, 0.05, 0.12, 1700, 10000); }); },
+    execute: function (t) { tone(t, 520, 1200, 0.12, 0.12, 'sawtooth'); noiseHit(sfxBus, t + 0.14, 0.24, 0.4, 120, 3000); tone(t + 0.14, 180, 38, 0.22, 0.32, 'sine'); },
+    critical: function (t) { tone(t, 880, 1760, 0.12, 0.18, 'triangle'); tone(t + 0.1, 1175, 2350, 0.18, 0.2, 'triangle'); noiseHit(sfxBus, t + 0.06, 0.16, 0.3, 1800, 12000); }
   };
-  const FXMAP = { slash: 'blade', chop: 'blade', flurry: 'blade', whirl: 'blade', cross: 'blade', dragon: 'blade', bloodslash: 'blade', thrust: 'thrust', multithrust: 'thrust', axe: 'heavy', execute: 'heavy', arrow: 'arrow', arrowrain: 'rain', wave: 'wind', bolt: 'thunder', shock: 'crack', star: 'confuse', aura: 'buff', up_r: 'buff', up_b: 'buff', up_g: 'buff', up_y: 'buff', inferno: 'fire' };
+  const FXMAP = { slash: 'blade', thrust: 'thrust', axe: 'heavy', arrow: 'arrow', arrowrain: 'rain', wave: 'wind', bolt: 'thunder', shock: 'crack', star: 'confuse', aura: 'buff', up_r: 'buff', up_b: 'buff', up_g: 'buff', up_y: 'buff', inferno: 'fire' };
   A.sfx = function (name) {
-    if (!ctx || muted || ctx.state !== 'running') return;
+    if (!ctx || muted || sfxVolume <= 0 || ctx.state !== 'running') return;
     const f = SFX[FXMAP[name] || name] || SFX.hit; try { f(ctx.currentTime + 0.01); } catch (e) { /* 音效失敗不影響遊戲 */ }
   };
 

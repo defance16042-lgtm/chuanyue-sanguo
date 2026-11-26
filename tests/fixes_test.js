@@ -37,16 +37,16 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     return { plans: bs.plans.map(p => p && p.type), state: bs.state };
   });
   check('按一次逃跑，全隊都排好動作（一人逃、其餘防禦）', fl.plans[0] === 'flee' && fl.plans.slice(1).every(t => t === 'defend') && fl.state !== 'cmd', fl);
-  // 寶箱不擋路、走上去就開
+  // 洞穴寶箱擋路，從旁互動開啟後消失
   const ch = await page.evaluate(() => {
     Game.fresh(); Game.flags = { intro_done: true };
     Engine.replaceAll(new Scenes.Map('cave1_2')); const m = Engine.top(); m.banner = 0;
     const c = m.map.objects.find(o => o.type === 'chest');
     const blocked = m.blocked(c.x, c.y);
-    m.p.x = c.x; m.p.y = c.y; m.stepOnObj();
-    return { blocked, opened: !!Game.flags['chest_' + c.id] || Engine.stack.length > 1 };
+    m.p.x = c.x - 1; m.p.y = c.y; m.p.dir = 'right'; m.interact();
+    return { blocked, opened: !!Game.flags['chest_' + c.id], removed: !m.objAt(c.x, c.y) };
   });
-  check('寶箱不擋路，踩上去會開', ch.blocked === false && ch.opened, ch);
+  check('寶箱阻擋通行，從旁打開後消失', ch.blocked && ch.opened && ch.removed, ch);
   const fm = await page.evaluate(() => {
     Game.fresh(); Game.flags = { intro_done: true }; Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(Game.makeMember); Game.party[0].level = 12;
     Engine.replaceAll(new Scenes.Map('zhuoxian')); Engine.top().banner = 0; Engine.top().startBattle(['turban', 'turban'], false);

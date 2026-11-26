@@ -53,7 +53,7 @@ function configureUpdater() {
     reportUpdate('downloaded', `新版 ${info.version} 已下載完成；重新啟動即可安裝。`);
   });
   autoUpdater.on('error', (error) => {
-    reportUpdate('error', `暫時無法檢查更新，仍可繼續遊戲。${error?.message ? ` (${error.message})` : ''}`);
+    reportUpdate('error', `暫時無法檢查更新，仍可繼續遊戲。`);
   });
 
   // 遊戲內「檢查更新」按鈕
@@ -63,7 +63,7 @@ function configureUpdater() {
       return false;
     }
     try { await autoUpdater.checkForUpdates(); return true; } catch (error) {
-      reportUpdate('error', `暫時無法檢查更新，仍可繼續遊戲。${error?.message ? ` (${error.message})` : ''}`);
+      reportUpdate('error', `暫時無法檢查更新，仍可繼續遊戲。`);
       return false;
     }
   });

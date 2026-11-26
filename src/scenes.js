@@ -150,20 +150,21 @@
       const inf = Update.info(), hot = inf.kind === 'newer' || inf.kind === 'downloaded' || inf.kind === 'downloading';
       const msg = { idle: '', checking: '正在檢查更新…', latest: '已是最新版', newer: '有新版本 ' + Update.latest + '！到「更新」查看', downloading: '新版本下載中 ' + Math.floor(inf.percent) + '%', downloaded: '新版本已下載完成！', error: '無法連線檢查更新' }[inf.kind] || '';
       E.text(c, msg, W / 2, 191, { size: 7, align: 'center', color: hot ? GOLD : GREY });
-      E.text(c, 'v' + (window.GAME_VERSION || '') + '　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
+      E.text(c, '版本 ' + (window.GAME_VERSION || '') + '　方向鍵移動　確認　返回', W / 2, 206, { size: 7, align: 'center', color: GREY });
     }
   }
 
   // ------------------------------------------------------------ 存檔／讀檔
   class SaveScene {
-    constructor(mode) { this.mode = mode; this.sel = 0; this.msg = ''; }
+    constructor(mode, inn) { this.mode = mode; this.inn = !!inn; this.sel = 0; this.msg = ''; }
     update() {
       if (E.hit.up) this.sel = (this.sel + Save.SLOTS - 1) % Save.SLOTS;
       if (E.hit.down) this.sel = (this.sel + 1) % Save.SLOTS;
       if (E.hit.cancel) { E.pop(); return; }
       if (!E.hit.ok) return;
       if (this.mode === 'save') {
-        this.msg = Save.write(this.sel, G.snapshot()) ? '已存檔到欄位 ' + (this.sel + 1) : '存檔失敗：瀏覽器不允許儲存資料';
+        if (this.inn) G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); });
+        this.msg = Save.write(this.sel, G.snapshot()) ? (this.inn ? '隊伍已休息，並存檔到欄位 ' : '已存檔到欄位 ') + (this.sel + 1) : '存檔失敗：瀏覽器不允許儲存資料';
       } else {
         const d = Save.read(this.sel);
         if (!d) this.msg = '這個欄位沒有存檔';
@@ -174,19 +175,19 @@
     drawUI(c) {
       c.fillStyle = '#0c1030'; c.fillRect(16, 16, 224, 192);
       E.panel(c, 16, 16, 224, 192);
-      E.text(c, this.mode === 'save' ? '存檔' : '讀取', 28, 24, { size: 11, color: GOLD });
+      E.text(c, this.mode === 'save' ? (this.inn ? '驛館休息／存檔' : '存檔') : '讀取', 28, 24, { size: 11, color: GOLD });
       for (let i = 0; i < Save.SLOTS; i++) {
         const y = 48 + i * 40, d = Save.read(i);
         if (i === this.sel) { c.fillStyle = 'rgba(255,214,104,0.12)'; c.fillRect(24, y - 4, 208, 36); }
         E.text(c, (i === this.sel ? '▶ ' : '　') + '欄位 ' + (i + 1), 28, y, { color: i === this.sel ? GOLD : '#f4f4ff' });
         if (d && d.party && d.party[0] && D.maps[d.mapId]) {
-          E.text(c, D.maps[d.mapId].name + '　Lv' + d.party[0].level + '　' + fmtTime(d.playtime || 0), 48, y + 12, { size: 8 });
+          E.text(c, D.maps[d.mapId].name + '　等級 ' + d.party[0].level + '　' + fmtTime(d.playtime || 0), 48, y + 12, { size: 8 });
           E.text(c, new Date(d.savedAt).toLocaleString('zh-TW', { hour12: false }), 48, y + 22, { size: 7, color: GREY });
         } else {
           E.text(c, '（空）', 48, y + 14, { size: 8, color: GREY });
         }
       }
-      E.text(c, this.msg || 'Z 選擇　X 返回', 28, 184, { size: 8, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || (this.inn ? '選擇欄位即可休息並存檔　確認　返回' : '確認選擇　返回'), 28, 184, { size: 8, color: this.msg ? GOLD : GREY });
     }
   }
 
@@ -264,7 +265,7 @@
   class MenuScene {
     constructor() { this.sel = 0; }
     update() {
-      const items = 10;
+      const items = 11;
       if (E.hit.up) this.sel = (this.sel + items - 1) % items;
       if (E.hit.down) this.sel = (this.sel + 1) % items;
       if (E.hit.cancel) { E.pop(); return; }
@@ -278,16 +279,48 @@
         else if (k === 5) E.push(new FieldSkillScene());
         else if (k === 6) E.push(new QuestScene());
         else if (k === 7) E.push(new SaveScene('load'));
-        else if (k === 8) E.replaceAll(new TitleScene());
+        else if (k === 8) E.push(new AudioSettingsScene());
+        else if (k === 9) E.replaceAll(new TitleScene());
         else E.pop();
       }
     }
     drawUI(c) {
-      E.panel(c, 168, 8, 80, 172);
-      E.menuList(c, ['角色資料', '隊伍編成', '陣形', '裝備', '背包', '計謀', '任務', '讀取', '回標題', '關閉'], this.sel, 178, 16, 13);
+      E.panel(c, 168, 4, 80, 184);
+      E.menuList(c, ['角色資料', '隊伍編成', '陣形', '裝備', '背包', '計謀', '任務', '讀取', '音量設定', '回標題', '關閉'], this.sel, 178, 10, 13);
       E.text(c, '金 ' + (G.gold || 0), 178, 152, { size: 9, color: GOLD });
       E.text(c, '存檔請到', 178, 164, { size: 7, color: GREY });
       E.text(c, '藍色水晶旁', 178, 172, { size: 7, color: GREY });
+    }
+  }
+
+  // ------------------------------------------------------------ 音量設定
+  class AudioSettingsScene {
+    constructor() { this.sel = 0; }
+    volumes() { return window.Audio2 ? window.Audio2.getVolumes() : { music: 0.3, sfx: 0.3 }; }
+    update() {
+      if (E.hit.cancel || E.hit.ok && this.sel === 2) { E.pop(); return; }
+      if (E.hit.up) this.sel = (this.sel + 2) % 3;
+      if (E.hit.down) this.sel = (this.sel + 1) % 3;
+      if (this.sel < 2 && (E.hit.left || E.hit.right)) {
+        const v = this.volumes(), key = this.sel === 0 ? 'music' : 'sfx';
+        const next = Math.max(0, Math.min(1, v[key] + (E.hit.right ? 0.1 : -0.1)));
+        if (window.Audio2) (key === 'music' ? window.Audio2.setMusicVolume : window.Audio2.setSfxVolume)(next);
+        if (this.sel === 1 && window.Audio2) window.Audio2.sfx('hit');
+      }
+    }
+    drawUI(c) {
+      E.panel(c, 35, 48, 186, 124);
+      E.text(c, '音量設定', 128, 56, { align: 'center', color: GOLD });
+      const v = this.volumes();
+      [['音樂音量', v.music], ['音效音量', v.sfx]].forEach(function (row, i) {
+        const y = 82 + i * 30;
+        E.text(c, row[0], 48, y, { size: 9, color: this.sel === i ? GOLD : '#f4f4ff' });
+        c.fillStyle = '#302b39'; c.fillRect(110, y + 3, 78, 7);
+        c.fillStyle = '#e5b94e'; c.fillRect(110, y + 3, Math.round(78 * row[1]), 7);
+        E.text(c, Math.round(row[1] * 100) + '%', 194, y, { size: 8, color: '#f4f4ff' });
+      }, this);
+      E.text(c, '返回', 128, 145, { align: 'center', size: 9, color: this.sel === 2 ? GOLD : '#f4f4ff' });
+      E.text(c, '左右調整　確認／取消返回', 128, 160, { align: 'center', size: 7, color: GREY });
     }
   }
 
@@ -311,7 +344,7 @@
       E.panel(c, 16, 16, 224, 192);
       E.text(c, '計謀（地圖上使用）', 28, 24, { size: 11, color: GOLD });
       const f = D.fieldSkill, ok = isDungeon(G.mapId);
-      E.text(c, '▶ ' + f.name + '　TP ' + f.tp, 28, 46, { size: 9, color: ok ? GOLD : '#6a6a80' });
+      E.text(c, '▶ ' + f.name + '　計略點 ' + f.tp, 28, 46, { size: 9, color: ok ? GOLD : '#6a6a80' });
       f.desc.forEach(function (ln, i) { E.text(c, ln, 36, 62 + i * 12, { size: 8, color: '#f4f4ff' }); });
       const t = G.flags.lastTown && D.maps[G.flags.lastTown] ? D.maps[G.flags.lastTown].name : '';
       E.text(c, '目前可回到的城鎮：' + (t || '涿縣'), 28, 120, { size: 8, color: GREY });
@@ -326,8 +359,7 @@
   const DIRS = ['東', '東南', '南', '西南', '西', '西北', '北', '東北'];
   function compass(from, to) {
     const dx = to.x - from.x, dy = to.y - from.y, a = Math.atan2(dy, dx), k = (Math.round(a / (Math.PI / 4)) + 8) % 8;
-    const d = Math.abs(dx) + Math.abs(dy);
-    return DIRS[k] + '方，約 ' + d + ' 步';
+    return DIRS[k] + '方';
   }
   function mainStep() {
     const fl = G.flags;
@@ -354,21 +386,25 @@
     const lines = [];
     if (st === 0) {
       lines.push('委託人：' + (giverMap ? giverMap.name : q.giver));
-      lines.push('位置：' + q.giver + ' 地圖座標 (' + q.npc.x + ',' + q.npc.y + ')');
-      if (town) lines.push('大地圖入口座標：(' + town.x + ',' + town.y + ')');
+      if (town && D.maps[G.mapId] && D.maps[G.mapId].world && G.mapId === town.world) lines.push('方位：' + compass(G.pos, town));
       return lines;
     }
     if (st === 2) return ['任務已完成並領取報酬。'];
-    if (st === 3) return ['目標已完成，請返回' + (giverMap ? giverMap.name : q.giver), '委託人座標：(' + q.npc.x + ',' + q.npc.y + ')'];
+    if (st === 3) {
+      const back = ['目標已完成，請返回' + (giverMap ? giverMap.name : q.giver) + '向委託人回報。'];
+      if (G.mapId === q.giver) back.push('方位：' + compass(G.pos, q.npc));
+      else if (town && D.maps[G.mapId] && D.maps[G.mapId].world && G.mapId === town.world) back.push('方位：' + compass(G.pos, town));
+      return back;
+    }
     lines.push('目的地：' + q.where);
-    if (dest) lines.push('目的地地圖：' + dest.name + '（' + destId + '）');
-    if (q.kind === 'fetch') lines.push('物件座標：(' + q.chest.x + ',' + q.chest.y + ')');
+    if (dest) lines.push('目的地：' + dest.name);
+    if (q.kind === 'fetch') lines.push('目標：' + q.itemName);
     else lines.push('目標：' + q.targetName + '（地圖深處守將）');
-    if (G.mapId === q.giver) lines.push('方向：' + compass(G.pos, q.npc) + '，先離城前往目標區域。');
-    else if (G.mapId === destId && q.kind === 'fetch') lines.push('方向：' + compass(G.pos, q.chest) + '，前往任務物件。');
-    else if (town && D.maps[G.mapId] && D.maps[G.mapId].world && G.mapId === town.world) lines.push('方向：先往委託城鎮 ' + compass(G.pos, town));
-    else if (town) lines.push('路線：先前往' + (giverMap ? giverMap.name : q.giver) + '附近，再依任務地點進入目標區域。');
-    lines.push('回報：' + (giverMap ? giverMap.name : q.giver) + '，NPC座標 (' + q.npc.x + ',' + q.npc.y + ')');
+    if (G.mapId === q.giver) lines.push('方位：' + compass(G.pos, q.npc) + '，離城前往目標區域。');
+    else if (G.mapId === destId && q.kind === 'fetch') lines.push('方位：' + compass(G.pos, q.chest) + '，前往任務物件。');
+    else if (town && D.maps[G.mapId] && D.maps[G.mapId].world && G.mapId === town.world) lines.push('方位：委託城鎮在' + compass(G.pos, town));
+    else if (town) lines.push('先前往' + (giverMap ? giverMap.name : q.giver) + '附近，再依任務地點進入目標區域。');
+    lines.push('回報：' + (giverMap ? giverMap.name : q.giver));
     return lines;
   }
   function wrap(text, n) { const out = []; for (let i = 0; i < text.length; i += n) out.push(text.slice(i, i + n)); return out; }
@@ -442,7 +478,7 @@
       if (E.hit.down) this.sel = (this.sel + 1) % n;
       if (E.hit.ok) {
         const id = D.formationOrder[this.sel], f = D.formations[id];
-        if (!window.BattleLogic.formationUsable(id, G.party)) this.msg = f.only ? '只有諸葛孔明在隊伍裡、且達到 Lv' + f.unlock + '，才能擺這個陣。' : '諸葛貓妖到 Lv' + f.unlock + ' 才會這個陣形。';
+        if (!window.BattleLogic.formationUsable(id, G.party)) this.msg = f.only ? '只有諸葛孔明在隊伍裡、且達到等級 ' + f.unlock + '，才能擺這個陣。' : '諸葛貓妖到等級 ' + f.unlock + ' 才會這個陣形。';
         else { G.formation = id; this.msg = f.name + (id === 'none' ? '：不擺陣形' : '：下一場戰鬥開始就會擺出') + '。'; }
       }
     }
@@ -456,7 +492,7 @@
         if (i < top || i >= top + 11) return;
         const f = D.formations[id], ok = window.BattleLogic.formationUsable(id, G.party), sel = i === this.sel, y = 34 + (i - top) * 12;
         E.text(c, (sel ? '▶ ' : '　') + f.name, 20, y, { size: 8, color: sel ? GOLD : ok ? '#f4f4ff' : '#6a6a80' });
-        E.text(c, (G.formation || 'none') === id ? '使用中' : ok ? '' : (f.only ? '僅孔明' : 'Lv' + f.unlock), 82, y, { size: 7, color: GREY });
+        E.text(c, (G.formation || 'none') === id ? '使用中' : ok ? '' : (f.only ? '僅孔明' : '等級 ' + f.unlock), 82, y, { size: 7, color: GREY });
       }, this);
       const f = D.formations[D.formationOrder[this.sel]];
       // 站位示意：左邊是後排、右邊是前排（敵人在更右邊）；位置只看「隊伍第幾位」
@@ -471,7 +507,7 @@
         E.text(c, m ? m.name : '－', bx + 3, by + 10, { size: 7, color: m ? '#fff' : GREY });
       }
       E.wrap(c, f.desc, 8, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 172 + i * 10, { size: 8, color: f.only ? GOLD : '#f4f4ff' }); });
-      E.text(c, this.msg || 'Z 選擇　X 返回　（站位依隊伍順序，到「隊伍編成」調整）', 20, 204, { size: 7, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || '確認選擇　返回　（站位依隊伍順序，到「隊伍編成」調整）', 20, 204, { size: 7, color: this.msg ? GOLD : GREY });
     }
   }
 
@@ -497,7 +533,7 @@
         if (E.hit.ok) {
           const k = it[this.sub].k, m = G.party[this.sel];
           if (k === 'move') { this.mode = 'move'; }
-          else if (k === 'adv') { G.advisor = m.id; this.msg = m.name + '成為軍師：全隊最大 TP 增加，本人每回合多回 1 TP'; this.mode = 'browse'; G.party.forEach(function (x) { x.tp = Math.min(x.tp, G.tpMaxOf(x)); }); }
+          else if (k === 'adv') { G.advisor = m.id; this.msg = m.name + '成為軍師：全隊最大計略點增加，本人每回合多回 1 點'; this.mode = 'browse'; G.party.forEach(function (x) { x.tp = Math.min(x.tp, G.tpMaxOf(x)); }); }
           else if (k === 'unadv') { G.advisor = null; this.msg = '已解除軍師'; this.mode = 'browse'; G.party.forEach(function (x) { x.tp = Math.min(x.tp, G.tpMaxOf(x)); }); }
           else this.mode = 'browse';
         }
@@ -515,16 +551,16 @@
         const y = 38 + i * 13 + (i >= 5 ? 6 : 0), sel = i === this.sel, moving = sel && this.mode === 'move';
         if (i === 5) E.text(c, '── 後備（不出戰）──', 28, y - 8, { size: 7, color: GREY });
         E.text(c, (moving ? '＞ ' : sel ? '▶ ' : '　') + (i + 1) + '. ' + m.name, 28, y, { size: 9, color: moving ? '#80e0ff' : sel ? GOLD : (i >= 5 ? GREY : '#f4f4ff') });
-        E.text(c, 'Lv' + m.level + '　計 ' + m.tp + '/' + G.tpMaxOf(m), 108, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
+        E.text(c, '等級 ' + m.level + '　計略點 ' + m.tp + '/' + G.tpMaxOf(m), 108, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
         if (G.advisor === m.id) E.text(c, '【軍師】', 200, y + 1, { size: 8, color: '#ffd24a' });
       }, this);
       const adv = G.advisorOf();
-      E.text(c, adv ? '軍師：' + adv.name + '（全隊 TP +' + G.tpBonusFromAdvisor() + '）' : '尚未指定軍師（智力高的角色很適合）', 28, 156, { size: 8, color: adv ? '#ffd24a' : GREY });
+      E.text(c, adv ? '軍師：' + adv.name + '（全隊計略點增加 ' + G.tpBonusFromAdvisor() + '）' : '尚未指定軍師（智力高的角色很適合）', 28, 156, { size: 8, color: adv ? '#ffd24a' : GREY });
       if (this.mode === 'menu') {
         E.panel(c, 150, 100, 80, 52);
         this.subItems().forEach(function (it, i) { E.text(c, (i === this.sub ? '▶ ' : '　') + it.t, 156, 108 + i * 13, { size: 9, color: i === this.sub ? GOLD : '#f4f4ff' }); }, this);
       }
-      E.text(c, this.msg || (this.mode === 'move' ? '上下鍵移動位置　Z 確定' : 'Z 選擇　X 返回'), 28, 194, { size: 8, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || (this.mode === 'move' ? '上下鍵移動位置　確認' : '確認選擇　返回'), 28, 194, { size: 8, color: this.msg ? GOLD : GREY });
     }
   }
 
@@ -609,7 +645,7 @@
         E.text(c, head, 20, 147, { size: 8, color: GOLD });
         E.wrap(c, body.replace('\n', ' '), 7, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, 158 + i * 8, { size: 7, color: '#d8d8f0' }); });
       }
-      E.text(c, this.msg || '金 ' + (G.gold || 0) + '　' + (t === 1 ? '穿脫請到「裝備」' : 'Z ' + (t === 0 ? '使用' : '指定使用者')) + '　X 返回', 20, 199, { size: 8, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || '金 ' + (G.gold || 0) + '　' + (t === 1 ? '穿脫請到「裝備」' : (t === 0 ? '確認使用' : '確認指定使用者')) + '　返回', 20, 199, { size: 8, color: this.msg ? GOLD : GREY });
       if (this.mode === 'target') {   // 獨立的選人視窗（有自己的底色，蓋在清單上）
         const h = 26 + G.party.length * 12;
         c.fillStyle = '#0c1030'; c.fillRect(44, 40, 168, h); E.panel(c, 44, 40, 168, h);
@@ -669,7 +705,7 @@
       drawFace(c, m, 196, 16);
       E.text(c, m.name + (m.guest ? '（助戰）' : ''), 20, 16, { size: 12, color: GOLD });
       E.text(c, (ch.zi ? '字' + ch.zi + '　' : '') + (ch.title || ''), 20, 32, { size: 8, color: GREY });
-      E.text(c, 'Lv ' + m.level + '　經驗 ' + m.exp + ' / ' + window.BattleLogic.expNeed(m.level), 20, 44, { size: 8 });
+      E.text(c, '等級 ' + m.level + '　經驗 ' + m.exp + ' / ' + window.BattleLogic.expNeed(m.level), 20, 44, { size: 8 });
       // 分頁標籤
       STATUS_PAGES.forEach(function (name, i) {
         const x = 20 + i * 43, on = i === this.page;
@@ -702,8 +738,8 @@
           const i = off + k, y = top + k * 11, on = i === self.cur;
           if (on) { c.fillStyle = '#3a3f8a'; c.fillRect(18, y - 1, 212, 11); }
           E.text(c, e.sk.name, 22, y, { size: 8, color: !e.got ? GREY : on ? GOLD : '#f4f4ff' });
-          E.text(c, e.sk.tp + 'TP', 112, y, { size: 7, color: GREY });
-          E.text(c, e.got ? '' : 'Lv' + e.lv + ' 解鎖', 150, y, { size: 7, color: GREY });
+          E.text(c, '計略點 ' + e.sk.tp, 112, y, { size: 7, color: GREY });
+          E.text(c, e.got ? '' : '等級 ' + e.lv + ' 解鎖', 150, y, { size: 7, color: GREY });
         });
         if (list.length > ROWS) E.text(c, (off > 0 ? '▲' : '　') + ((off + ROWS) < list.length ? '▼' : ''), 224, top, { size: 7, color: GREY, align: 'right' });
         const cs = list[this.cur];
@@ -716,7 +752,7 @@
         });
         if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, y0 + 70 + i * 10, { size: 7, color: GREY }); });
       }
-      E.text(c, (G.party.length > 1 ? '左右換人　' : '') + ((this.page === 2 || this.page === 3) ? '上下看說明　Z 下一頁　X 返回' : '上下／Z 換頁　X 返回'), 20, 204, { size: 7, color: GREY });
+      E.text(c, (G.party.length > 1 ? '左右換人　' : '') + ((this.page === 2 || this.page === 3) ? '上下看說明　下一頁　返回' : '上下翻頁　返回'), 20, 204, { size: 7, color: GREY });
     }
   }
 
@@ -777,10 +813,10 @@
         STAT_ROWS.forEach(function (r) { const d = ((nw && nw.mods[r[0]]) || 0) - ((cur && cur.mods[r[0]]) || 0); if (d) diffs.push({ t: r[1] + (d > 0 ? '+' : '') + d, up: d > 0 }); });
         diffs.forEach(function (d, i) { E.text(c, d.t, 150, 124 + i * 11, { size: 8, color: d.up ? '#8affa0' : '#ff7a6a' }); });
         if (nw) E.text(c, (nw.wtype ? '【' + nw.wtype + '】' : '') + nw.desc, 20, 192, { size: 7, color: GREY });
-        E.text(c, 'Z 裝上　X 返回', 150, 196, { size: 7, color: GREY });
+        E.text(c, '確認裝備　返回', 150, 196, { size: 7, color: GREY });
       } else {
         const inv = Object.keys(G.equipInv).filter(function (id) { return G.equipInv[id] > 0; }).length;
-        E.text(c, '上下選欄位　Z 更換　' + (G.party.length > 1 ? '左右換人　' : '') + 'X 返回', 20, 196, { size: 7, color: GREY });
+        E.text(c, '上下選欄位　確認更換　' + (G.party.length > 1 ? '左右換人　' : '') + '返回', 20, 196, { size: 7, color: GREY });
         E.text(c, '背包裡有 ' + inv + ' 種裝備', 20, 112, { size: 8, color: GREY });
       }
     }
@@ -837,7 +873,7 @@
       if (this.mode === 'menu') {
         E.menuList(c, ['買東西', '賣東西', '離開'], this.msel, 20, 60, 16);
         E.text(c, { weapon: '這裡賣武器，也收武器。', armor: '這裡賣護甲、頭盔、鞋靴和飾品，也收這些。', general: '這裡賣藥品和雜貨，也收藥品。' }[this.kind], 20, 130, { size: 8, color: GREY });
-        E.text(c, 'Z 決定　X 離開', 20, 200, { size: 7, color: GREY });
+        E.text(c, '確認　離開', 20, 200, { size: 7, color: GREY });
         return;
       }
       const rows = this.list(), n = rows.length;
@@ -854,7 +890,7 @@
       }, this);
       const cur = rows[this.sel], curIt = cur && (cur.item ? D.battle.items[cur.id] : D.equipment[cur.id]);
       E.text(c, this.msg || (curIt ? curIt.desc : ''), 20, 184, { size: 8, color: this.msg ? GOLD : GREY });
-      E.text(c, 'Z ' + (this.mode === 'buy' ? '購買' : '賣出') + '　X 返回', 20, 200, { size: 7, color: GREY });
+      E.text(c, (this.mode === 'buy' ? '確認購買' : '確認賣出') + '　返回', 20, 200, { size: 7, color: GREY });
     }
   }
 
@@ -920,12 +956,89 @@
     r('#f0d060', 7, 8, 2, 3);
     if (open) r('#f0d060', 5, 7, 6, 2);
   }
+  class WorldMapScene {
+    constructor() {
+      const listed = (D.worldIds || []).concat(Object.keys(D.maps).filter(function (id) { return D.maps[id] && D.maps[id].world; }));
+      this.regions = listed.filter(function (id, i) { return D.maps[id] && D.maps[id].world && listed.indexOf(id) === i; });
+      if (!this.regions.length) this.regions = ['world'].filter(function (id) { return !!D.maps[id]; });
+      const here = D.maps[G.mapId] && D.maps[G.mapId].world ? G.mapId
+        : (D.worldTowns && D.worldTowns[G.mapId] && D.worldTowns[G.mapId].world)
+          || (D.worldTowns && D.worldTowns[G.flags.lastTown] && D.worldTowns[G.flags.lastTown].world)
+          || this.regions[0];
+      this.sel = Math.max(0, this.regions.indexOf(here));
+    }
+    update() {
+      if (E.hit.cancel || E.hit.map) { E.pop(); return; }
+      if (E.hit.left) this.sel = (this.sel + this.regions.length - 1) % this.regions.length;
+      if (E.hit.right) this.sel = (this.sel + 1) % this.regions.length;
+    }
+    drawUI(c) {
+      const id = this.regions[this.sel], map = D.maps[id];
+      c.fillStyle = 'rgba(3,5,18,0.94)'; c.fillRect(4, 4, 248, 216); E.panel(c, 4, 4, 248, 216);
+      E.text(c, map.name || '大地圖', 14, 10, { size: 10, color: GOLD });
+      E.text(c, '左右切換地區　關閉地圖', 244, 12, { size: 6, color: GREY, align: 'right' });
+      const rows = map.tiles || [], mw = rows[0] ? rows[0].length : 1, mh = rows.length || 1;
+      const scale = Math.min(2, 220 / mw, 146 / mh), dw = mw * scale, dh = mh * scale;
+      const ox = Math.round((W - dw) / 2), oy = 32;
+      const oldSmoothing = c.imageSmoothingEnabled; c.imageSmoothingEnabled = false;
+      rows.forEach(function (row, y) {
+        for (let x = 0; x < row.length; x++) {
+          const tile = D.legend[row[x]];
+          if (tile == null) continue;
+          if (E.images.tiles) c.drawImage(E.images.tiles, tile * 16, 0, 16, 16, ox + x * scale, oy + y * scale, scale + 0.1, scale + 0.1);
+          else { c.fillStyle = tile === 21 ? '#18344c' : tile === 20 ? '#55505a' : tile === 19 ? '#254c32' : '#596348'; c.fillRect(ox + x * scale, oy + y * scale, scale + 0.1, scale + 0.1); }
+        }
+      });
+      const towns = Object.keys(D.worldTowns || {}).filter(function (name) { return D.worldTowns[name].world === id; });
+      towns.forEach(function (name) {
+        const t = D.worldTowns[name], x = ox + t.x * scale, y = oy + t.y * scale;
+        c.fillStyle = '#ffd668'; c.fillRect(Math.round(x), Math.round(y), 3, 3);
+        if (G.flags['seen_' + name]) E.text(c, D.maps[name] ? D.maps[name].name : name, x + 3, y - 3, { size: 5, color: '#fff3c2' });
+      });
+      let pos = null, near = '';
+      if (G.mapId === id && G.pos) pos = G.pos;
+      else if (D.worldTowns && D.worldTowns[G.mapId] && D.worldTowns[G.mapId].world === id) { pos = D.worldTowns[G.mapId]; near = D.maps[G.mapId].name; }
+      else {
+        const last = G.flags.lastTown, town = D.worldTowns && D.worldTowns[last];
+        if (town && town.world === id) { pos = town; near = (D.maps[last] ? D.maps[last].name : last) + '附近'; }
+      }
+      if (pos) {
+        const px = Math.round(ox + pos.x * scale), py = Math.round(oy + pos.y * scale);
+        c.fillStyle = '#ff604f'; c.fillRect(px - 1, py - 1, 5, 5);
+        E.text(c, '目前位置' + (near ? '：' + near : ''), 14, 190, { size: 7, color: '#ff9a8a' });
+      } else E.text(c, '目前位置不在這個地區', 14, 190, { size: 7, color: GREY });
+      E.text(c, '金點代表城鎮　方向鍵左右切換地區', 14, 202, { size: 7, color: GREY });
+      c.imageSmoothingEnabled = oldSmoothing;
+    }
+  }
+
   class MapScene {
     constructor(mapId, spawn) { this.fade = null; this.loadMap(mapId, spawn); }
     loadMap(mapId, spawn) {
       const m = D.maps[mapId];
       this.mapId = mapId; this.map = m; this.w = m.tiles[0].length; this.h = m.tiles.length;
       this.npcs = m.npcs.map(function (n) { return Object.assign({}, n); });
+      if (D.townIds && D.townIds.indexOf(mapId) >= 0) {
+        this.map = Object.assign({}, m, { objects: (m.objects || []).map(function (o) { return Object.assign({}, o); }) });
+        let inn = this.map.objects.find(function (o) { return o.type === 'save'; });
+        if (!inn) {
+          const base = m.start || { x: 2, y: 2 }, used = new Set();
+          (this.map.objects || []).forEach(function (o) { used.add(o.x + ',' + o.y); });
+          (this.npcs || []).forEach(function (n) { used.add(n.x + ',' + n.y); });
+          (this.map.warps || []).forEach(function (w) { used.add(w.x + ',' + w.y); });
+          let spot = null;
+          for (let radius = 1; radius <= 8 && !spot; radius++) {
+            for (let dy = -radius; dy <= radius && !spot; dy++) for (let dx = -radius; dx <= radius && !spot; dx++) {
+              if (Math.abs(dx) + Math.abs(dy) !== radius) continue;
+              const x = base.x + dx, y = base.y + dy, row = m.tiles[y], ch = row && row[x];
+              if (!ch || used.has(x + ',' + y) || D.solidTiles.indexOf(D.legend[ch]) >= 0) continue;
+              spot = { x: x, y: y };
+            }
+          }
+          if (spot) { inn = Object.assign({ type: 'save' }, spot); this.map.objects.push(inn); }
+        }
+        if (inn) inn.label = '驛館';
+      }
       spawn = spawn || m.start;
       if (mapId === 'world' && D.chapterZoneAt) {   // 舊存檔：人還站在尚未開放的第二章區域裡，送回最近去過的城鎮外面
         const z = D.chapterZoneAt(spawn.x, spawn.y);
@@ -969,12 +1082,12 @@
     terrainHere() { return D.terrainOf[this.tileAt(this.p.x, this.p.y)] || 'plain'; }
     visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf]) && !(G.party.some(function (m) { return m.guest && m.name === n.name; })); }   // 已經加入隊伍的助戰角色，原地的 NPC 會消失
     npcAt(x, y) { return this.npcs.find(function (n) { return n.x === x && n.y === y && this.visible(n); }, this); }
-    objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]); }); }
+    objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]) && !(o.type === 'chest' && G.flags['chest_' + o.id]); }); }
     blocked(x, y) {
       const t = this.tileAt(x, y), o = this.objAt(x, y);
-      // 明確的障礙物、未開啟關門與存檔水晶擋路；其他場景物件預設可穿越，
-      // 個別物件也可用 solid:true 指定碰撞。
-      const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat');
+      // 洞穴與山口中的寶箱、陶罐、石碑是實體障礙；開啟的容器會從 objAt 消失。
+      const interiorObstacle = (this.map.cave || this.map.pass) && o && ['chest', 'urn', 'tablet'].indexOf(o.type) >= 0;
+      const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat' || interiorObstacle);
       const saveCrystal = (this.map.objects || []).some(function (obj) { return obj.type === 'save' && obj.x === x && obj.y === y; });
       return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject || saveCrystal;
     }
@@ -988,7 +1101,7 @@
         if (hit) key = hit.dialogue;
         E.push(new DialogScene(D.dialogue[key]));
       }
-      else if (obj && obj.type === 'save') E.push(new SaveScene('save'));
+      else if (obj && obj.type === 'save') E.push(new SaveScene('save', D.townIds && D.townIds.indexOf(this.mapId) >= 0));
       else if (obj && obj.type === 'chest') this.openChest(obj);
       else if (obj && obj.type === 'urn') this.openUrn(obj);
       else if (obj && obj.type === 'spring') { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('清涼的泉水洗去了疲勞。隊伍的兵力與戰術點全部恢復了。'); }
@@ -1050,7 +1163,11 @@
         f.t += dt;
         if (f.t >= FADE_MS) {
           if (f.phase === 'out') {
-            this.loadMap(f.warp.to, { x: f.warp.tx, y: f.warp.ty, dir: f.warp.dir });
+            const fromMap = this.map, fromId = this.mapId, destination = D.maps[f.warp.to];
+            const stair = destination && destination.warps && destination.warps.find(function (w) { return w.to === fromId; });
+            const pairedStairs = stair && destination && (fromMap.cave || fromMap.pass) && (destination.cave || destination.pass);
+            const landing = pairedStairs ? { x: stair.x, y: stair.y, dir: OPP[stair.dir] || f.warp.dir } : { x: f.warp.tx, y: f.warp.ty, dir: f.warp.dir };
+            this.loadMap(f.warp.to, landing);
             this.fade = { phase: 'in', t: 0 };
           } else this.fade = null;
         }
@@ -1071,6 +1188,7 @@
         });
         if (ev) { G.flags[ev.once] = true; E.push(new DialogScene(D.dialogue[ev.dialogue])); return; }
       }
+      if (E.hit.map) { E.push(new WorldMapScene()); return; }
       if (E.hit.cancel) { E.push(new MenuScene()); return; }
       if (E.hit.ok) { this.interact(); return; }
       const d = E.heldDir();
@@ -1096,7 +1214,7 @@
         }
       }
       this.steps = (this.steps || 0) + 1;
-      if (this.steps < (enc.minSteps || 4) + 6 || Math.random() >= enc.rate * 0.6) return;   // 遇敵不要太頻繁：至少多走 6 步，機率打六折
+      if (this.steps < (enc.minSteps || 4) + 8 || Math.random() >= enc.rate * 0.4) return;   // 降低遭遇頻率：每次遭遇後至少多走 8 步，機率降至四成
       this.steps = 0;
       const groups = D.battle.groups[enc.group];
       let g = groups[Math.floor(Math.random() * groups.length)].slice();
@@ -1271,11 +1389,16 @@
         items.push({ y: n.y * T, draw: function () { drawSprite(wc, n.sprite, n.dir, 0, n.x * T - cam.x, n.y * T - cam.y); } });
       });
       this.map.objects.forEach(function (o) {
-        if ((o.type === 'gate' && G.flags[o.flag]) || (o.type === 'urn' && G.flags['urn_' + o.id])) return;   // 開了的石門、碎了的陶罐都消失
+        if ((o.type === 'gate' && G.flags[o.flag]) || (o.type === 'urn' && G.flags['urn_' + o.id]) || (o.type === 'chest' && G.flags['chest_' + o.id])) return;   // 開啟的門、陶罐、寶箱都消失
         if (o.type !== 'save' && o.type !== 'chest' && o.type && drawCaveObj) { items.push({ y: o.y * T, draw: function () { drawCaveObj(wc, o.x * T - cam.x, o.y * T - cam.y, o); } }); return; }
         if (o.type === 'chest') { items.push({ y: o.y * T, draw: function () { drawChest(wc, o.x * T - cam.x, o.y * T - cam.y, !!G.flags['chest_' + o.id]); } }); return; }
         items.push({ y: o.y * T, draw: function () {
           wc.drawImage(E.images.objects, (Math.floor(E.time / 450) % 2) * 16, 0, 16, 16, o.x * T - cam.x, o.y * T - cam.y, 16, 16);
+          if (o.label) {
+            const lx = Math.round(o.x * T + 8 - cam.x), ly = Math.round(o.y * T - 6 - cam.y);
+            wc.fillStyle = '#3a2410'; wc.fillRect(lx - 12, ly - 1, 24, 8);
+            E.text(wc, o.label, lx, ly, { size: 6, color: '#ffe9a0', align: 'center' });
+          }
         } });
       });
       this.followers(cam).forEach(function (f) {   // 隊伍第 2~4 位跟在後面走
@@ -1294,21 +1417,19 @@
           const mx = town.x * T - cam.x + 8, my = town.y * T - cam.y + 2;
           if (mx < -12 || my < -12 || mx > W + 12 || my > H + 12) return;
           const blink = Math.floor(E.time / 300) % 2;
-          wc.fillStyle = '#ffdf55'; wc.fillRect(Math.round(mx - 4), Math.round(my - 4), 9, 9);
-          wc.fillStyle = '#9b251c'; wc.fillRect(Math.round(mx - 2), Math.round(my - 2), 5, 5);
-          E.text(wc, blink ? '支' : '◆', mx, my - 11, { size: 8, color: '#ffe878', align: 'center' });
+          E.text(wc, blink ? '支' : '◆', mx, my - 8, { size: 7, color: '#ffe878', align: 'center' });
         });
       }
       activeSide.forEach(function (q) {
         const targetMap = sideQuestMap(q);
         if (!targetMap || self.mapId !== targetMap) return;
-        const point = q.kind === 'fetch' ? q.chest : (self.map.start || null);
+        const bossMap = targetMap.replace(/_\d+$/, '');
+        const boss = q.kind === 'bounty' && self.npcs.find(function (n) { return n.hideIf === bossMap + '_down'; });
+        const point = q.kind === 'fetch' ? q.chest : (boss || self.map.start || null);
         if (!point) return;
         const mx = point.x * T - cam.x + 8, my = point.y * T - cam.y + 8;
         if (mx < -10 || my < -10 || mx > W + 10 || my > H + 10) return;
-        wc.fillStyle = '#ffdf55'; wc.fillRect(Math.round(mx - 5), Math.round(my - 5), 11, 11);
-        wc.fillStyle = '#9b251c'; wc.fillRect(Math.round(mx - 3), Math.round(my - 3), 7, 7);
-        E.text(wc, '◆', mx, my - 10, { size: 8, color: '#ffe878', align: 'center' });
+        E.text(wc, '◆', mx, my - 8, { size: 7, color: '#ffe878', align: 'center' });
       });
       (D.doorLabels && D.doorLabels[this.mapId] || []).forEach(function (l) {   // 店家招牌
         const w = E.measure(wc, l.text, 6) + 6, x = Math.round(l.x * T + 8 - w / 2 - cam.x), y = Math.round(l.y * T - 9 - cam.y);
@@ -1329,6 +1450,7 @@
           E.text(c, nm, sx, sy, { size: 7, align: 'center', color: held ? '#ffb4a0' : (seen ? '#fff6c8' : '#b0b0c0') });
         });
       }
+      E.text(c, '地圖鍵：查看大地圖', 244, 213, { size: 6, align: 'right', color: GREY });
       if (this.banner > 0) {
         const w = E.measure(c, this.map.name, 10) + 24;
         E.panel(c, Math.round((W - w) / 2), 6, w, 20);
@@ -1406,7 +1528,7 @@
           if (sel) { c.fillStyle = 'rgba(255,214,104,0.22)'; c.fillRect(x, y - 2, 116, 17); }
           drawSprite(c, m.sprite, 'down', 0, x + 1, y - 1);
           E.text(c, m.name, x + 20, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
-          E.text(c, 'Lv' + m.level, x + 78, y + 1, { size: 8, color: GREY });
+          E.text(c, '等級 ' + m.level, x + 78, y + 1, { size: 8, color: GREY });
           if (p === 0 && top + j >= 5) E.text(c, '後備', x + 100, y + 2, { size: 7, color: GREY });
         });
         if (!L.length) E.text(c, p === 0 ? '' : '（空）', x + 40, 60, { size: 8, color: GREY });
@@ -1416,9 +1538,9 @@
         const ch = D.characters[m.id] || {};
         E.text(c, m.name + '　' + (ch.cls || '') + '　' + (ch.weapon || '') + '　兵力 ' + m.hpMax + '　武力 ' + m.atk + '　智力 ' + m.int, 14, 198, { size: 7, color: '#d8e0f0' });
       }
-      E.text(c, this.msg || '左右切換　Z 搬人　X 離開', 14, 208, { size: 7, color: this.msg ? '#8affa0' : GREY });
+      E.text(c, this.msg || '左右切換　確認搬動　離開', 14, 208, { size: 7, color: this.msg ? '#8affa0' : GREY });
     }
   }
 
-  window.Scenes = { RecruitOffer: RecruitOfferScene, Hall: HallScene, Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene, BattleForm: BattleFormScene, FieldSkill: FieldSkillScene, Quest: QuestScene };
+  window.Scenes = { RecruitOffer: RecruitOfferScene, Hall: HallScene, Title: TitleScene, Map: MapScene, Dialog: DialogScene, Menu: MenuScene, Status: StatusScene, Save: SaveScene, Item: ItemScene, Equip: EquipScene, Shop: ShopScene, Formation: FormationScene, BattleForm: BattleFormScene, FieldSkill: FieldSkillScene, Quest: QuestScene, AudioSettings: AudioSettingsScene };
 })();

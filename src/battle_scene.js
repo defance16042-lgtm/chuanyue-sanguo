@@ -9,6 +9,48 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
   const MSG_MS = 520, DMG_MS = 480;
   // 戰鬥小人（24×24，有武器與揮砍／施法動作）所在的列；沒有的人暫時用地圖小人
   const BATTLE_ROW = { nyao: 0, liubei: 1, guanyu: 2, zhangfei: 3, caocao: 4, luzhi: 5 };
+  // 依實際裝備種類繪製手持像素武器；物理攻擊時隨動作揮砍或突刺。
+  function drawHeldWeapon(c, u, x, y, enemy, dead) {
+    if (dead || !u) return;
+    const type = u.wtype || u.weapon || '劍', anim = u.anim;
+    const attacking = anim && anim.kind === 'swing';
+    let angle = 0.16, reach = 0;
+    if (attacking) {
+      if (type === '槍' || type === '矛') reach = anim.t >= 150 && anim.t < 360 ? 5 : 0;
+      else if (anim.t < 150) angle = -0.95;
+      else if (anim.t < 360) angle = 0.85;
+      else angle = 0.18;
+    }
+    c.save();
+    c.translate(Math.round(x + reach), Math.round(y));
+    if (enemy) c.scale(-1, 1);
+    c.rotate(angle);
+    c.fillStyle = '#6e4228'; c.fillRect(0, -1, 4, 2); // 握柄
+    if (type === '弓') {
+      c.strokeStyle = '#b77b38'; c.lineWidth = 2;
+      c.beginPath(); c.moveTo(4, -6); c.quadraticCurveTo(11, 0, 4, 6); c.stroke();
+      c.strokeStyle = '#e8dfc4'; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(4, -6); c.lineTo(4, 6); c.stroke();
+    } else if (type === '扇') {
+      c.fillStyle = '#e8d9a0'; c.fillRect(4, -1, 2, 2);
+      c.strokeStyle = '#efe0ad'; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(5, 0); c.lineTo(11, -5); c.moveTo(5, 0); c.lineTo(12, -2); c.moveTo(5, 0); c.lineTo(12, 1); c.moveTo(5, 0); c.lineTo(10, 5); c.stroke();
+      c.fillStyle = '#b43232'; c.fillRect(8, -1, 4, 2);
+    } else if (type === '斧') {
+      c.fillStyle = '#c69a58'; c.fillRect(3, -1, 9, 2);
+      c.fillStyle = '#aaaeb8'; c.fillRect(10, -5, 3, 9); c.fillRect(8, -5, 4, 2);
+      c.fillStyle = '#eef2f4'; c.fillRect(12, -4, 1, 7);
+    } else if (type === '槍' || type === '矛') {
+      c.fillStyle = '#8b5b32'; c.fillRect(3, -1, 13, 2);
+      c.fillStyle = '#c6d4de'; c.fillRect(14, -2, 3, 4); c.fillRect(16, -3, 2, 6);
+      c.fillStyle = '#f5f6e8'; c.fillRect(17, -1, 2, 2);
+    } else {
+      c.fillStyle = '#d9dfe5'; c.fillRect(3, -2, 9, 4); c.fillRect(12, -1, 2, 2);
+      c.fillStyle = '#f7f5dd'; c.fillRect(5, -1, 7, 1); c.fillRect(13, 0, 2, 1);
+      c.fillStyle = '#d1a744'; c.fillRect(3, -3, 1, 6);
+    }
+    c.restore();
+  }
 
   const ROW_X = [94, 68, 44];   // 前排、中排、後排的小人 x 座標
   class BattleScene {
@@ -20,6 +62,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       this.state = 'msg'; this.queue = []; this.wait = 0; this.after = null;
       this.msgText = ''; this.floats = []; this.fxs = []; this.cur = 0; this.plans = []; this.sel = 0; this.sub = []; this.subSel = 0;
       this.pending = null; this.targets = []; this.targetSel = 0; this.lines = []; this.result = null;
+      this.auto = false; this.autoMode = 'attack'; this.massSel = 0;
       this.execQueue = []; this.time = 0; this.actor = null; this.bg = opts.bg || 'grass';
       this.layout();
       const names = {}; this.b.enemies.forEach(function (e) { names[e.name] = (names[e.name] || 0) + 1; });
@@ -70,13 +113,14 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       else if (ev.type === 'dmg') {
         const p = this.unitPos(ev.target);
         ev.target.shake = 260; ev.target.dhp = ev.hpAfter != null ? ev.hpAfter : ev.target.hp;
-        this.floats.push({ x: p.x, y: p.y, text: String(ev.amount), color: ev.target.side === 'enemy' ? '#fff' : RED, t: 0 });
+        this.floats.push({ x: p.x, y: p.y, text: String(ev.amount), color: ev.critical ? GOLD : ev.target.side === 'enemy' ? '#fff' : RED, t: 0 });
+        if (ev.critical) { if (window.Audio2) window.Audio2.sfx('critical'); this.floats.push({ x: p.x, y: p.y - 12, text: '爆擊！', color: GOLD, t: 0 }); }
         this.wait = DMG_MS;
         if (ev.dead) this.msgText = ev.target.name + (ev.target.side === 'enemy' ? '被擊潰了！' : '倒下了！');
       } else if (ev.type === 'heal' || ev.type === 'tp') {
         if (ev.type === 'heal') ev.target.dhp = ev.hpAfter != null ? ev.hpAfter : ev.target.hp;
         const p = this.unitPos(ev.target);
-        this.floats.push({ x: p.x, y: p.y, text: (ev.type === 'tp' ? 'TP+' : '') + ev.amount, color: GREEN, t: 0 });
+        this.floats.push({ x: p.x, y: p.y, text: (ev.type === 'tp' ? '計略點+' : '') + ev.amount, color: GREEN, t: 0 });
         this.wait = DMG_MS;
       } else this.wait = 0;
     }
@@ -90,7 +134,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }, this);
       this.plans = []; this.cur = -1;
       if (this.auto) {   // 全體攻擊：自動戰鬥到底，直到按鍵取消
-        this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = { type: 'attack', auto: true }; }, this);
+        this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = this.autoAction(m); }, this);
         this.beginExec(); return;
       }
       this.nextCommand();
@@ -158,7 +202,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
             const before = BL.skillsFor(u.ref, G.flags).map(function (k) { return k.id; });
             const ups = BL.gainExp(u.ref, v.share);
             ups.forEach(function (g) {
-            let s = g.name + '升到 Lv' + g.level + '！兵力+' + g.hp;
+            let s = g.name + '升到等級 ' + g.level + '！兵力+' + g.hp;
             [['atk', '武力'], ['int', '智力'], ['spd', '速度'], ['lead', '統率'], ['luck', '運氣'], ['grd', '守備'], ['tp', '戰術點']].forEach(function (p) { if (g[p[0]]) s += '、' + p[1] + '+' + g[p[0]]; });
             self.lines.push(s);
             });
@@ -170,7 +214,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         const rest = G.party.filter(function (m) { return inB.indexOf(m) < 0 && m.hp > 0; });
         if (rest.length && half > 0) {
           this.lines.push('後備的' + rest.length + '位隊員獲得 ' + half + ' 經驗值');
-          rest.forEach(function (m) { BL.gainExp(m, half).forEach(function (g) { self.lines.push(g.name + '升到 Lv' + g.level + '！'); }); });
+          rest.forEach(function (m) { BL.gainExp(m, half).forEach(function (g) { self.lines.push(g.name + '升到等級 ' + g.level + '！'); }); });
         }
       } else if (outcome === 'lose') {
         this.lines.push('全軍覆沒……');
@@ -208,6 +252,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (this.wait <= 0) this.stepExec();
       } else if (s === 'cmd') this.updateCmd();
       else if (s === 'skill' || s === 'item') this.updateSub();
+      else if (s === 'mass') this.updateMass();
       else if (s === 'mode') this.updateMode();
       else if (s === 'target') this.updateTarget();
       else if (s === 'scout') this.updateScout();
@@ -226,10 +271,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       const c = CMDS[this.sel], enemies = BL.alive(this.b.enemies);
       if (c === '攻擊') this.pickTarget('enemy', { type: 'attack' });
       else if (c === '全體攻擊') {
-        // 所有還能動的隊員一起普通攻擊，目標自動選兵力最少的敵人
-        this.auto = true;
-        this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = { type: 'attack', auto: true }; }, this);
-        this.beginExec();
+        this.massSel = 0; this.state = 'mass';
       }
       else if (c === '偵察') this.pickTarget('enemy', { type: 'scout' });
       else if (c === '防禦') this.commit({ type: 'defend' });
@@ -239,9 +281,9 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         this.beginExec();
       }
       else if (c === '計謀') {
-        this.sub = BL.skillsFor(u.ref, G.flags).map(function (s) { return { label: (s.adv ? '軍・' : '') + s.name, right: s.tp + 'TP', disabled: u.tp < s.tp, skill: s }; });
+        this.sub = BL.skillsFor(u.ref, G.flags).map(function (s) { return { label: (s.adv ? '軍・' : '') + s.name, right: s.tp, disabled: u.tp < s.tp, skill: s }; });
         // 最後一項固定是「變陣」：花 2 戰術點，當場換陣形（只在這場戰鬥有效）
-        this.sub.push({ label: '變陣…', right: FORM_TP + 'TP', disabled: u.tp < FORM_TP, formMenu: true, def: { desc: '花 ' + FORM_TP + ' 戰術點，換成別的陣形。換了之後站位與能力馬上改變。' } });
+        this.sub.push({ label: '變陣…', right: FORM_TP, disabled: u.tp < FORM_TP, formMenu: true, def: { desc: '花 ' + FORM_TP + ' 戰術點，換成別的陣形。換了之後站位與能力馬上改變。' } });
         this.state = 'skill'; this.subSel = 0;
       } else {
         const inv = G.items || {};
@@ -251,6 +293,28 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (!this.sub.length) { this.msgText = '沒有道具'; return; }
         this.state = 'item'; this.subSel = 0;
       }
+    }
+    autoAction(member) {
+      if (this.autoMode === 'tactic') {
+        const usable = BL.skillsFor(member.ref, G.flags).filter(function (skill) {
+          const cost = skill.choice && skill.allTp ? skill.allTp : skill.tp;
+          return skill.kind === 'tact' && (skill.target === 'one' || skill.target === 'all') && member.tp >= cost;
+        });
+        if (usable.length) {
+          const skill = usable[Math.floor(Math.random() * usable.length)];
+          return { type: 'skill', skill: skill.id, auto: true, mode: skill.choice ? 'all' : undefined };
+        }
+      }
+      return { type: 'attack', auto: true };
+    }
+    updateMass() {
+      if (E.hit.up || E.hit.down) this.massSel = 1 - this.massSel;
+      if (E.hit.cancel) { this.state = 'cmd'; this.sel = 3; return; }
+      if (!E.hit.ok) return;
+      this.autoMode = this.massSel === 0 ? 'attack' : 'tactic';
+      this.auto = true; this.autoOff = 0;
+      this.b.party.forEach(function (m, i) { if (m.hp > 0) this.plans[i] = this.autoAction(m); }, this);
+      this.beginExec();
     }
     updateSub() {
       const n = this.sub.length, PER = 6, pages = Math.ceil(n / PER);
@@ -285,7 +349,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (it.skill.choice) {   // 計謀可選單體／全體
           const sk = it.skill, u = this.b.party[this.cur];
           this.modeSkill = sk;
-          this.sub2 = [{ label: '單體', right: sk.tp + 'TP', mode: 'one', disabled: u.tp < sk.tp }, { label: '全體', right: (sk.allTp || sk.tp) + 'TP', mode: 'all', disabled: u.tp < (sk.allTp || sk.tp) }];
+          this.sub2 = [{ label: '單體', right: sk.tp, mode: 'one', disabled: u.tp < sk.tp }, { label: '全體', right: (sk.allTp || sk.tp), mode: 'all', disabled: u.tp < (sk.allTp || sk.tp) }];
           this.mode2 = 0; this.state = 'mode'; return;
         }
         if (k === 'one') this.pickTarget('enemy', { type: 'skill', skill: it.skill.id });
@@ -325,11 +389,9 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }
     }
     updateScout() {
-      const n = this.targets.length, pages = 8;
+      const n = this.targets.length;
       if (E.hit.up) this.scoutIdx = (this.scoutIdx + n - 1) % n;
       if (E.hit.down) this.scoutIdx = (this.scoutIdx + 1) % n;
-      if (E.hit.left) this.scoutPage = ((this.scoutPage || 0) + pages - 1) % pages;
-      if (E.hit.right || E.hit.ok) this.scoutPage = ((this.scoutPage || 0) + 1) % pages;
       if (E.hit.cancel) { this.targetSel = this.scoutIdx; this.scoutPage = 0; this.state = 'cmd'; }
     }
     commit(action) {
@@ -400,6 +462,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (hurt && !dead) frame = 6;
         if (dead) frame = 7;
         { const k = E.images.benemy_hd ? 2 : 1; wc.drawImage(E.images.benemy_hd || E.images.benemy16, frame * 24 * k, e.sprite * 16 * k, 24 * k, 16 * k, e.x + dx, e.y, 24, 16); }
+        drawHeldWeapon(wc, e, e.x + dx + 5, e.y + 9, true, dead);
         wc.globalAlpha = 1;
         if (!dead) self.statusFx(wc, e, e.x + 12 + dx, e.y);
       });
@@ -474,6 +537,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         wc.drawImage(E.images.sprites_hd || E.images.sprites, ((cmd || an) ? 7 : 6) * k2, u.ref.sprite * k2, k2, k2, u.x + sx + off, u.y, 16, 16);
         wc.globalAlpha = 1;
       }
+      drawHeldWeapon(wc, u, u.x + (row !== undefined ? 18 : 12) + sx + off, u.y + 9, false, dead);
       this.statusFx(wc, u, u.x + 12 + off + sx, u.y);
       if (an && an.kind === 'cast' && !dead) {   // 施法光圈
         const r = 4 + an.t / 60;
@@ -542,7 +606,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
 
       // 下方：頭像框＋訊息框（指令選單會蓋在訊息框上）
       // 選指令／技能／目標時顯示「正在下指令的人」；動作播放時顯示出手的人（我方）
-      const choosing = ['cmd', 'skill', 'item', 'mode', 'target', 'scout'].indexOf(this.state) >= 0;
+      const choosing = ['cmd', 'skill', 'item', 'mode', 'mass', 'target', 'scout'].indexOf(this.state) >= 0;
       const who = choosing ? (b.party[Math.max(0, this.cur)] || b.party[0]) : (this.actor && this.actor.side === 'party' ? this.actor : b.party[Math.max(0, this.cur)] || b.party[0]);
       c.fillStyle = '#fff'; c.fillRect(6, 164, 56, 58); c.fillStyle = '#10204a'; c.fillRect(7, 165, 54, 56);
       const pi = who ? G.portraitOf(who.ref) : -1;
@@ -563,6 +627,14 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
           if (on) E.text(c, '▶', cx, cy, { size: 9, color: GOLD });
           E.text(c, name, cx + 11, cy, { size: 9, color: on ? GOLD : '#f4f4ff' });
         });
+      } else if (this.state === 'mass') {
+        E.text(c, '選擇全體攻擊方式', 74, 168, { size: 9, color: GOLD });
+        ['全員普通攻擊', '全員隨機計謀'].forEach(function (label, i) {
+          const y = 183 + i * 12, selected = i === self.massSel;
+          if (selected) E.text(c, '▶', 74, y, { size: 9, color: GOLD });
+          E.text(c, label, 86, y, { size: 9, color: selected ? GOLD : '#f4f4ff' });
+        });
+        E.text(c, '計略點不足或沒有攻擊計謀時改用普通攻擊', 74, 210, { size: 6, color: GREY });
       } else if (this.state === 'skill' || this.state === 'item') {
         const PER = 6, nn = this.sub.length, pages = Math.ceil(nn / PER), pg = Math.floor(this.subSel / PER);
         E.text(c, this.state === 'skill' ? (this.formPage ? '變陣' : '計謀') : '道具', 74, 168, { size: 9, color: GOLD });
@@ -573,7 +645,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
           const col = it.disabled ? GREY : (sel ? GOLD : '#f4f4ff');
           if (sel) E.text(c, '▶', cx, y, { size: 8, color: GOLD });
           E.text(c, it.label, cx + 9, y, { size: 8, color: col });
-          E.text(c, String(it.right).replace('TP', ''), cx + 80, y, { size: 8, color: col, align: 'right' });
+          E.text(c, String(it.right), cx + 80, y, { size: 8, color: col, align: 'right' });
         }
         const cs = this.sub[this.subSel];
         if (cs) E.wrap(c, (cs.skill ? BL.skillText(cs.skill) : cs.def.desc) || '', 7, 172).slice(0, 2).forEach(function (l, i) { E.text(c, l, 74, 208 + i * 7.5, { size: 7, color: GREY }); });
@@ -591,7 +663,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         const t = this.targets[this.targetSel];
         E.text(c, t.name, 74, 172, { size: 10, color: GOLD });
         E.text(c, '兵力 ' + this.H(t) + ' / ' + t.hpMax, 74, 188, { size: 9 });
-        E.text(c, '上下選擇　Z 決定　X 返回', 74, 206, { size: 8, color: GREY });
+        E.text(c, '上下選擇　確認　返回', 74, 206, { size: 8, color: GREY });
       } else {
         let y = 171;
         E.wrap(c, this.msgText || '', 10, 170).slice(0, 3).forEach(function (line) { E.text(c, line, 74, y, { size: 10 }); y += 13; });
