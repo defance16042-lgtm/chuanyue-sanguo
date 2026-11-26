@@ -14,7 +14,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     if (dead || !u) return;
     const type = u.wtype || u.weapon || '劍', anim = u.anim;
     const attacking = anim && anim.kind === 'swing';
-    let angle = 0.16, reach = 0;
+    let angle = (type === '弓' || type === '扇') ? 0.16 : -1.18, reach = 0;
     if (attacking) {
       if (type === '槍' || type === '矛') reach = anim.t >= 150 && anim.t < 360 ? 5 : 0;
       else if (anim.t < 150) angle = -0.95;
@@ -24,6 +24,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     c.save();
     c.translate(Math.round(x + reach), Math.round(y));
     if (enemy) c.scale(-1, 1);
+    c.scale(0.72, 0.72);
     c.rotate(angle);
     c.fillStyle = '#6e4228'; c.fillRect(0, -1, 4, 2); // 握柄
     if (type === '弓') {

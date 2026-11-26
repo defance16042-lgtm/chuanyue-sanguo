@@ -1086,7 +1086,7 @@
     blocked(x, y) {
       const t = this.tileAt(x, y), o = this.objAt(x, y);
       // 洞穴與山口中的寶箱、陶罐、石碑是實體障礙；開啟的容器會從 objAt 消失。
-      const interiorObstacle = (this.map.cave || this.map.pass) && o && ['chest', 'urn', 'tablet'].indexOf(o.type) >= 0;
+      const interiorObstacle = (this.map.cave || this.map.pass) && o && ['chest', 'urn', 'tablet', 'lever', 'spring'].indexOf(o.type) >= 0;
       const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat' || interiorObstacle);
       const saveCrystal = (this.map.objects || []).some(function (obj) { return obj.type === 'save' && obj.x === x && obj.y === y; });
       return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject || saveCrystal;
@@ -1104,7 +1104,15 @@
       else if (obj && obj.type === 'save') E.push(new SaveScene('save', D.townIds && D.townIds.indexOf(this.mapId) >= 0));
       else if (obj && obj.type === 'chest') this.openChest(obj);
       else if (obj && obj.type === 'urn') this.openUrn(obj);
-      else if (obj && obj.type === 'spring') { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('清涼的泉水洗去了疲勞。隊伍的兵力與戰術點全部恢復了。'); }
+      else if (obj && obj.type === 'spring') {
+        const springKey = 'spring_' + (obj.id || this.mapId + '_' + obj.x + '_' + obj.y);
+        if (G.flags[springKey]) this.say('泉水已經失去靈力，無法再次恢復。');
+        else {
+          G.flags[springKey] = true;
+          G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); });
+          this.say('清涼的泉水洗去了疲勞。隊伍的兵力與戰術點全部恢復了。');
+        }
+      }
       else if (obj && obj.type === 'lever') {
         if (G.flags[obj.flag]) this.say('拉桿已經扳下去了。');
         else { G.flags[obj.flag] = true; this.say('喀啦——拉桿扳了下去，遠處傳來沉重的石門滑開的聲音。'); }
