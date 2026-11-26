@@ -3,7 +3,7 @@
   const D = window.DATA;
   // 第一章已有汝南；保留舊地圖與廣陽大地圖入口，避免第四章同名城鎮覆蓋。
   D.maps.runan_ch1 = D.maps.runan;
-  D.maps.runan_ch1.home = {map: "world"};
+  D.maps.wancheng.home = {map: "runan_ch1"};
   D.townIds.push("runan_ch1");
   D.worldTowns.runan_ch1 = {x: 80, y: 66, world: "world"};
   D.worldGarrison.runan_ch1 = {flag: "pengtuo_down", banner: "yellow"};
