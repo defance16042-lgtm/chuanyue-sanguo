@@ -63,7 +63,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('3 個頭目敵群存在', d.bosses);
   check('洞穴、山口的對話齊全', d.dlg.length === 0, d.dlg);
   check('所有對話引用的敵群都存在', d.missGroups.length === 0, d.missGroups.slice(0, 6));
-  check('支線共 12 條，新增 4 條資料完整', d.side === 12 && d.sideOK, d.side);
+  check('支線共 12 條，新增 4 條資料完整', d.side >= 12 && d.sideOK, d.side);
   check('藏物箱裡真的有任務道具', d.chestsHave);
   check('兵書《三略》登錄完成', !!d.book, d.book);
   check('新裝備都有名稱與能力', d.gear);

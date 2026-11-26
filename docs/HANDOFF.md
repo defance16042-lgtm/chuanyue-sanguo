@@ -201,3 +201,10 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - 孟坦為一般護衛（非 boss 旗標）；兩個 boss 旗標同戰會讓 sim 卡住，之後設計請避免。
 - 測試：tests/ch4b_test.js、ch4_test.js 已改成新流程。
 - 待做（批次2b）：三個村莊、兩個洞穴、四個支線（附導航資訊）、新兵書《孫子》。
+
+## v0.55.0 第四章批次2b（村莊、洞穴、支線、《孫子》）
+- tools/build_ch4.py：新增 VILLAGES（zhongmu 中牟村、gepo 葛陂村、liyang 黎陽渡村；模板 'V'：小屋、雜貨店、大客棧三扇門）與 CAVES4（cave8 黃河洞窟 眭固、cave9 葛陂洞 劉辟），用固定做法放置，不動亂數，原本六城地圖不變；洞穴由 build_world.py 的洞穴產生程式產生，輸出到 data/ch4caves.js。
+- data/ch4c.js：頭目 suigu／liupi、每層守將 gen_cave8(_2,_3)／gen_cave9(_2,_3)、洞穴對話、村莊房屋與村民（spotNear 自動找空地放人）、支線 q13–q16（官渡押運官討伐張白騎、曹府主簿取孫子注竹簡、汝南亭長討伐黃邵、白馬倉曹取軍糧帳冊）、兵書 sun（B.skills.sun_gui）。
+- 支線導航沿用 scenes.js 的 sideQuestGuide（以 gen_caveN_x 與 chest.map 推出目的地地圖），給任務座標是 spotNear／freeSpot 算出來的，不要手改。
+- 測試：tests/ch4c_test.js（18 項）。模擬：cave8boss Lv62 約 87%、cave9boss Lv62 約 100%（Lv58 約 30–36%），屬選擇性高難度內容。
+- 待做：第五章（官渡之戰、烏巢火攻）；第四章敵將偵察資料可再補。

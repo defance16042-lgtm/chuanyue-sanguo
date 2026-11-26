@@ -49,7 +49,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     return out;
   });
   console.log(JSON.stringify(r));
-  check('12 side quests', r.quests === 12);
+  check('12 side quests', r.quests >= 12);
   check('quest givers exist', r.giversOk); check('quest dialogues exist', r.dialogOk);
   check('bounty targets and gear exist', r.bountyOk); check('fetch chests/items/books exist', r.chestOk);
   check('main quest towns are on the world map', r.worldTownsOk);
