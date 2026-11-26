@@ -150,7 +150,7 @@
       const inf = Update.info(), hot = inf.kind === 'newer' || inf.kind === 'downloaded' || inf.kind === 'downloading';
       const msg = { idle: '', checking: '正在檢查更新…', latest: '已是最新版', newer: '有新版本 ' + Update.latest + '！到「更新」查看', downloading: '新版本下載中 ' + Math.floor(inf.percent) + '%', downloaded: '新版本已下載完成！', error: '無法連線檢查更新' }[inf.kind] || '';
       E.text(c, msg, W / 2, 191, { size: 7, align: 'center', color: hot ? GOLD : GREY });
-      E.text(c, 'v' + (window.GAME_VERSION || '') + '　方向鍵/WASD 移動　Z 確認　X 取消', W / 2, 206, { size: 7, align: 'center', color: GREY });
+      E.text(c, '版本 ' + (window.GAME_VERSION || '') + '　方向鍵移動　確認　返回', W / 2, 206, { size: 7, align: 'center', color: GREY });
     }
   }
 
@@ -181,13 +181,13 @@
         if (i === this.sel) { c.fillStyle = 'rgba(255,214,104,0.12)'; c.fillRect(24, y - 4, 208, 36); }
         E.text(c, (i === this.sel ? '▶ ' : '　') + '欄位 ' + (i + 1), 28, y, { color: i === this.sel ? GOLD : '#f4f4ff' });
         if (d && d.party && d.party[0] && D.maps[d.mapId]) {
-          E.text(c, D.maps[d.mapId].name + '　Lv' + d.party[0].level + '　' + fmtTime(d.playtime || 0), 48, y + 12, { size: 8 });
+          E.text(c, D.maps[d.mapId].name + '　等級 ' + d.party[0].level + '　' + fmtTime(d.playtime || 0), 48, y + 12, { size: 8 });
           E.text(c, new Date(d.savedAt).toLocaleString('zh-TW', { hour12: false }), 48, y + 22, { size: 7, color: GREY });
         } else {
           E.text(c, '（空）', 48, y + 14, { size: 8, color: GREY });
         }
       }
-      E.text(c, this.msg || (this.inn ? '選擇欄位即可休息並存檔　Z 確認　X 返回' : 'Z 選擇　X 返回'), 28, 184, { size: 8, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || (this.inn ? '選擇欄位即可休息並存檔　確認　返回' : '確認選擇　返回'), 28, 184, { size: 8, color: this.msg ? GOLD : GREY });
     }
   }
 
@@ -312,7 +312,7 @@
       E.panel(c, 16, 16, 224, 192);
       E.text(c, '計謀（地圖上使用）', 28, 24, { size: 11, color: GOLD });
       const f = D.fieldSkill, ok = isDungeon(G.mapId);
-      E.text(c, '▶ ' + f.name + '　TP ' + f.tp, 28, 46, { size: 9, color: ok ? GOLD : '#6a6a80' });
+      E.text(c, '▶ ' + f.name + '　計略點 ' + f.tp, 28, 46, { size: 9, color: ok ? GOLD : '#6a6a80' });
       f.desc.forEach(function (ln, i) { E.text(c, ln, 36, 62 + i * 12, { size: 8, color: '#f4f4ff' }); });
       const t = G.flags.lastTown && D.maps[G.flags.lastTown] ? D.maps[G.flags.lastTown].name : '';
       E.text(c, '目前可回到的城鎮：' + (t || '涿縣'), 28, 120, { size: 8, color: GREY });
@@ -446,7 +446,7 @@
       if (E.hit.down) this.sel = (this.sel + 1) % n;
       if (E.hit.ok) {
         const id = D.formationOrder[this.sel], f = D.formations[id];
-        if (!window.BattleLogic.formationUsable(id, G.party)) this.msg = f.only ? '只有諸葛孔明在隊伍裡、且達到 Lv' + f.unlock + '，才能擺這個陣。' : '諸葛貓妖到 Lv' + f.unlock + ' 才會這個陣形。';
+        if (!window.BattleLogic.formationUsable(id, G.party)) this.msg = f.only ? '只有諸葛孔明在隊伍裡、且達到等級 ' + f.unlock + '，才能擺這個陣。' : '諸葛貓妖到等級 ' + f.unlock + ' 才會這個陣形。';
         else { G.formation = id; this.msg = f.name + (id === 'none' ? '：不擺陣形' : '：下一場戰鬥開始就會擺出') + '。'; }
       }
     }
@@ -460,7 +460,7 @@
         if (i < top || i >= top + 11) return;
         const f = D.formations[id], ok = window.BattleLogic.formationUsable(id, G.party), sel = i === this.sel, y = 34 + (i - top) * 12;
         E.text(c, (sel ? '▶ ' : '　') + f.name, 20, y, { size: 8, color: sel ? GOLD : ok ? '#f4f4ff' : '#6a6a80' });
-        E.text(c, (G.formation || 'none') === id ? '使用中' : ok ? '' : (f.only ? '僅孔明' : 'Lv' + f.unlock), 82, y, { size: 7, color: GREY });
+        E.text(c, (G.formation || 'none') === id ? '使用中' : ok ? '' : (f.only ? '僅孔明' : '等級 ' + f.unlock), 82, y, { size: 7, color: GREY });
       }, this);
       const f = D.formations[D.formationOrder[this.sel]];
       // 站位示意：左邊是後排、右邊是前排（敵人在更右邊）；位置只看「隊伍第幾位」
@@ -475,7 +475,7 @@
         E.text(c, m ? m.name : '－', bx + 3, by + 10, { size: 7, color: m ? '#fff' : GREY });
       }
       E.wrap(c, f.desc, 8, 216).slice(0, 3).forEach(function (l, i) { E.text(c, l, 20, 172 + i * 10, { size: 8, color: f.only ? GOLD : '#f4f4ff' }); });
-      E.text(c, this.msg || 'Z 選擇　X 返回　（站位依隊伍順序，到「隊伍編成」調整）', 20, 204, { size: 7, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || '確認選擇　返回　（站位依隊伍順序，到「隊伍編成」調整）', 20, 204, { size: 7, color: this.msg ? GOLD : GREY });
     }
   }
 
@@ -519,16 +519,16 @@
         const y = 38 + i * 13 + (i >= 5 ? 6 : 0), sel = i === this.sel, moving = sel && this.mode === 'move';
         if (i === 5) E.text(c, '── 後備（不出戰）──', 28, y - 8, { size: 7, color: GREY });
         E.text(c, (moving ? '＞ ' : sel ? '▶ ' : '　') + (i + 1) + '. ' + m.name, 28, y, { size: 9, color: moving ? '#80e0ff' : sel ? GOLD : (i >= 5 ? GREY : '#f4f4ff') });
-        E.text(c, 'Lv' + m.level + '　計 ' + m.tp + '/' + G.tpMaxOf(m), 108, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
+        E.text(c, '等級 ' + m.level + '　計略點 ' + m.tp + '/' + G.tpMaxOf(m), 108, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
         if (G.advisor === m.id) E.text(c, '【軍師】', 200, y + 1, { size: 8, color: '#ffd24a' });
       }, this);
       const adv = G.advisorOf();
-      E.text(c, adv ? '軍師：' + adv.name + '（全隊 TP +' + G.tpBonusFromAdvisor() + '）' : '尚未指定軍師（智力高的角色很適合）', 28, 156, { size: 8, color: adv ? '#ffd24a' : GREY });
+      E.text(c, adv ? '軍師：' + adv.name + '（全隊計略點增加 ' + G.tpBonusFromAdvisor() + '）' : '尚未指定軍師（智力高的角色很適合）', 28, 156, { size: 8, color: adv ? '#ffd24a' : GREY });
       if (this.mode === 'menu') {
         E.panel(c, 150, 100, 80, 52);
         this.subItems().forEach(function (it, i) { E.text(c, (i === this.sub ? '▶ ' : '　') + it.t, 156, 108 + i * 13, { size: 9, color: i === this.sub ? GOLD : '#f4f4ff' }); }, this);
       }
-      E.text(c, this.msg || (this.mode === 'move' ? '上下鍵移動位置　Z 確定' : 'Z 選擇　X 返回'), 28, 194, { size: 8, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || (this.mode === 'move' ? '上下鍵移動位置　確認' : '確認選擇　返回'), 28, 194, { size: 8, color: this.msg ? GOLD : GREY });
     }
   }
 
@@ -613,7 +613,7 @@
         E.text(c, head, 20, 147, { size: 8, color: GOLD });
         E.wrap(c, body.replace('\n', ' '), 7, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, 158 + i * 8, { size: 7, color: '#d8d8f0' }); });
       }
-      E.text(c, this.msg || '金 ' + (G.gold || 0) + '　' + (t === 1 ? '穿脫請到「裝備」' : 'Z ' + (t === 0 ? '使用' : '指定使用者')) + '　X 返回', 20, 199, { size: 8, color: this.msg ? GOLD : GREY });
+      E.text(c, this.msg || '金 ' + (G.gold || 0) + '　' + (t === 1 ? '穿脫請到「裝備」' : (t === 0 ? '確認使用' : '確認指定使用者')) + '　返回', 20, 199, { size: 8, color: this.msg ? GOLD : GREY });
       if (this.mode === 'target') {   // 獨立的選人視窗（有自己的底色，蓋在清單上）
         const h = 26 + G.party.length * 12;
         c.fillStyle = '#0c1030'; c.fillRect(44, 40, 168, h); E.panel(c, 44, 40, 168, h);
@@ -673,7 +673,7 @@
       drawFace(c, m, 196, 16);
       E.text(c, m.name + (m.guest ? '（助戰）' : ''), 20, 16, { size: 12, color: GOLD });
       E.text(c, (ch.zi ? '字' + ch.zi + '　' : '') + (ch.title || ''), 20, 32, { size: 8, color: GREY });
-      E.text(c, 'Lv ' + m.level + '　經驗 ' + m.exp + ' / ' + window.BattleLogic.expNeed(m.level), 20, 44, { size: 8 });
+      E.text(c, '等級 ' + m.level + '　經驗 ' + m.exp + ' / ' + window.BattleLogic.expNeed(m.level), 20, 44, { size: 8 });
       // 分頁標籤
       STATUS_PAGES.forEach(function (name, i) {
         const x = 20 + i * 43, on = i === this.page;
@@ -706,8 +706,8 @@
           const i = off + k, y = top + k * 11, on = i === self.cur;
           if (on) { c.fillStyle = '#3a3f8a'; c.fillRect(18, y - 1, 212, 11); }
           E.text(c, e.sk.name, 22, y, { size: 8, color: !e.got ? GREY : on ? GOLD : '#f4f4ff' });
-          E.text(c, e.sk.tp + 'TP', 112, y, { size: 7, color: GREY });
-          E.text(c, e.got ? '' : 'Lv' + e.lv + ' 解鎖', 150, y, { size: 7, color: GREY });
+          E.text(c, '計略點 ' + e.sk.tp, 112, y, { size: 7, color: GREY });
+          E.text(c, e.got ? '' : '等級 ' + e.lv + ' 解鎖', 150, y, { size: 7, color: GREY });
         });
         if (list.length > ROWS) E.text(c, (off > 0 ? '▲' : '　') + ((off + ROWS) < list.length ? '▼' : ''), 224, top, { size: 7, color: GREY, align: 'right' });
         const cs = list[this.cur];
@@ -720,7 +720,7 @@
         });
         if (ch.bio) E.wrap(c, ch.bio, 7, 216).slice(0, 4).forEach(function (l, i) { E.text(c, l, 20, y0 + 70 + i * 10, { size: 7, color: GREY }); });
       }
-      E.text(c, (G.party.length > 1 ? '左右換人　' : '') + ((this.page === 2 || this.page === 3) ? '上下看說明　Z 下一頁　X 返回' : '上下／Z 換頁　X 返回'), 20, 204, { size: 7, color: GREY });
+      E.text(c, (G.party.length > 1 ? '左右換人　' : '') + ((this.page === 2 || this.page === 3) ? '上下看說明　下一頁　返回' : '上下翻頁　返回'), 20, 204, { size: 7, color: GREY });
     }
   }
 
@@ -781,10 +781,10 @@
         STAT_ROWS.forEach(function (r) { const d = ((nw && nw.mods[r[0]]) || 0) - ((cur && cur.mods[r[0]]) || 0); if (d) diffs.push({ t: r[1] + (d > 0 ? '+' : '') + d, up: d > 0 }); });
         diffs.forEach(function (d, i) { E.text(c, d.t, 150, 124 + i * 11, { size: 8, color: d.up ? '#8affa0' : '#ff7a6a' }); });
         if (nw) E.text(c, (nw.wtype ? '【' + nw.wtype + '】' : '') + nw.desc, 20, 192, { size: 7, color: GREY });
-        E.text(c, 'Z 裝上　X 返回', 150, 196, { size: 7, color: GREY });
+        E.text(c, '確認裝備　返回', 150, 196, { size: 7, color: GREY });
       } else {
         const inv = Object.keys(G.equipInv).filter(function (id) { return G.equipInv[id] > 0; }).length;
-        E.text(c, '上下選欄位　Z 更換　' + (G.party.length > 1 ? '左右換人　' : '') + 'X 返回', 20, 196, { size: 7, color: GREY });
+        E.text(c, '上下選欄位　確認更換　' + (G.party.length > 1 ? '左右換人　' : '') + '返回', 20, 196, { size: 7, color: GREY });
         E.text(c, '背包裡有 ' + inv + ' 種裝備', 20, 112, { size: 8, color: GREY });
       }
     }
@@ -841,7 +841,7 @@
       if (this.mode === 'menu') {
         E.menuList(c, ['買東西', '賣東西', '離開'], this.msel, 20, 60, 16);
         E.text(c, { weapon: '這裡賣武器，也收武器。', armor: '這裡賣護甲、頭盔、鞋靴和飾品，也收這些。', general: '這裡賣藥品和雜貨，也收藥品。' }[this.kind], 20, 130, { size: 8, color: GREY });
-        E.text(c, 'Z 決定　X 離開', 20, 200, { size: 7, color: GREY });
+        E.text(c, '確認　離開', 20, 200, { size: 7, color: GREY });
         return;
       }
       const rows = this.list(), n = rows.length;
@@ -858,7 +858,7 @@
       }, this);
       const cur = rows[this.sel], curIt = cur && (cur.item ? D.battle.items[cur.id] : D.equipment[cur.id]);
       E.text(c, this.msg || (curIt ? curIt.desc : ''), 20, 184, { size: 8, color: this.msg ? GOLD : GREY });
-      E.text(c, 'Z ' + (this.mode === 'buy' ? '購買' : '賣出') + '　X 返回', 20, 200, { size: 7, color: GREY });
+      E.text(c, (this.mode === 'buy' ? '確認購買' : '確認賣出') + '　返回', 20, 200, { size: 7, color: GREY });
     }
   }
 
@@ -944,7 +944,7 @@
       const id = this.regions[this.sel], map = D.maps[id];
       c.fillStyle = 'rgba(3,5,18,0.94)'; c.fillRect(4, 4, 248, 216); E.panel(c, 4, 4, 248, 216);
       E.text(c, map.name || '大地圖', 14, 10, { size: 10, color: GOLD });
-      E.text(c, '←→切換地區　M／X 關閉', 244, 12, { size: 6, color: GREY, align: 'right' });
+      E.text(c, '左右切換地區　關閉地圖', 244, 12, { size: 6, color: GREY, align: 'right' });
       const rows = map.tiles || [], mw = rows[0] ? rows[0].length : 1, mh = rows.length || 1;
       const scale = Math.min(2, 220 / mw, 146 / mh), dw = mw * scale, dh = mh * scale;
       const ox = Math.round((W - dw) / 2), oy = 32;
@@ -1418,7 +1418,7 @@
           E.text(c, nm, sx, sy, { size: 7, align: 'center', color: held ? '#ffb4a0' : (seen ? '#fff6c8' : '#b0b0c0') });
         });
       }
-      E.text(c, 'M 大地圖', 244, 213, { size: 6, align: 'right', color: GREY });
+      E.text(c, '地圖鍵：查看大地圖', 244, 213, { size: 6, align: 'right', color: GREY });
       if (this.banner > 0) {
         const w = E.measure(c, this.map.name, 10) + 24;
         E.panel(c, Math.round((W - w) / 2), 6, w, 20);
@@ -1496,7 +1496,7 @@
           if (sel) { c.fillStyle = 'rgba(255,214,104,0.22)'; c.fillRect(x, y - 2, 116, 17); }
           drawSprite(c, m.sprite, 'down', 0, x + 1, y - 1);
           E.text(c, m.name, x + 20, y + 1, { size: 8, color: sel ? GOLD : '#f4f4ff' });
-          E.text(c, 'Lv' + m.level, x + 78, y + 1, { size: 8, color: GREY });
+          E.text(c, '等級 ' + m.level, x + 78, y + 1, { size: 8, color: GREY });
           if (p === 0 && top + j >= 5) E.text(c, '後備', x + 100, y + 2, { size: 7, color: GREY });
         });
         if (!L.length) E.text(c, p === 0 ? '' : '（空）', x + 40, 60, { size: 8, color: GREY });
@@ -1506,7 +1506,7 @@
         const ch = D.characters[m.id] || {};
         E.text(c, m.name + '　' + (ch.cls || '') + '　' + (ch.weapon || '') + '　兵力 ' + m.hpMax + '　武力 ' + m.atk + '　智力 ' + m.int, 14, 198, { size: 7, color: '#d8e0f0' });
       }
-      E.text(c, this.msg || '左右切換　Z 搬人　X 離開', 14, 208, { size: 7, color: this.msg ? '#8affa0' : GREY });
+      E.text(c, this.msg || '左右切換　確認搬動　離開', 14, 208, { size: 7, color: this.msg ? '#8affa0' : GREY });
     }
   }
 
