@@ -1,10 +1,10 @@
 // 音樂與音效：全部用 WebAudio 即時合成（方波／三角波／噪音），曲子都是原創，以 MIDI 音符的方式寫成。
-// 場景決定曲目：標題、村莊、大地圖、洞穴、一般戰鬥、將領戰（高潮）、勝利、戰敗；計謀特效各有專屬音效。按 M 鍵可靜音。
+// 場景決定曲目：標題、村莊、大地圖、洞穴、一般戰鬥、將領戰（高潮）、勝利、戰敗；計謀特效各有專屬音效。音樂開關位於音量設定。
 (function () {
   const A = window.Audio2 = {};
-  let ctx = null, musicBus = null, sfxBus = null, musicVolume = 0.3, sfxVolume = 0.3, muted = false, wantTrack = null, cur = null, noiseBuf = null;
+  let ctx = null, musicBus = null, sfxBus = null, musicVolume = 0.3, sfxVolume = 0.3, musicMuted = false, wantTrack = null, cur = null, noiseBuf = null;
   try { const mv0 = localStorage.getItem('chuanyue-music-volume'), sv0 = localStorage.getItem('chuanyue-sfx-volume'); if (mv0 !== null && Number.isFinite(Number(mv0))) musicVolume = Math.max(0, Math.min(1, Number(mv0))); if (sv0 !== null && Number.isFinite(Number(sv0))) sfxVolume = Math.max(0, Math.min(1, Number(sv0))); } catch (e) { /* 沒有儲存空間也沒關係 */ }
-  try { muted = localStorage.getItem('chuanyue-muted') === '1'; } catch (e) { /* 沒有儲存空間也沒關係 */ }
+  try { const mm = localStorage.getItem('chuanyue-music-muted'); musicMuted = mm === null ? localStorage.getItem('chuanyue-muted') === '1' : mm === '1'; } catch (e) { /* 沒有儲存空間也沒關係 */ }
 
   // ---------- 記譜：音名 → MIDI ----------
   const SEMI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -187,16 +187,18 @@
   A.init = function () {
     if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
-    ctx = new AC(); musicBus = ctx.createGain(); sfxBus = ctx.createGain(); musicBus.gain.value = muted ? 0 : musicVolume; sfxBus.gain.value = muted ? 0 : sfxVolume; musicBus.connect(ctx.destination); sfxBus.connect(ctx.destination);
+    ctx = new AC(); musicBus = ctx.createGain(); sfxBus = ctx.createGain(); musicBus.gain.value = musicMuted ? 0 : musicVolume; sfxBus.gain.value = sfxVolume; musicBus.connect(ctx.destination); sfxBus.connect(ctx.destination);
     if (wantTrack) startTrack(wantTrack);
   };
   A.play = function (id) { if (id === wantTrack) return; wantTrack = id; if (ctx && ctx.state === 'running') startTrack(id); else if (ctx) { ctx.resume(); startTrack(id); } };
   A.current = function () { return wantTrack; };
-  A.setMuted = function (m) { muted = m; try { localStorage.setItem('chuanyue-muted', m ? '1' : '0'); } catch (e) { /* 忽略 */ } if (musicBus) musicBus.gain.value = m ? 0 : musicVolume; if (sfxBus) sfxBus.gain.value = m ? 0 : sfxVolume; };
-  A.isMuted = function () { return muted; };
+  A.setMusicMuted = function (m) { musicMuted = !!m; try { localStorage.setItem('chuanyue-music-muted', musicMuted ? '1' : '0'); } catch (e) { /* 忽略 */ } if (musicBus) musicBus.gain.value = musicMuted ? 0 : musicVolume; };
+  A.isMusicMuted = function () { return musicMuted; };
+  A.setMuted = A.setMusicMuted; // 舊版相容：靜音只控制音樂，不影響音效
+  A.isMuted = A.isMusicMuted;
   A.getVolumes = function () { return { music: musicVolume, sfx: sfxVolume }; };
-  A.setMusicVolume = function (v) { musicVolume = Math.max(0, Math.min(1, Number(v) || 0)); try { localStorage.setItem('chuanyue-music-volume', String(musicVolume)); } catch (e) { /* 忽略 */ } if (musicBus) musicBus.gain.value = muted ? 0 : musicVolume; };
-  A.setSfxVolume = function (v) { sfxVolume = Math.max(0, Math.min(1, Number(v) || 0)); try { localStorage.setItem('chuanyue-sfx-volume', String(sfxVolume)); } catch (e) { /* 忽略 */ } if (sfxBus) sfxBus.gain.value = muted ? 0 : sfxVolume; };
+  A.setMusicVolume = function (v) { musicVolume = Math.max(0, Math.min(1, Number(v) || 0)); try { localStorage.setItem('chuanyue-music-volume', String(musicVolume)); } catch (e) { /* 忽略 */ } if (musicBus) musicBus.gain.value = musicMuted ? 0 : musicVolume; };
+  A.setSfxVolume = function (v) { sfxVolume = Math.max(0, Math.min(1, Number(v) || 0)); try { localStorage.setItem('chuanyue-sfx-volume', String(sfxVolume)); } catch (e) { /* 忽略 */ } if (sfxBus) sfxBus.gain.value = sfxVolume; };
 
   // ---------- 計謀與攻擊音效（依特效名稱） ----------
   function tone(t, f0, f1, dur, vol, type) {
@@ -247,7 +249,7 @@
   };
   const FXMAP = { slash: 'blade', thrust: 'thrust', axe: 'heavy', arrow: 'arrow', arrowrain: 'rain', wave: 'wind', bolt: 'thunder', shock: 'crack', star: 'confuse', aura: 'buff', up_r: 'buff', up_b: 'buff', up_g: 'buff', up_y: 'buff', inferno: 'fire' };
   A.sfx = function (name) {
-    if (!ctx || muted || sfxVolume <= 0 || ctx.state !== 'running') return;
+    if (!ctx || sfxVolume <= 0 || ctx.state !== 'running') return;
     const f = SFX[FXMAP[name] || name] || SFX.hit; try { f(ctx.currentTime + 0.01); } catch (e) { /* 音效失敗不影響遊戲 */ }
   };
 
@@ -269,6 +271,5 @@
   }
   function first() { A.init(); }
   ['keydown', 'pointerdown', 'touchstart'].forEach(function (e) { window.addEventListener(e, first, { passive: true }); });
-  window.addEventListener('keydown', function (ev) { if ((ev.key === 'm' || ev.key === 'M') && !ev.repeat) A.setMuted(!muted); });
   setInterval(function () { const id = decide(); if (id && id !== wantTrack) A.play(id); }, 200);
 })();

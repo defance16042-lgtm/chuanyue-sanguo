@@ -129,14 +129,22 @@
   BL.terrMul = function (b, u) { return TERR[(u.terr && u.terr[b.terrain]) || 'B'] || 1; };
   function lead(b, a) { return 1 + (a.side === 'party' ? (b.leadBonus || 0) : (b.leadBonusEnemy || 0)); }
   function crit(b, a) { return b.rng() < 0.03 + (a.luck || 0) * 0.005 ? 1.5 : 1; }
+  // 兵力會影響攻勢：滿兵維持全額傷害，兵力越少傷害越低，最低保留四成戰力。
+  function troopMul(a) {
+    const max = Math.max(1, Number(a.hpMax) || 1);
+    const current = clamp(Number(a.hp) || 0, 0, max);
+    return 0.4 + 0.6 * (current / max);
+  }
   let curB = null;
   function physDamage(b, a, t, power) {
-    const base = (BL.eff(a, 'atk') * 2 + (a.pow || 0)) * BL.terrMul(b, a) - BL.eff(t, 'def') * BL.terrMul(b, t) * (t.defending ? 1.5 : 1);
-    return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a) * crit(b, a)));
+    const attack = (BL.eff(a, 'atk') * 2 + (a.pow || 0)) * BL.terrMul(b, a) * troopMul(a);
+    const defense = BL.eff(t, 'def') * BL.terrMul(b, t) * (t.defending ? 1.5 : 1);
+    return Math.max(1, Math.round((attack - defense) * power * rnd(b, 0.9, 1.1) * lead(b, a) * crit(b, a)));
   }
   function tactDamage(b, a, t, power) {
-    const base = BL.eff(a, 'int') * 2.2 * BL.terrMul(b, a) - BL.eff(t, 'def') * 0.6 * BL.terrMul(b, t);
-    return Math.max(1, Math.round(base * power * rnd(b, 0.9, 1.1) * lead(b, a)));
+    const attack = BL.eff(a, 'int') * 2.2 * BL.terrMul(b, a) * troopMul(a);
+    const defense = BL.eff(t, 'def') * 0.6 * BL.terrMul(b, t);
+    return Math.max(1, Math.round((attack - defense) * power * rnd(b, 0.9, 1.1) * lead(b, a)));
   }
 
   // 附帶效果：打中之後順便削弱對手（水淹七軍會讓敵軍行動遲緩）
