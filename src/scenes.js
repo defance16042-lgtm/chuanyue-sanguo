@@ -1072,8 +1072,8 @@
         f.t += dt;
         if (f.t >= FADE_MS) {
           if (f.phase === 'out') {
-            const fromMap = this.map, destination = D.maps[f.warp.to];
-            const stair = destination && destination.warps && destination.warps.find(function (w) { return w.to === this.mapId; });
+            const fromMap = this.map, fromId = this.mapId, destination = D.maps[f.warp.to];
+            const stair = destination && destination.warps && destination.warps.find(function (w) { return w.to === fromId; });
             const pairedStairs = stair && destination && (fromMap.cave || fromMap.pass) && (destination.cave || destination.pass);
             const landing = pairedStairs ? { x: stair.x, y: stair.y, dir: OPP[stair.dir] || f.warp.dir } : { x: f.warp.tx, y: f.warp.ty, dir: f.warp.dir };
             this.loadMap(f.warp.to, landing);
