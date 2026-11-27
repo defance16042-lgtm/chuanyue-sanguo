@@ -41,7 +41,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     // 主線任務指向的地點存在
     o.quest = D.mainQuest.filter(q => q.world === 'world3').every(q => D.worldTowns[q.to]);
     // 招收館
-    o.hall = towns.every(t => D.maps[t].npcs.some(n => n.id === 'hall_officer'));
+    o.hall = towns.every(t => D.townHasInn(t));
     // 殘部與可招收將領
     o.recruit = ['zhangkai', 'houcheng', 'songxian', 'gaoshun'].map(i => !!(D.characters[i] && D.characters[i].recruit && D.battle.enemies[i + '_r']));
     o.eskills = ['zhangkai', 'houcheng', 'songxian', 'gaoshun'].every(i => D.battle.enemies[i].eSkills && D.battle.enemies[i].eSkills.length >= 2);

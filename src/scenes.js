@@ -1015,33 +1015,13 @@
     }
   }
 
+  function springKey(scene, o) { return 'spring_' + scene.mapId + '_' + o.x + '_' + o.y; }
   class MapScene {
     constructor(mapId, spawn) { this.fade = null; this.loadMap(mapId, spawn); }
     loadMap(mapId, spawn) {
       const m = D.maps[mapId];
       this.mapId = mapId; this.map = m; this.w = m.tiles[0].length; this.h = m.tiles.length;
       this.npcs = m.npcs.map(function (n) { return Object.assign({}, n); });
-      if (D.townIds && D.townIds.indexOf(mapId) >= 0) {
-        this.map = Object.assign({}, m, { objects: (m.objects || []).map(function (o) { return Object.assign({}, o); }) });
-        let inn = this.map.objects.find(function (o) { return o.type === 'save'; });
-        if (!inn) {
-          const base = m.start || { x: 2, y: 2 }, used = new Set();
-          (this.map.objects || []).forEach(function (o) { used.add(o.x + ',' + o.y); });
-          (this.npcs || []).forEach(function (n) { used.add(n.x + ',' + n.y); });
-          (this.map.warps || []).forEach(function (w) { used.add(w.x + ',' + w.y); });
-          let spot = null;
-          for (let radius = 1; radius <= 8 && !spot; radius++) {
-            for (let dy = -radius; dy <= radius && !spot; dy++) for (let dx = -radius; dx <= radius && !spot; dx++) {
-              if (Math.abs(dx) + Math.abs(dy) !== radius) continue;
-              const x = base.x + dx, y = base.y + dy, row = m.tiles[y], ch = row && row[x];
-              if (!ch || used.has(x + ',' + y) || D.solidTiles.indexOf(D.legend[ch]) >= 0) continue;
-              spot = { x: x, y: y };
-            }
-          }
-          if (spot) { inn = Object.assign({ type: 'save' }, spot); this.map.objects.push(inn); }
-        }
-        if (inn) inn.label = '驛館';
-      }
       spawn = spawn || m.start;
       if (mapId === 'world' && D.chapterZoneAt) {   // 舊存檔：人還站在尚未開放的第二章區域裡，送回最近去過的城鎮外面
         const z = D.chapterZoneAt(spawn.x, spawn.y);
@@ -1085,14 +1065,13 @@
     terrainHere() { return D.terrainOf[this.tileAt(this.p.x, this.p.y)] || 'plain'; }
     visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf]) && !(G.party.some(function (m) { return m.guest && m.name === n.name; })); }   // 已經加入隊伍的助戰角色，原地的 NPC 會消失
     npcAt(x, y) { return this.npcs.find(function (n) { return n.x === x && n.y === y && this.visible(n); }, this); }
-    objAt(x, y) { return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]) && !(o.type === 'chest' && G.flags['chest_' + o.id]); }); }
+    objAt(x, y) { const self = this; return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]) && !(o.type === 'chest' && G.flags['chest_' + o.id]) && !(o.type === 'spring' && G.flags[springKey(self, o)]); }); }
     blocked(x, y) {
       const t = this.tileAt(x, y), o = this.objAt(x, y);
       // 洞穴與山口中的寶箱、陶罐、石碑是實體障礙；開啟的容器會從 objAt 消失。
-      const interiorObstacle = (this.map.cave || this.map.pass) && o && ['chest', 'urn', 'tablet'].indexOf(o.type) >= 0;
+      const interiorObstacle = (this.map.cave || this.map.pass || this.map.fort) && o && ['chest', 'urn', 'tablet', 'spring', 'lever'].indexOf(o.type) >= 0;
       const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat' || interiorObstacle);
-      const saveCrystal = (this.map.objects || []).some(function (obj) { return obj.type === 'save' && obj.x === x && obj.y === y; });
-      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject || saveCrystal;
+      return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject;
     }
     interact() {
       const p = this.p, v = DIRV[p.dir], tx = p.x + v[0], ty = p.y + v[1];
@@ -1104,10 +1083,9 @@
         if (hit) key = hit.dialogue;
         E.push(new DialogScene(D.dialogue[key]));
       }
-      else if (obj && obj.type === 'save') E.push(new SaveScene('save', D.townIds && D.townIds.indexOf(this.mapId) >= 0));
       else if (obj && obj.type === 'chest') this.openChest(obj);
       else if (obj && obj.type === 'urn') this.openUrn(obj);
-      else if (obj && obj.type === 'spring') { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('清涼的泉水洗去了疲勞。隊伍的兵力與戰術點全部恢復了。'); }
+      else if (obj && obj.type === 'spring') { G.flags[springKey(this, obj)] = true; G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('清涼的泉水洗去了疲勞。隊伍的兵力與戰術點全部恢復了。（泉水乾涸了）'); }
       else if (obj && obj.type === 'lever') {
         if (G.flags[obj.flag]) this.say('拉桿已經扳下去了。');
         else { G.flags[obj.flag] = true; this.say('喀啦——拉桿扳了下去，遠處傳來沉重的石門滑開的聲音。'); }
@@ -1273,6 +1251,7 @@
       if (a.heal) { G.party.forEach(function (m) { m.hp = m.hpMax; G.fullTp(m); }); this.say('隊伍的兵力與戰術點全部恢復了。'); }
       if (got.length) this.say((a.pay ? '付出 ' + a.pay + ' 金。' : '') + '獲得：' + got.join('、') + '。');
       if (a.hall) { E.push(new HallScene()); return; }
+      if (a.save) { E.push(new SaveScene('save', true)); return; }
       if (a.recruit) {
         if (G.flags['recruited_' + a.recruit]) return;
         const m = G.makeMember(a.recruit), lv = G.topLevel();
@@ -1392,7 +1371,7 @@
         items.push({ y: n.y * T, draw: function () { drawSprite(wc, n.sprite, n.dir, 0, n.x * T - cam.x, n.y * T - cam.y); } });
       });
       this.map.objects.forEach(function (o) {
-        if ((o.type === 'gate' && G.flags[o.flag]) || (o.type === 'urn' && G.flags['urn_' + o.id]) || (o.type === 'chest' && G.flags['chest_' + o.id])) return;   // 開啟的門、陶罐、寶箱都消失
+        if ((o.type === 'gate' && G.flags[o.flag]) || (o.type === 'urn' && G.flags['urn_' + o.id]) || (o.type === 'chest' && G.flags['chest_' + o.id]) || (o.type === 'spring' && G.flags[springKey(self, o)])) return;   // 開啟的門、陶罐、寶箱都消失
         if (o.type !== 'save' && o.type !== 'chest' && o.type && drawCaveObj) { items.push({ y: o.y * T, draw: function () { drawCaveObj(wc, o.x * T - cam.x, o.y * T - cam.y, o); } }); return; }
         if (o.type === 'chest') { items.push({ y: o.y * T, draw: function () { drawChest(wc, o.x * T - cam.x, o.y * T - cam.y, !!G.flags['chest_' + o.id]); } }); return; }
         items.push({ y: o.y * T, draw: function () {

@@ -24,7 +24,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       (m.warps || []).forEach(w => { if (!D.maps[w.to]) o.errs.push(id + ' warp missing ' + w.to); else if (!walk(D.maps[w.to], w.tx, w.ty)) o.errs.push(id + ' warp lands solid ' + w.to + w.tx + ',' + w.ty); });
     });
     const w4 = D.maps.world4, r4 = reach(w4, w4.start.x, w4.start.y);
-    vill.forEach(t => { const p = D.worldTowns[t]; if (!p || !r4.has(p.x + ',' + (p.y + 1))) o.errs.push('village unreachable ' + t); if (!D.maps[t].npcs.some(n => n.id === 'hall_officer')) o.errs.push('no hall ' + t); if (!w4.warps.find(w => w.to === t)) o.errs.push('no world warp ' + t); });
+    vill.forEach(t => { const p = D.worldTowns[t]; if (!p || !r4.has(p.x + ',' + (p.y + 1))) o.errs.push('village unreachable ' + t); if (!D.townHasInn(t)) o.errs.push('no hall ' + t); if (!w4.warps.find(w => w.to === t)) o.errs.push('no world warp ' + t); });
     caves.forEach(c => { const w = w4.warps.find(w2 => w2.to === c); if (!w || !r4.has(w.x + ',' + (w.y + 1))) o.errs.push('cave entrance unreachable ' + c); ['boss', 'g1', 'g2'].forEach(k => { if (!D.battle.groups[c + k]) o.errs.push('group ' + c + k); }); [1, 2, 3].forEach(i => { const id = 'gen_' + c + (i > 1 ? '_' + i : ''); if (!D.battle.enemies[id] || !D.battle.groups[id] || !D.dialogue[id]) o.errs.push('gen ' + id); }); });
     vill.forEach(t => { ['general'].forEach(k => { if (!D.shops[t + '_' + k] || !D.shops[t + '_' + k].length) o.errs.push('shop ' + t + k); }); if (!Object.keys(D.maps).some(i => i === t + '_inn')) o.errs.push('inn ' + t); });
     o.quests = D.sideQuests.filter(q => /^q1[3-6]$/.test(q.id)).length;

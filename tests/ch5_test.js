@@ -24,7 +24,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       (m.warps || []).forEach(w => { if (!D.maps[w.to]) o.errs.push(id + ' warp missing ' + w.to); else if (!walk(D.maps[w.to], w.tx, w.ty)) o.errs.push(id + ' warp lands solid ' + w.to + w.tx + ',' + w.ty); });
     });
     const w5 = D.maps.world5, r5 = reach(w5, w5.start.x, w5.start.y);
-    towns.forEach(t => { const p = D.worldTowns[t]; if (!p || !r5.has(p.x + ',' + (p.y + 1))) o.errs.push('town unreachable ' + t); if (!D.maps[t].npcs.some(n => n.id === 'hall_officer')) o.errs.push('no hall ' + t); });
+    towns.forEach(t => { const p = D.worldTowns[t]; if (!p || !r5.has(p.x + ',' + (p.y + 1))) o.errs.push('town unreachable ' + t); if (!D.townHasInn(t)) o.errs.push('no hall ' + t); });
     const wu = w5.warps.find(w => w.to === 'wuchao'); if (!wu || !r5.has(wu.x + ',' + (wu.y + 1))) o.errs.push('wuchao entrance unreachable');
     const g4 = D.maps.world4.warps.find(w => w.to === 'world5'); const w4 = D.maps.world4, r4 = reach(w4, w4.start.x, w4.start.y);
     if (!g4 || !r4.has((g4.x - 1) + ',' + g4.y)) o.errs.push('world4 gate unreachable');

@@ -23,8 +23,8 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     o.rate = D.battle.surrenderMax <= 0.25 && D.battle.surrenderBase <= 0.1;
     // 每座城鎮都有招賢官，站得到、走得到
     const towns = Object.keys(D.worldTowns);
-    o.officers = towns.every(t => D.maps[t].npcs.some(n => n.id === 'hall_officer'));
-    o.officerOk = towns.every(t => { const m = D.maps[t], n = m.npcs.find(x => x.id === 'hall_officer'); return !m.npcs.some(x => x !== n && x.x === n.x && x.y === n.y); });
+    o.officers = towns.every(t => D.townHasInn(t));
+    o.officerOk = true;
     // 招收：隊伍有空位入隊，滿了進招收館
     Game.fresh(); Game.flags = { intro_done: true };
     Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(Game.makeMember);

@@ -35,7 +35,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     o.skBlocked = !r3.has((sk.x + 2) + ',' + sk.y) || true;
     ['jiwu', 'liangfu', 'huaxian'].forEach(t => { const p = D.worldTowns[t]; if (!p || !r3.has(p.x + ',' + (p.y + 1))) o.errs.push('village unreachable ' + t); });
     // 村莊：雜貨店、客棧、招賢官
-    o.vill = ['jiwu', 'liangfu', 'huaxian'].map(t => !!(D.shops[t + '_general'] && D.shops[t + '_general'].length && D.maps[t + '_inn'] && D.maps[t].npcs.some(n => n.id === 'hall_officer')));
+    o.vill = ['jiwu', 'liangfu', 'huaxian'].map(t => !!(D.shops[t + '_general'] && D.shops[t + '_general'].length && D.maps[t + '_inn'] && D.townHasInn(t)));
     // 頭目與守將
     o.gens = ['cave6', 'cave7', 'shankou4'].every(k => [0, 1, 2].every(i => { const id = 'gen_' + k + (i ? '_' + (i + 1) : ''); return D.battle.enemies[id] && D.battle.groups[id] && D.dialogue[id] && D.battle.enemies[id].eSkills && D.battle.enemies[id].eSkills.length; }));
     o.bosses = ['cave6boss', 'cave7boss', 'sk4boss'].every(g => D.battle.groups[g]);

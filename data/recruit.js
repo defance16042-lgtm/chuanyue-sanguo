@@ -82,32 +82,6 @@
   });
 })();
 
-// ---- 招收館：每座城鎮都有一位招賢官（大地圖上的城鎮 D.worldTowns）----
-(function () {
-  const D = window.DATA, solid = {};
-  D.solidTiles.forEach(function (t) { solid[t] = true; });
-  D.dialogue.hall_officer = [
-    { speaker: '招賢官', text: '這裡是招收館。歸順的將領可以寄放在這裡，隊伍想換人，隨時來領。劉備、關羽、張飛，還有你，也都可以寄放。' },
-    { speaker: '招賢官', text: '要辦理嗎？', choices: [{ label: '辦理寄放與領人', act: { hall: true } }, { label: '不用了' }] }
-  ];
-  Object.keys(D.worldTowns || {}).forEach(function (id) {
-    const m = D.maps[id]; if (!m) return;
-    const used = {}; (m.npcs || []).concat(m.objects || [], m.signs || [], m.warps || []).forEach(function (o) { used[o.x + ',' + o.y] = true; });
-    used[m.start.x + ',' + m.start.y] = true;
-    const at = function (x, y) { const ch = (m.tiles[y] || '')[x]; return ch === undefined ? -1 : D.legend[ch]; };
-    let best = null, bd = 1e9;
-    for (let y = 2; y < m.tiles.length - 2; y++) for (let x = 2; x < m.tiles[y].length - 2; x++) {
-      const t = at(x, y); if (t !== 1 && t !== 5 && t !== 0 && t !== 31) continue;
-      let ok = !used[x + ',' + y];
-      for (let dy = -1; dy <= 1 && ok; dy++) for (let dx = -1; dx <= 1 && ok; dx++) { const q = at(x + dx, y + dy); if (q < 0 || solid[q] || q === 8 || q === 40 || q === 41 || used[(x + dx) + ',' + (y + dy)]) ok = false; }
-      if (!ok) continue;
-      const d = Math.abs(x - m.start.x) + Math.abs(y - m.start.y) + (Math.abs(x - m.start.x) + Math.abs(y - m.start.y) < 3 ? 40 : 0);
-      if (d < bd) { bd = d; best = { x: x, y: y }; }
-    }
-    if (best) m.npcs.push({ id: 'hall_officer', name: '招賢官', sprite: 29, x: best.x, y: best.y, dir: 'down', dialogue: 'hall_officer' });
-  });
-})();
-
 // 村莊與城鎮裡不會隨機遇敵（只有主線、支線的敵軍 NPC 才會開戰）
 (function () {
   const D = window.DATA;

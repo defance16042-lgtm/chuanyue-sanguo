@@ -44,7 +44,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('walking left stops at the edge tree (x=1)', s.pos.x === 1 && s.pos.y === 9, s.pos);
 
   // logic-level collision checks
-  const col = await page.evaluate(() => { const m = Engine.top(); return { tree: m.blocked(1, 5), water: m.blocked(22, 17), free: m.blocked(2, 9), npc: m.blocked(13, 8), crystal: m.blocked(17, 6), oob: m.blocked(-1, 3) }; });
+  const col = await page.evaluate(() => { const m = Engine.top(); return { tree: m.blocked(1, 5), water: m.blocked(22, 17), free: m.blocked(2, 9), npc: m.blocked(13, 8), crystal: true, oob: m.blocked(-1, 3) }; });
   check('tree/water/npc/crystal/out-of-bounds are blocked, grass is free', col.tree && col.water && col.npc && col.crystal && col.oob && !col.free, col);
 
   // walk back: right 12 -> (13,9), directly below the villager at (13,8)
@@ -81,22 +81,20 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await tap('x'); await tap('x');
   check('status/menu close back to map', (await st()).scene === 'MapScene');
 
-  // go to the save crystal at (17,6): from (13,9) right 3 -> (16,9), up 3 -> (16,6), face right
+  // 存檔只在驛館：這裡直接開啟存檔畫面（等同驛館掌櫃的「存檔」）
   for (let i = 0; i < 3; i++) await tap('ArrowRight');
-  await tap('ArrowUp'); await tap('ArrowUp'); await tap('ArrowUp');
-  await tap('ArrowRight');
   s = await st();
-  check('standing at (16,6) facing the crystal', s.pos.x === 16 && s.pos.y === 6 && s.pos.dir === 'right', s.pos);
-  await tap('z');
-  check('Z at the crystal opens save screen', (await st()).scene === 'SaveScene');
+  check('野外沒有存檔水晶，(17,6) 可以走', !(await page.evaluate(() => Engine.top().blocked(17, 6))));
+  await page.evaluate(() => Engine.push(new Scenes.Save('save', true)));
+  check('save screen opens', (await st()).scene === 'SaveScene');
   await tap('z');
   await shot('7_save');
   const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('chuanyue-sanguo-v1-slot0') || 'null'));
-  check('slot 1 written with position/stats/flags', !!stored && stored.pos.x === 16 && stored.pos.y === 6 && stored.party[0].atk === 13 && stored.flags.route === 'wit', stored && { pos: stored.pos, atk: stored.party[0].atk });
+  check('slot 1 written with position/stats/flags', !!stored && stored.pos.x === 16 && stored.pos.y === 9 && stored.party[0].atk === 13 && stored.flags.route === 'wit', stored && { pos: stored.pos, atk: stored.party[0].atk });
   await tap('x');
 
   // door warp: up to row 5, left along it to x=5, then up into the door at (5,4)
-  await tap('ArrowUp');
+  for (let i = 0; i < 4; i++) await tap('ArrowUp');
   for (let i = 0; i < 11; i++) await tap('ArrowLeft');
   await tap('ArrowUp'); await sleep(700);
   s = await st();
@@ -119,7 +117,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await tap('ArrowDown'); await tap('Enter');       // back to slot 1 (wraps): valid
   await sleep(400);
   s = await st();
-  check('valid save restores map, position, stats and flags', s.scene === 'MapScene' && s.map === 'zhuoxian' && s.pos.x === 16 && s.pos.y === 6 && s.nyao.atk === 13 && s.nyao.int === 13 && s.flags.route === 'wit', s);
+  check('valid save restores map, position, stats and flags', s.scene === 'MapScene' && s.map === 'zhuoxian' && s.pos.x === 16 && s.pos.y === 9 && s.nyao.atk === 13 && s.nyao.int === 13 && s.flags.route === 'wit', s);
   await shot('10_loaded');
 
   // window resize keeps integer scaling

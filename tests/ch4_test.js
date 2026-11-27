@@ -34,7 +34,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const r3 = reach(w3, w3.start.x, w3.start.y); o.w3reach = g3 && r3.has(g3.bx + ',' + g3.by);
     o.shops = towns.map(t => ['weapon', 'armor', 'general'].filter(k => D.shops[t + '_' + k] && D.shops[t + '_' + k].length).length);
     o.quest = D.mainQuest.filter(q => q.world === 'world4').every(q => D.worldTowns[q.to]);
-    o.hall = towns.every(t => D.maps[t].npcs.some(n => n.id === 'hall_officer'));
+    o.hall = towns.every(t => D.townHasInn(t));
     o.recruit = ['chezhou', 'yanliang', 'wenchou'].map(i => !!(D.characters[i] && D.characters[i].recruit && D.battle.enemies[i + '_r']));
     o.eskills = ['chezhou', 'yanliang', 'wenchou'].every(i => D.battle.enemies[i].eSkills && D.battle.enemies[i].eSkills.length >= 2);
     o.gear = ['xu_sword', 'scale_armor', 'chezhou_lance', 'yanliang_blade', 'wenchou_spear', 'yuan_armor', 'jade_seal_charm'].every(g => D.equipment[g]);

@@ -218,3 +218,8 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - 流程旗標：ch5_start → caoren_down → ch5_xun → yw_scout_down → xuyou_join → wuchao_plan → chunyuqiong_down（張郃 zhanghe_join）→ shenpei_down → yuanshang_down → caimao_down（客串離隊 ch5_liubiao）→ ch5_end。
 - 測試：tests/ch5_test.js（14 項）。Lv62 模擬：曹仁 92%、淳于瓊 75%、審配 69%、袁尚 60%、蔡瑁 80%。
 - 待做（批次2）：第五章村莊、洞穴、關口、支線 4 條、新兵書、荊州結尾。
+
+## v0.58.1 驛館存檔與洞穴物件調整
+- data/inn_patch.js（recruit.js 之後載入）：關隘 wg1–5／wuchao 標 fort:true；移除所有 'save' 物件；驛館掌櫃對話（keeper、inn_*）加上「存檔（免費休息）」act {save:true} 與「招收人物」act {hall:true}；沒有驛館房子的城鎮（第一、二章 13 座）放「驛吏」NPC（inn_clerk）。D.townHasInn(id) 供測試檢查。原 hall_officer 與 loadMap 自動建的存檔水晶已移除。
+- scenes.js：cave／pass／fort 地圖的 chest／urn／tablet／spring／lever 皆為實體障礙；泉水用 flag 'spring_<map>_<x>_<y>' 只能用一次並消失；新增 act.save。
+- 測試：tests/interior_test.js（8 項）；play_test 改成直接開存檔畫面；其餘測試的 hall_officer 檢查改為 D.townHasInn。
