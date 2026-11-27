@@ -307,7 +307,12 @@
       D.maps[id] = { name: h.name, tiles: rows, start: { x: dx, y: ht - 2, dir: 'up' },
         warps: [{ x: dx, y: ht - 1, to: town, tx: doors[0][0], ty: doors[0][1] + 1, dir: 'down' }].concat(doors.length > 1 ? [{ x: dx + 1, y: ht - 1, to: town, tx: doors[1][0], ty: doors[1][1] + 1, dir: 'down' }] : []),
         npcs: npcs, objects: objects };
-      doors.forEach(function (d) { tm.warps.push({ x: d[0], y: d[1], to: id, tx: dx, ty: ht - 2, dir: 'up' }); });
+      doors.forEach(function (d) {
+        // 房屋門必須優先使用本房屋的傳送：若舊地圖在同一格已有 warp，
+        // MapScene.arrive() 會取第一筆，舊 warp 可能把玩家送到其他章節的房屋。
+        tm.warps = (tm.warps || []).filter(function (w) { return w.x !== d[0] || w.y !== d[1]; });
+        tm.warps.push({ x: d[0], y: d[1], to: id, tx: dx, ty: ht - 2, dir: 'up' });
+      });
     });
   });
 })();
