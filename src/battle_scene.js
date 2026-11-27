@@ -463,7 +463,6 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (hurt && !dead) frame = 6;
         if (dead) frame = 7;
         { const k = E.images.benemy_hd ? 2 : 1; wc.drawImage(E.images.benemy_hd || E.images.benemy16, frame * 24 * k, e.sprite * 16 * k, 24 * k, 16 * k, e.x + dx, e.y, 24, 16); }
-        drawHeldWeapon(wc, e, e.x + dx + 5, e.y + 9, true, dead);
         wc.globalAlpha = 1;
         if (!dead) self.statusFx(wc, e, e.x + 12 + dx, e.y);
       });
@@ -528,7 +527,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       }
       if (hurt && !dead) frame = 6;
       if (dead) frame = 7;
-      const row = BATTLE_ROW[u.id];
+      const row = (window.DATA.battleRow || BATTLE_ROW)[u.id];
       if (row !== undefined) {
         const k = E.images.bparty_hd ? 2 : 1;
         wc.drawImage(E.images.bparty_hd || E.images.bparty16, frame * 24 * k, row * 16 * k, 24 * k, 16 * k, u.x + sx + off, u.y, 24, 16);
@@ -538,7 +537,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         wc.drawImage(E.images.sprites_hd || E.images.sprites, ((cmd || an) ? 7 : 6) * k2, u.ref.sprite * k2, k2, k2, u.x + sx + off, u.y, 16, 16);
         wc.globalAlpha = 1;
       }
-      drawHeldWeapon(wc, u, u.x + (row !== undefined ? 18 : 12) + sx + off, u.y + 9, false, dead);
+      if (row === undefined) drawHeldWeapon(wc, u, u.x + 12 + sx + off, u.y + 9, false, dead);   // 武器已經畫在戰鬥小人身上；只有沒有專屬戰鬥小人的人才疊上武器
       this.statusFx(wc, u, u.x + 12 + off + sx, u.y);
       if (an && an.kind === 'cast' && !dead) {   // 施法光圈
         const r = 4 + an.t / 60;

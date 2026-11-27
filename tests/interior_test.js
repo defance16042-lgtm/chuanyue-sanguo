@@ -37,6 +37,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     const inn = D.dialogue.inn_chenliu_inn[0].choices.map(c => c.label).join('|');
     o.innChoices = inn; o.hasSave = /存檔/.test(inn) && /招收/.test(inn);
     o.noOfficer = !Object.keys(D.maps).some(k => (D.maps[k].npcs || []).some(n => n.id === 'hall_officer'));
+    o.noRow = Object.keys(D.characters).filter(k => typeof D.battleRow[k] !== 'number');
     return o;
   });
   check('no save crystals', r.saveLeft.length === 0, r.saveLeft);
@@ -46,6 +47,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
   check('every town has inn', r.noInn.length === 0, r.noInn);
   check('inn has save + hall', r.hasSave, r.innChoices);
   check('no hall officer', r.noOfficer);
+  check('every character has a battle sprite row with weapon', r.noRow.length === 0, r.noRow);
   check('no errors', errors.length === 0, errors);
   console.log(pass + ' passed, ' + fail + ' failed'); await br.close(); process.exit(fail ? 1 : 0);
 })();

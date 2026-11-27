@@ -223,3 +223,9 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - data/inn_patch.js（recruit.js 之後載入）：關隘 wg1–5／wuchao 標 fort:true；移除所有 'save' 物件；驛館掌櫃對話（keeper、inn_*）加上「存檔（免費休息）」act {save:true} 與「招收人物」act {hall:true}；沒有驛館房子的城鎮（第一、二章 13 座）放「驛吏」NPC（inn_clerk）。D.townHasInn(id) 供測試檢查。原 hall_officer 與 loadMap 自動建的存檔水晶已移除。
 - scenes.js：cave／pass／fort 地圖的 chest／urn／tablet／spring／lever 皆為實體障礙；泉水用 flag 'spring_<map>_<x>_<y>' 只能用一次並消失；新增 act.save。
 - 測試：tests/interior_test.js（8 項）；play_test 改成直接開存檔畫面；其餘測試的 hall_officer 檢查改為 D.townHasInn。
+
+## v0.58.2 戰鬥小人武器與汝南房屋
+- tools/weapons_hd.py：高清手持武器（sword／swords／sabre／glaive／spear／lance／halberd／fan／bow），直接畫在 48×32 的戰鬥格上；build_char_hd.py 的 row_frames_hd 改用它（敵我雙方都是）。
+- 我方戰鬥小人改成每位人物一列：tools/party_chars.json（id→[地圖列, 武器種類]）→ build_char_hd.py party_sheet() 產生 battle_party_hd.png 與 data/battle_rows.js（D.battleRow）。新增可入隊人物時，把 id 加進 party_chars.json（前 6 列順序不要動）再重新產生。格子大小不變（48×32）。
+- battle_scene.js：不再疊 drawHeldWeapon，只有沒有戰鬥列的人才用。
+- 汝南：ch4world.js 把第一章汝南房屋改名 runan_ch1_h*（tools/build_ch4.py 同步），避免被第四章同名房屋蓋掉。

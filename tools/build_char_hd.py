@@ -12,6 +12,7 @@ import build_assets as BA
 import build_battle16 as BB
 import build_zhoucang as ZC
 import recruit_chars as RCH
+from weapons_hd import weapon_hd
 from char_styles import STYLES
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -341,7 +342,7 @@ def row_frames_hd(kw, kind):
             body = base[0].rotate(90, expand=True)
             cell.alpha_composite(body, (8, 0))
             d = ImageDraw.Draw(cell)
-            col = BB.WOOD if kind in ("glaive", "spear") else BB.STEEL
+            col = BB.WOOD if kind in ("glaive", "spear", "lance", "halberd") else BB.STEEL
             d.line([(10, 30), (30, 30)], fill=col, width=2)
             cells.append(cell); continue
         grip, tip, dx = BB.POSE[frame] if frame in BB.POSE else BB.POSE[0]
@@ -349,10 +350,9 @@ def row_frames_hd(kw, kind):
         if frame == 6:
             body = BB.flash(body)
         cell.alpha_composite(body, (8 + dx * 2, 0))
-        # 武器先畫在 24x16 的暫存圖，放大 2 倍後疊上去（線條變成 2px 粗，跟高清身體相稱）
+        weapon_hd(ImageDraw.Draw(cell), kind, (grip[0] + dx, grip[1]), (tip[0] + dx, tip[1]))
         wp = Image.new("RGBA", (BB.CW, BB.CH), (0, 0, 0, 0))
         wd = ImageDraw.Draw(wp)
-        BB.weapon(wd, kind, grip, tip, frame)
         if frame == 4:
             wd.arc([12, 1, 28, 17], 300, 70, fill=BB.WHITE, width=1)
         if frame == 5:
@@ -384,9 +384,25 @@ def battle_sheet(rows, mirror=False):
     return out
 
 
+KIND_OF = {"劍": "sword", "刀": "sabre", "矛": "spear", "槍": "lance", "扇": "fan"}
+KIND_OVERRIDE = {"nyao": "fan", "liubei": "swords", "guanyu": "glaive", "zhangfei": "spear", "lubu": "halberd", "dianwei": "halberd"}
+
+
+def party_sheet():
+    """我方戰鬥小人：每位可入隊的人物一列（外觀跟地圖小人一致，武器直接畫在身上）。
+    列序＝data/battle_rows.js 的 D.battleRow；人物清單在 tools/party_chars.json（id -> [地圖列, 武器種類]）。"""
+    import json
+    chars = json.load(open(ROOT / "tools" / "party_chars.json", encoding="utf8"))
+    rows_kw = [styled(n, kw) for n, kw in BA.CHARACTERS] + [styled('zhoucang', ZC.KW)] + [styled(i, k) for i, k, _w in RCH.RC]
+    ids = list(chars.keys())
+    battle_sheet([(rows_kw[chars[c][0]], KIND_OVERRIDE.get(c) or KIND_OF.get(chars[c][1], "sword")) for c in ids]).save(OUT / "battle_party_hd.png")
+    js = "// 由 tools/build_char_hd.py 產生：我方人物在 battle_party_hd.png 的列序\nwindow.DATA.battleRow = " + json.dumps({c: i for i, c in enumerate(ids)}, ensure_ascii=False) + ";\n"
+    (ROOT / "data" / "battle_rows.js").write_text(js, encoding="utf8")
+
+
 def main():
     sprite_rows().save(OUT / "sprites_hd.png")
-    battle_sheet([(auto(k), w) for k, w in BB.PARTY]).save(OUT / "battle_party_hd.png")
+    party_sheet()
     battle_sheet([(auto(k), w) for k, w in BB.ENEMIES] + [(styled('zhoucang', ZC.KW), 'glaive')] + [(styled(i, k), w) for i, k, w in RCH.RC], mirror=True).save(OUT / "battle_enemy_hd.png")
     print("ok")
 

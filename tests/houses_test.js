@@ -37,9 +37,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     return bad;
   });
   check('house doors are not shadowed by older warp entries', conflicts.length === 0, conflicts);
-  check('chapter 1 Runan map is isolated from chapter 4 Runan houses',
-    !(DATA.maps.runan_ch1.warps || []).some(w => /^runan_h\\d+$/.test(w.to)),
-    (DATA.maps.runan_ch1.warps || []).filter(w => /^runan_h\\d+$/.test(w.to)).map(w => w.to));
+  const ch1Leak = await page.evaluate(() => { const w = DATA.maps.runan_ch1.warps || []; return { leak: w.filter(x => /^runan_h\d+$/.test(x.to)).map(x => x.to), ok: w.filter(x => /^runan_ch1_h\d+$/.test(x.to)).every(x => DATA.maps[x.to] && DATA.maps[x.to].warps.every(y => y.to === 'runan_ch1')) }; });
+  check('chapter 1 Runan map is isolated from chapter 4 Runan houses', ch1Leak.leak.length === 0 && ch1Leak.ok, ch1Leak);
   // 走進門
   await go('changshe', 5, 6, 'up'); await sleep(200); await tap('ArrowUp', 90, 900);
   let g = await G(); check('door of the scholar house really opens', g.map === 'changshe_h0', g.map);
