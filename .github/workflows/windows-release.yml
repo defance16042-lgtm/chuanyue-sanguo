@@ -70,7 +70,7 @@ jobs:
         run: node scripts/write-update-manifest.cjs
 
       - name: Publish installer and updater files to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '') || github.ref == 'refs/heads/main'
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
