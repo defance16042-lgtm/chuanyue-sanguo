@@ -23,6 +23,23 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   const G = () => page.evaluate(() => ({ gold: Game.gold, flags: Game.flags, items: Game.items, gear: Game.equipInv, map: Game.mapId }));
   await page.goto(URL); await sleep(500);
   await page.evaluate(() => { Game.fresh(); Game.party = ['nyao', 'liubei', 'guanyu', 'zhangfei'].map(Game.makeMember); Game.flags = { intro_done: true }; Game.gold = 1000; Game.items = {}; });
+  // 房屋門若與舊 warp 重疊，必須由新生成的房屋 warp 優先處理。
+  const conflicts = await page.evaluate(() => {
+    const bad = [];
+    Object.keys(DATA.maps).filter(id => /_h\\d+$/.test(id)).forEach(id => {
+      const town = id.replace(/_h\\d+$/, ''), map = DATA.maps[town];
+      if (!map) return;
+      (map.warps || []).filter(w => w.to === id).forEach(w => {
+        const first = map.warps.find(k => k.x === w.x && k.y === w.y);
+        if (!first || first.to !== id) bad.push({ house: id, x: w.x, y: w.y, first: first && first.to });
+      });
+    });
+    return bad;
+  });
+  check('house doors are not shadowed by older warp entries', conflicts.length === 0, conflicts);
+  check('chapter 1 Runan map is isolated from chapter 4 Runan houses',
+    !(DATA.maps.runan_ch1.warps || []).some(w => /^runan_h\\d+$/.test(w.to)),
+    (DATA.maps.runan_ch1.warps || []).filter(w => /^runan_h\\d+$/.test(w.to)).map(w => w.to));
   // 走進門
   await go('changshe', 5, 6, 'up'); await sleep(200); await tap('ArrowUp', 90, 900);
   let g = await G(); check('door of the scholar house really opens', g.map === 'changshe_h0', g.map);
