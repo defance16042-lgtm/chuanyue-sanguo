@@ -65,25 +65,27 @@ jobs:
         run: node scripts/write-update-manifest.cjs
 
       - name: Publish installer and updater files to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '') || github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
+          $version = node -p "require('./package.json').version"
           $tag = $env:RELEASE_TAG
           if ($env:GITHUB_REF -like 'refs/tags/v*') {
             $tag = $env:GITHUB_REF_NAME
+          } elseif ($env:GITHUB_REF -eq 'refs/heads/main') {
+            $tag = "v$version"
           }
 
-          $version = node -p "require('./package.json').version"
           if ($tag -ne "v$version") {
             throw "Release tag $tag must match package.json version v$version"
           }
 
           gh release view $tag *> $null
           if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --verify-tag --title "穿越三國 諸葛貓妖傳 $tag" --notes "Windows 桌面版；啟動時檢查更新，下載完成後可重新啟動安裝。"
+            gh release create $tag --title "穿越三國 諸葛貓妖傳 $tag" --notes "Windows 桌面版；啟動時檢查更新，下載完成後可重新啟動安裝。"
             if ($LASTEXITCODE -ne 0) { throw "Could not create GitHub Release $tag" }
           }
 
