@@ -232,7 +232,6 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       this.b.party.forEach(function (u) { if (u.tx != null && u.x !== u.tx) { u.x += (u.tx - u.x) * Math.min(1, dt / 160); if (Math.abs(u.tx - u.x) < 0.5) u.x = u.tx; } });   // 滑進陣形站位
       const self0 = this; this.b.party.concat(this.b.enemies).forEach(function (u) {
         if (u.shake > 0) u.shake -= dt;
-        if (u.side === 'enemy' && self0.H(u) <= 0 && u.fade > 0) u.fade = Math.max(0, u.fade - dt / 400);
       });
       this.b.party.concat(this.b.enemies).forEach(function (u) { if (u.anim) { u.anim.t += dt; if (u.anim.t > 560) u.anim = null; } });
       this.floats.forEach(function (f) { f.t += dt; });
@@ -453,7 +452,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       this.b.enemies.forEach(function (e) {
         if (e.fade <= 0) return;
         const dead = self.H(e) <= 0, hurt = e.shake > 0;
-        wc.globalAlpha = dead ? e.fade : 1;
+        wc.globalAlpha = 1;   // 倒下的敵將不消失，躺著就好（可能被復活）
         let dx = hurt ? (Math.floor(e.shake / 40) % 2 ? 2 : -2) : 0;
         let frame = Math.floor(E.time / 500 + e.row * 0.5) % 2;
         const an = e.anim;
@@ -532,7 +531,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         const k = E.images.bparty_hd ? 2 : 1;
         wc.drawImage(E.images.bparty_hd || E.images.bparty16, frame * 24 * k, row * 16 * k, 24 * k, 16 * k, u.x + sx + off, u.y, 24, 16);
       } else {
-        wc.globalAlpha = dead ? 0.35 : 1;
+        wc.globalAlpha = dead ? 0.8 : 1;
         const k2 = E.images.sprites_hd ? 32 : 16;
         wc.drawImage(E.images.sprites_hd || E.images.sprites, ((cmd || an) ? 7 : 6) * k2, u.ref.sprite * k2, k2, k2, u.x + sx + off, u.y, 16, 16);
         wc.globalAlpha = 1;

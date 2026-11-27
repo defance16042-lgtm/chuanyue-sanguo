@@ -229,3 +229,12 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - 我方戰鬥小人改成每位人物一列：tools/party_chars.json（id→[地圖列, 武器種類]）→ build_char_hd.py party_sheet() 產生 battle_party_hd.png 與 data/battle_rows.js（D.battleRow）。新增可入隊人物時，把 id 加進 party_chars.json（前 6 列順序不要動）再重新產生。格子大小不變（48×32）。
 - battle_scene.js：不再疊 drawHeldWeapon，只有沒有戰鬥列的人才用。
 - 汝南：ch4world.js 把第一章汝南房屋改名 runan_ch1_h*（tools/build_ch4.py 同步），避免被第四章同名房屋蓋掉。
+
+## v0.59.0 第五章批次2（村莊、洞穴、支線、《墨子》）
+- tools/build_ch5.py 擴充：VILLAGES（yanshou 延壽村、bowang 博望村、hanshui 漢水渡村，模板 'V'）、CAVES5（cave10 江夏水寨洞、cave11 博望山洞），輸出 data/ch5world.js（既有五城地圖未動）與 data/ch5caves.js。
+- data/ch5c.js：頭目 zhangwu／chensun、每層守將 gen_cave10(_2,_3)／gen_cave11(_2,_3)、洞穴對話、村莊房屋與村民、支線 q17–q20（田豐舊簡、倉亭運糧官、許攸舊友、新野牧童）、兵書《墨子》（mo_shou：全隊防禦×1.6，4 回合；第一本輔助型兵書）、10 件裝備。
+- 模擬（Lv62）：張武 hp28000 約 83%、陳孫 hp54000 約 75%，屬選擇性高難度內容；調整時用 TUNE 環境變數跑 tools/sim_ch3.js。
+- 測試：tests/ch5c_test.js（17 項）。
+- 與企劃的差異：山口／關口 2 處尚未做（第五章沒有過關主線，留給後續）；荊州結尾在批次1已完成。
+- 待做：第六章（三顧茅廬）；第五章山口／關口。
+- battle_scene.js：敵將死亡不再淡出（移除 fade 遞減），與我方一樣以第 7 格躺姿留在場上。
