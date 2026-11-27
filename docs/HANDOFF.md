@@ -238,3 +238,7 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - 與企劃的差異：山口／關口 2 處尚未做（第五章沒有過關主線，留給後續）；荊州結尾在批次1已完成。
 - 待做：第六章（三顧茅廬）；第五章山口／關口。
 - battle_scene.js：敵將死亡不再淡出（移除 fade 遞減），與我方一樣以第 7 格躺姿留在場上。
+
+## v0.59.1 新計謀種類（引擎）
+- battle_logic.js 新增 kind：'defect' 策反（chance、敵兵 escaped=true 倒戈離陣、b.defected 計數；頭目免疫）、'discord' 離間（target:'all'，使敵混亂 turns 回合）、'assassinate' 暗殺（chance、bossPct；非頭目 hp 歸零，頭目受 bossPct 重創）。BL.skillText 與 battle_scene skillDesc 已補說明；escaped 敵人不再繪製。
+- 尚未配給任何人物：第六章批次 1 起，分配給特定謀士／刺客型人物的專屬計謀（不放商店與兵書）。測試 tests/tricks_test.js。

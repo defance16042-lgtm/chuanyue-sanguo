@@ -450,7 +450,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       this.drawBg(wc);
       const self = this;
       this.b.enemies.forEach(function (e) {
-        if (e.fade <= 0) return;
+        if (e.fade <= 0 || e.escaped) return;
         const dead = self.H(e) <= 0, hurt = e.shake > 0;
         wc.globalAlpha = 1;   // 倒下的敵將不消失，躺著就好（可能被復活）
         let dx = hurt ? (Math.floor(e.shake / 40) % 2 ? 2 : -2) : 0;
@@ -579,7 +579,7 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         if (bf.length) E.text(c, bf.join(''), 103, y + 17, { size: 8, color: GOLD });
       });
       b.enemies.forEach(function (e, i) {
-        if (e.fade <= 0) return;
+        if (e.fade <= 0 || e.escaped) return;
         const y = self.rowY(i), dead = self.H(e) <= 0;
         const sel = self.state === 'target' && self.targetSide === 'enemy' && self.targets[self.targetSel] === e;
         E.text(c, e.name, 244, y + 2, { size: 10, align: 'right', color: dead ? GREY : (sel ? GOLD : '#fff') });
@@ -948,6 +948,9 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       if (s.kind === 'buff') return s.stat === 'atk' ? '全隊武力提升' : '全隊防禦提升';
       if (s.kind === 'debuff') return '全敵攻擊下降';
       if (s.kind === 'confuse') return '使敵混亂';
+      if (s.kind === 'defect') return '策反　說動敵兵倒戈';
+      if (s.kind === 'discord') return '離間　敵人互相攻擊';
+      if (s.kind === 'assassinate') return '暗殺　一擊斃命';
       if (s.target === 'all') return '攻擊全體';
       if (s.hits > 1) return '連續攻擊';
       return '強力一擊';

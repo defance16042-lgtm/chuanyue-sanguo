@@ -330,6 +330,24 @@
       } else if (kind === 'debuff') {
         t.buffs[skill.stat] = { mult: Math.max(0.4, 1 - (1 - skill.mult) * (1 + (a.cha || 0) / 100)), turns: skill.turns + 1 };
         resEv.push({ type: 'status', target: t, text: t.name + ({ atk: '被震懾，攻擊下降', def: '防禦崩潰', spd: '行動遲緩' }[skill.stat] || '能力下降') });
+      } else if (kind === 'defect') {
+        // 策反：說動敵兵倒戈離陣。智力勝過對方、對方兵力越少越容易；將領（頭目）忠心不二，不吃這一套
+        if (t.boss) { resEv.push({ type: 'msg', text: t.name + '忠心耿耿，不為所動' }); return; }
+        const chance = clamp((skill.chance || 0.45) + (a.int - t.int) * 0.006 + (1 - t.hp / t.hpMax) * 0.35 + (a.cha || 0) * 0.003, 0.15, 0.9);
+        if (b.rng() < chance) { t.escaped = true; b.defected = (b.defected || 0) + 1; resEv.push({ type: 'status', target: t, text: t.name + '被說動，倒戈離去' }); }
+        else resEv.push({ type: 'msg', text: t.name + '不為所動' });
+      } else if (kind === 'discord') {
+        // 離間：在敵人之間散布猜忌，中計者互相攻擊（比混亂更容易成功，但只看智力差，頭目仍有強抗性）
+        const chance = clamp((skill.chance || 0.5) + (a.int - t.int) * 0.008 - (t.boss ? 0.4 : 0), 0.1, 0.9);
+        if (b.rng() < chance) { t.confused = skill.turns + 1; resEv.push({ type: 'status', target: t, text: t.name + '起了疑心，與同伴反目' }); }
+        else resEv.push({ type: 'msg', text: t.name + '沒有上當' });
+      } else if (kind === 'assassinate') {
+        // 暗殺：取決於速度與智力，對方兵力越少越容易得手。一般敵兵直接斃命；頭目只受重創
+        const chance = clamp((skill.chance || 0.4) + (a.spd - t.spd) * 0.005 + (a.int - t.int) * 0.002 + (1 - t.hp / t.hpMax) * 0.3, 0.1, 0.9);
+        if (b.rng() < chance) {
+          if (t.boss) { hurt(t, Math.max(1, Math.round(t.hpMax * (skill.bossPct || 0.15))), resEv, true); resEv.push({ type: 'msg', text: '暗殺得手，' + t.name + '身受重創' }); }
+          else { hurt(t, t.hp, resEv, true); resEv.push({ type: 'msg', text: '暗殺得手！' + t.name + '當場斃命' }); }
+        } else resEv.push({ type: 'msg', text: '刺殺失敗，' + t.name + '警覺了' });
       } else if (kind === 'confuse') {
         // 智力越高越容易成功；頭目抵抗較強
         const chance = clamp(0.55 + (a.int - t.def) * 0.02 + (a.cha || 0) * 0.005 - (t.boss ? 0.35 : 0), 0.15, 0.9);
@@ -438,6 +456,9 @@
       case 'buff': t = who + '的' + STAT_NAME[s.stat] + '提高' + pc(s.mult - 1) + '，持續' + s.turns + '回合' + (s.extra ? '；' + STAT_NAME[s.extra.stat] + '也提高' + pc(s.extra.mult - 1) : ''); break;
       case 'debuff': t = who + '的' + STAT_NAME[s.stat] + '降低' + pc(1 - s.mult) + '，持續' + s.turns + '回合'; break;
       case 'confuse': t = '使' + who + '混亂' + s.turns + '回合，會亂打、可能打到自己人；看智力，頭目較難中'; break;
+      case 'defect': t = '說動' + who + '倒戈離陣（直接退出戰鬥）；看智力與對方剩餘兵力，將領不吃這一套'; break;
+      case 'discord': t = '離間' + who + '，使其混亂' + s.turns + '回合、互相攻擊；看智力差，頭目較難中'; break;
+      case 'assassinate': t = '暗殺' + who + '：得手時一般敵兵當場斃命，頭目受最大兵力' + pc(s.bossPct || 0.15) + '的重創；看速度、智力與對方剩餘兵力'; break;
       case 'stun': t = '震暈' + who + '，' + s.turns + '回合無法行動；成功率看智力，頭目很難中'; break;
       case 'dot': t = who + '中毒，每回合損失最大兵力的' + pc(s.pct) + '，持續' + s.turns + '回合' + (s.chance ? '（約 ' + Math.round(s.chance * 100) + '% 會中毒）' : ''); break;
       case 'hot': t = who + '每回合回復最大兵力的' + pc(s.pct) + '，持續' + s.turns + '回合'; break;
