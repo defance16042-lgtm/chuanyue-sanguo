@@ -242,3 +242,8 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 ## v0.59.1 新計謀種類（引擎）
 - battle_logic.js 新增 kind：'defect' 策反（chance、敵兵 escaped=true 倒戈離陣、b.defected 計數；頭目免疫）、'discord' 離間（target:'all'，使敵混亂 turns 回合）、'assassinate' 暗殺（chance、bossPct；非頭目 hp 歸零，頭目受 bossPct 重創）。BL.skillText 與 battle_scene skillDesc 已補說明；escaped 敵人不再繪製。
 - 尚未配給任何人物：第六章批次 1 起，分配給特定謀士／刺客型人物的專屬計謀（不放商店與兵書）。測試 tests/tricks_test.js。
+
+## v0.59.2 洞穴總檢查
+- tests/caves_audit_test.js：全洞穴結構檢查（出入口、樓梯成對、不通到別的洞、NPC 對話不提別洞、支線寶箱座標吻合、寶箱／NPC id 全域唯一）。新增洞穴後務必跑。
+- 修正：layout_variety.js 翻轉洞穴時，D.sideQuests 的 chest 座標沒跟著翻（q7、q8 導航指錯）→ flip() 一併更新。
+- 修正：民房寶箱 id 重複造成旗標互相污染 → h_py_a(ch3)→h_pu_a、h_rn_a(ch4)→h_rn4_a、h_ly_a(ch4c)→h_li_a、h_hs_a(ch5c)→h_hn_a、h_sz_a(ch5c)→h_ys_a。（舊存檔裡這幾個新 id 的箱子會是未開啟狀態。）

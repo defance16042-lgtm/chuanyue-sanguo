@@ -20,6 +20,7 @@
     (m.objects || []).concat(m.signs || []).forEach(mv);
     (m.warps || []).forEach(function (w) { mv(w); if (w.dir && df[w.dir]) w.dir = df[w.dir]; });
     if (m.start) { m.start.x = fx(m.start.x); m.start.y = fy(m.start.y); if (m.start.dir && df[m.start.dir]) m.start.dir = df[m.start.dir]; }
+    (D.sideQuests || []).forEach(function (q) { if (q.chest && q.chest.map === id) { q.chest.x = fx(q.chest.x); q.chest.y = fy(q.chest.y); } });   // 支線寶箱座標（任務導航用）跟著翻轉
     Object.keys(M).forEach(function (k) {   // 別張圖通往這裡的傳送點
       (M[k].warps || []).forEach(function (w) { if (w.to === id && w.tx !== undefined) { w.tx = fx(w.tx); w.ty = fy(w.ty); if (w.dir && df[w.dir] && false) w.dir = df[w.dir]; } });
     });

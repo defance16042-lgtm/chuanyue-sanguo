@@ -112,7 +112,7 @@
       { kind: 'inn', id: 'inn', size: 'big', name: '葛陂客棧', keeper: '掌櫃', sprite: 4, hello: '葛陂客棧，聽得見山裡的風聲。住一晚吧，被子我曬過了，乾淨得很。' }
     ],
     liyang: [
-      { name: '渡口漁家', size: 'small', chest: { id: 'h_ly_a', gold: 1600, msg: '漁網底下壓著一小袋渡河錢。' },
+      { name: '渡口漁家', size: 'small', chest: { id: 'h_li_a', gold: 1600, msg: '漁網底下壓著一小袋渡河錢。' },
         npc: { name: '漁家老嫗', sprite: 12, lines: ['老嫗：黎陽渡口從前是商旅過河最多的地方，現在全是兵。', '老嫗：我家那口子被袁軍拉去撐船，三個月沒回來。……你們要是在黃河邊遇見，替我說一聲：魚網我補好了。'] } },
       { kind: 'general', name: '黎陽雜貨店', keeper: '掌櫃', sprite: 4 },
       { kind: 'inn', id: 'inn', size: 'big', name: '黎陽客棧', keeper: '掌櫃', sprite: 4, hello: '黎陽渡口的客棧，聽得見黃河的水聲。住一晚吧，睡著了就聽不見了。' }

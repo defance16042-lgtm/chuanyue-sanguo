@@ -102,7 +102,7 @@
   };
   const VHOUSES = {
     yanshou: [
-      { name: '延壽老書生的家', size: 'small', chest: { id: 'h_sz_a', gold: 1800, item: { herb3: 2, tonic3: 2 }, msg: '書架背後有個小木箱，裡面是一袋留給學生的銀子。' },
+      { name: '延壽老書生的家', size: 'small', chest: { id: 'h_ys_a', gold: 1800, item: { herb3: 2, tonic3: 2 }, msg: '書架背後有個小木箱，裡面是一袋留給學生的銀子。' },
         npc: { name: '老書生', sprite: 10, lines: ['老書生：北邊的酸棗，二十年前，十八路諸侯在這裡歃血為盟，要討董卓。', '老書生：酒喝了，牛殺了，盟約也立了。結果呢？沒人肯先出兵。……你說，這叫什麼盟？'] } },
       { kind: 'general', name: '延壽雜貨店', keeper: '掌櫃', sprite: 4 },
       { kind: 'inn', id: 'inn', size: 'big', name: '延壽客棧', keeper: '掌櫃', sprite: 4, hello: '延壽客棧，當年諸侯們也住過隔壁那間。他們吵了一整晚，我一個字都沒聽懂。住一晚吧？' }
@@ -114,7 +114,7 @@
       { kind: 'inn', id: 'inn', size: 'big', name: '博望客棧', keeper: '掌櫃', sprite: 4, hello: '博望客棧，晚上聽得見山風吹過樹梢，像有人在說悄悄話。住一晚吧。' }
     ],
     hanshui: [
-      { name: '漢水擺渡人的家', size: 'small', chest: { id: 'h_hs_a', gold: 2000, msg: '船槳底下藏著一小袋渡河錢。' },
+      { name: '漢水擺渡人的家', size: 'small', chest: { id: 'h_hn_a', gold: 2000, msg: '船槳底下藏著一小袋渡河錢。' },
         npc: { name: '擺渡老嫗', sprite: 12, lines: ['老嫗：漢水的渡口，過去是荊襄最熱鬧的地方，現在只剩蔡家的巡船。', '老嫗：我家那口子撐了一輩子船，有一天說他看到一個年輕人，站在對岸，一動不動，望著襄陽的方向，像在等人。'] } },
       { kind: 'general', name: '漢水雜貨店', keeper: '掌櫃', sprite: 4 },
       { kind: 'inn', id: 'inn', size: 'big', name: '漢水客棧', keeper: '掌櫃', sprite: 4, hello: '漢水渡口的客棧，聽得見江水拍岸的聲音。住一晚吧，睡著了就聽不見了。' }

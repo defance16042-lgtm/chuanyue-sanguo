@@ -114,7 +114,7 @@
       { kind: 'general', name: '東阿雜貨店', keeper: '掌櫃', sprite: 4, tier: 3 }
     ],
     puyang: [
-      { name: '田氏大宅', size: 'small', chest: { id: 'h_py_a', gold: 800, item: { herb3: 1, tonic3: 1 }, msg: '田家的地窖裡存了好幾箱錢，大概是準備「獻」給曹操的那一份。' },
+      { name: '田氏大宅', size: 'small', chest: { id: 'h_pu_a', gold: 800, item: { herb3: 1, tonic3: 1 }, msg: '田家的地窖裡存了好幾箱錢，大概是準備「獻」給曹操的那一份。' },
         npc: { name: '田氏家丁', sprite: 9, states: [
           { flag: 'puyang_fire', lines: ['家丁：我家老爺說，那把火是呂布手下放的，跟我們田家一點關係都沒有。……您信嗎？反正我不信。'] },
           { lines: ['家丁：老爺正在寫一封信給曹將軍，說要「獻城」。您別看我，我什麼都不知道。'] }] } },
