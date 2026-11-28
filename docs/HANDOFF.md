@@ -269,3 +269,6 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 
 ## v0.61.1
 - 八卦陣（data/formations.js bagua）only 改為 'zhugeliang'；BL.formationUsable 對 only 陣形要求該角色在隊且 Game.advisor === only，等級以該角色為準。相關 tests 已更新。
+
+## v0.61.2
+- 修 bug：scenes.js 頭目戰舊將領護衛只替換 `!boss && !eSkills` 的雜兵位置（原本會蓋掉 boss11 的張梁，導致 CI 的 yingchuan_test 隨機失敗、v0.61.1 Release 沒有安裝包）。

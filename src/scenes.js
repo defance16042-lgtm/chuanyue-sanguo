@@ -1299,8 +1299,10 @@
         // 頭目戰：曾經被打敗的將領有機會一起出戰（一到三位，取代後面的雜兵）
         const rm2 = D.battle.rematch || {}, past = Object.keys(rm2).filter(function (f) { return G.flags[f] && rm2[f] + '_r' !== grp[0] && D.battle.enemies[rm2[f] + '_r'] && grp.indexOf(rm2[f] + '_r') < 0; });
         if (isBoss && past.length && Math.random() < (D.battle.bossEscort || 0)) {
-          const n = Math.min(past.length, grp.length - 1, 1 + Math.floor(Math.random() * 3));
-          for (let i = 0; i < n; i++) grp[grp.length - 1 - i] = rm2[past.splice(Math.floor(Math.random() * past.length), 1)[0]] + '_r';
+          const EN6 = D.battle.enemies, slots = [];   // 只換掉普通雜兵的位置，劇情指定的將領不動
+          for (let i = grp.length - 1; i > 0; i--) { const e0 = EN6[grp[i]]; if (e0 && !e0.boss && !e0.eSkills) slots.push(i); }
+          const n = Math.min(past.length, slots.length, 1 + Math.floor(Math.random() * 3));
+          for (let i = 0; i < n; i++) grp[slots[i]] = rm2[past.splice(Math.floor(Math.random() * past.length), 1)[0]] + '_r';
         }
         this.startBattle(grp, isBoss ? a : false);
       }
