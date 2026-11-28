@@ -133,4 +133,10 @@ HIST = {
  "shenpei|審配": S(bg=(80, 60, 40), armor=(120, 84, 50), trim=(210, 180, 90), head="guan", headc=(96, 66, 40), face="long", w=21, brow="knit", eye="narrow", mouth="frown", nose="sharp", beard="long", beardc=(50, 40, 36), skin=SK[1], body="robe"),
  "xuyou|許攸": S(bg=(70, 80, 56), armor=(100, 110, 70), trim=(220, 200, 110), head="guan", headc=(76, 84, 54), face="pointed", w=20, brow="raised", eye="wise", mouth="grin", nose="hawk", beard="goatee", stache="pencil", skin=SK[0], body="robe"),
  "zhanghe|張郃": S(bg=(52, 70, 80), armor=(76, 104, 116), trim=(220, 210, 160), head="helm_wing", headc=(64, 88, 100), face="long", w=22, brow="sword", eye="wise", mouth="smirk" if False else "flat", nose="sharp", beard="stache", stache="handle", skin=SK[1], body="armor"),
+ "xushu|徐庶": S(bg=(52, 66, 84), armor=(70, 90, 110), trim=(210, 200, 150), head="jin", headc=(58, 76, 96), face="long", w=21, brow="calm", eye="wise", mouth="flat", nose="sharp", beard="goatee", skin=SK[0], body="robe"),
+ "zhugeliang|諸葛亮": S(bg=(46, 84, 78), armor=(226, 226, 214), trim=(60, 120, 110), head="jin", headc=(60, 120, 110), face="long", w=21, brow="calm", eye="wise", mouth="flat", nose="normal", beard="goatee", skin=SK[0], body="robe"),
+ "崔州平": S(bg=(70, 76, 58), armor=(120, 124, 96), trim=(200, 190, 140), head="jin", headc=(90, 96, 70), face="round", w=22, brow="calm", eye="wise", mouth="grin", nose="normal", beard="goatee", skin=SK[1], body="robe"),
+ "黃承彥": S(bg=(80, 70, 56), armor=(146, 124, 90), trim=(210, 190, 130), head="jin", headc=(120, 96, 66), face="square", w=24, brow="calm", eye="wise", mouth="grin", nose="big", beard="full", beardc=(200, 200, 196), skin=SK[1], body="robe", age=1),
+ "諸葛均": S(bg=(56, 80, 72), armor=(170, 190, 170), trim=(100, 150, 130), head="jin", headc=(80, 130, 112), face="round", w=20, brow="raised", eye="wide", mouth="grin", nose="normal", skin=SK[0], body="robe"),
+ "司馬徽": S(bg=(66, 72, 84), armor=(184, 190, 200), trim=(120, 140, 170), head="jin", headc=(100, 110, 130), face="long", w=21, brow="calm", eye="wise", mouth="flat", nose="sharp", beard="full", beardc=(210, 210, 214), skin=SK[0], body="robe", age=1),
 }

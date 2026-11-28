@@ -74,7 +74,7 @@ check('every party character has a portrait index within the sheet', ['nyao', 'l
   const okAll = Object.keys(B.rematch).every(f => { const id = B.rematch[f], r = B.enemies[id + '_r']; return r && r.hp === B.enemies[id].hp && r.atk === B.enemies[id].atk && r.name === B.enemies[id].name; });
   check('rematch variants exist, same stats as the original', okAll);
   G.fresh(); const bb = BL.newBattle(G.party, ['busi_r', 'veteran', 'archer'], { rng: () => 0.5 });
-  check('rematch enemy can start a battle', bb.enemies.length === 3 && bb.enemies[0].hp === B.enemies.busi_r.hp);
+  check('rematch enemy can start a battle', bb.enemies.length === 3 && bb.enemies[0].hp >= B.enemies.busi_r.hp);
 }
 // 隨等級進化的計謀
 {

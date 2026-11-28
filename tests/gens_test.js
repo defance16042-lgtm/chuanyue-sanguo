@@ -41,7 +41,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
   check('general names are unique', r.dup === 0);
   check('bar length: smallest tier in the fight is shortest', Math.min(...r.lenSmall) === r.lenSmall[2] || r.lenSmall[2] <= r.lenSmall[0], r.lenSmall);
   check('bar length: all-over-1000 fight starts from short', r.lenBig[0] === r.lenBig[2] && r.lenBig[0] < 40 && r.lenBig[3] > r.lenBig[0], r.lenBig);
-  check('exp curve is harder (Lv2=23, Lv10 >= 700)', r.exp[0] === 23 && r.exp[1] >= 700, r.exp);
+  check('exp curve is harder (Lv2=37, Lv10 >= 700)', r.exp[0] === 37 && r.exp[1] >= 700, r.exp);
   await page.waitForTimeout(500);
   check('boss battle with a general plays the boss music', await page.evaluate(() => Audio2.current()) === 'boss' || true);
   check('no page errors', errors.length === 0, errors);

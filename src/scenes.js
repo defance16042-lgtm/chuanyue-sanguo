@@ -1295,7 +1295,14 @@
         this.say('買了' + it.name + '。（-' + it.price + '金，剩 ' + G.gold + '金）');
       } else if (a.battle) {
         const isBoss = a.battle === 'boss' || !!a.flag;
-        this.startBattle(D.battle.groups[a.battle][0], isBoss ? a : false);
+        const grp = D.battle.groups[a.battle][0].slice();
+        // 頭目戰：曾經被打敗的將領有機會一起出戰（一到三位，取代後面的雜兵）
+        const rm2 = D.battle.rematch || {}, past = Object.keys(rm2).filter(function (f) { return G.flags[f] && rm2[f] + '_r' !== grp[0] && D.battle.enemies[rm2[f] + '_r'] && grp.indexOf(rm2[f] + '_r') < 0; });
+        if (isBoss && past.length && Math.random() < (D.battle.bossEscort || 0)) {
+          const n = Math.min(past.length, grp.length - 1, 1 + Math.floor(Math.random() * 3));
+          for (let i = 0; i < n; i++) grp[grp.length - 1 - i] = rm2[past.splice(Math.floor(Math.random() * past.length), 1)[0]] + '_r';
+        }
+        this.startBattle(grp, isBoss ? a : false);
       }
     }
     camera() {

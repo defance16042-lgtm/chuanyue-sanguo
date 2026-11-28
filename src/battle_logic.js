@@ -36,8 +36,10 @@
   };
   function unitFromEnemy(id, i) {
     const e = B.enemies[id];
-    return { side: 'enemy', idx: i, id: id, name: e.name, hp: e.hp, hpMax: e.hp, tp: 999, tpMax: 999, eSkills: e.eSkills || null,
-      terr: e.terrain || {}, home: e.home || 'plain', atk: e.atk, pow: 0, int: e.int != null ? e.int : e.atk, def: e.def, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, wtype: e.weapon || '刀', title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
+    const gb = (e.boss || e.eSkills) ? (B.generalBoost || { hp: 1.15, atk: 1.35, int: 1.2, def: 1.1 }) : { hp: 1, atk: 1, int: 1, def: 1 };   // 將領：兵力、攻、智、防都更強
+    const eh = Math.round(e.hp * gb.hp), ea = Math.round(e.atk * gb.atk), ei = Math.round((e.int != null ? e.int : e.atk) * gb.int), ed = Math.round(e.def * gb.def);
+    return { side: 'enemy', idx: i, id: id, name: e.name, hp: eh, hpMax: eh, tp: 999, tpMax: 999, eSkills: e.eSkills || null,
+      terr: e.terrain || {}, home: e.home || 'plain', atk: ea, pow: 0, int: ei, def: ed, spd: e.spd, lead: e.lead || 0, luck: e.luck || 0, cha: e.lead || 0, exp: e.exp, gold: e.gold, sprite: e.sprite, wtype: e.weapon || '刀', title: e.title, cls: e.cls, weapon: e.weapon, desc: e.desc, boss: !!e.boss, ai: e.ai || 'plain',
       buffs: {}, confused: 0, defending: false };
   }
 
@@ -111,6 +113,8 @@
       Object.keys(u.buffs).forEach(function (k) { if (--u.buffs[k].turns <= 0) delete u.buffs[k]; });
       if (u.confused > 0) u.confused--;
       if (u.stun > 0) u.stun--;
+      if (u.reflect > 0) u.reflect--;
+      if (u.sealed > 0) u.sealed--;
       if (u.taunt > 0) u.taunt--;
     });
     // 每回合回復 1 點戰術點
@@ -133,18 +137,21 @@
   function troopMul(a) {
     const max = Math.max(1, Number(a.hpMax) || 1);
     const current = clamp(Number(a.hp) || 0, 0, max);
-    return 0.4 + 0.6 * (current / max);
+    // 兵力比例：滿兵全額、殘兵剩三成；再加上絕對兵力的加成（兵多的隊伍本來就打得痛，最多 +30%）
+    return (0.3 + 0.7 * (current / max)) * (1 + Math.min(0.3, Math.sqrt(Math.max(0, current)) / 260));
   }
   let curB = null;
   function physDamage(b, a, t, power) {
     const attack = (BL.eff(a, 'atk') * 2 + (a.pow || 0)) * BL.terrMul(b, a) * troopMul(a);
     const defense = BL.eff(t, 'def') * BL.terrMul(b, t) * (t.defending ? 1.5 : 1);
-    return Math.max(1, Math.round((attack - defense) * power * rnd(b, 0.9, 1.1) * lead(b, a) * crit(b, a)));
+    const floor = BL.eff(a, 'atk') * 0.55 * troopMul(a) * power;   // 基本傷害：再硬的防禦也打得出傷
+    return Math.max(1, Math.round(Math.max(floor, (attack - defense) * power) * rnd(b, 0.9, 1.1) * lead(b, a) * crit(b, a)));
   }
   function tactDamage(b, a, t, power) {
     const attack = BL.eff(a, 'int') * 2.2 * BL.terrMul(b, a) * troopMul(a);
     const defense = BL.eff(t, 'def') * 0.6 * BL.terrMul(b, t);
-    return Math.max(1, Math.round((attack - defense) * power * rnd(b, 0.9, 1.1) * lead(b, a)));
+    const floor = BL.eff(a, 'int') * 0.5 * troopMul(a) * power;
+    return Math.max(1, Math.round(Math.max(floor, (attack - defense) * power) * rnd(b, 0.9, 1.1) * lead(b, a)));
   }
 
   // 附帶效果：打中之後順便削弱對手（水淹七軍會讓敵軍行動遲緩）
@@ -289,7 +296,13 @@
         }
         rider(skill, t, resEv);
       } else if (kind === 'tact') {
-        hurt(t, tactDamage(b, a, t, power0), resEv);
+        const td = tactDamage(b, a, t, power0);
+        if (t.reflect > 0 && t.side !== a.side && a.hp > 0) {   // 策反計：計謀傷害大半反彈回施放者
+          const back = Math.max(1, Math.round(td * (t.reflectPct || 0.6)));
+          resEv.push({ type: 'status', target: t, text: t.name + '識破計謀，策反反彈！' });
+          hurt(t, Math.max(1, td - back), resEv);
+          hurt(a, back, resEv);
+        } else hurt(t, td, resEv);
         rider(skill, t, resEv);
       } else if (kind === 'dot') {
         // 毒計不是必中：依施放者與目標的智力差，基礎機率 skill.chance；頭目更難中毒
@@ -330,6 +343,13 @@
       } else if (kind === 'debuff') {
         t.buffs[skill.stat] = { mult: Math.max(0.4, 1 - (1 - skill.mult) * (1 + (a.cha || 0) / 100)), turns: skill.turns + 1 };
         resEv.push({ type: 'status', target: t, text: t.name + ({ atk: '被震懾，攻擊下降', def: '防禦崩潰', spd: '行動遲緩' }[skill.stat] || '能力下降') });
+      } else if (kind === 'reflect') {
+        t.reflect = skill.turns + 1; t.reflectPct = skill.pct || 0.6;
+        resEv.push({ type: 'status', target: t, text: t.name + '布下策反之計，' + skill.turns + '回合內計謀會反彈' });
+      } else if (kind === 'seal') {
+        const chance = clamp((skill.chance || 0.8) + (a.int - t.int) * 0.004 - (t.boss ? 0.25 : 0), 0.2, 0.95);
+        if (b.rng() < chance) { t.sealed = skill.turns + 1; resEv.push({ type: 'status', target: t, text: t.name + '被禁策，無法使用計謀' }); }
+        else resEv.push({ type: 'msg', text: t.name + '識破了禁策計' });
       } else if (kind === 'defect') {
         // 策反：說動敵兵倒戈離陣。智力勝過對方、對方兵力越少越容易；將領（頭目）忠心不二，不吃這一套
         if (t.boss) { resEv.push({ type: 'msg', text: t.name + '忠心耿耿，不為所動' }); return; }
@@ -398,6 +418,10 @@
   BL.perform = function (b, a, action) {
     curB = b;
     if (a.stun > 0) return [{ type: 'msg', text: a.name + '被震暈，無法行動！' }];
+    if (a.sealed > 0 && action.type === 'skill') {   // 禁策：只能普通攻擊
+      const sk0 = B.skills[action.skill];
+      if (sk0 && sk0.kind !== 'phys') { const ev0 = [{ type: 'msg', text: a.name + '被禁策，計謀使不出來！' }]; return ev0.concat(oldPerform(b, a, { type: 'attack', target: action.target })); }
+    }
     if (action.type === 'boss_all') {
       const ev = [{ type: 'msg', text: a.name + '揮軍衝鋒！' }];
       BL.alive(b.party).forEach(function (t) { ev.push({ type: 'fx', fx: 'slash', target: t, level: 1 }); });
@@ -435,7 +459,7 @@
   BL.expFor = function (n) {
     if (n <= 1) return 0;
     for (let k = expCache.length; k <= n; k++) {
-      const j = k - 2, d = Math.round((23 + 10 * j + 0.9 * j * j + 0.02 * j * j * j) * (1 + Math.max(0, j - 8) * 0.04));   // 8 級之後再加陡，後期不會太好升   // 每一級的增量越來越大（立方曲線）
+      const j = k - 2, d = Math.round((23 + 10 * j + 0.9 * j * j + 0.02 * j * j * j) * (1 + Math.max(0, j - 8) * 0.04) * 1.6);   // 8 級之後再加陡，後期不會太好升   // 每一級的增量越來越大（立方曲線）
       expCache[k] = expCache[k - 1] + d;
     }
     return expCache[n];
@@ -456,11 +480,13 @@
       case 'buff': t = who + '的' + STAT_NAME[s.stat] + '提高' + pc(s.mult - 1) + '，持續' + s.turns + '回合' + (s.extra ? '；' + STAT_NAME[s.extra.stat] + '也提高' + pc(s.extra.mult - 1) : ''); break;
       case 'debuff': t = who + '的' + STAT_NAME[s.stat] + '降低' + pc(1 - s.mult) + '，持續' + s.turns + '回合'; break;
       case 'confuse': t = '使' + who + '混亂' + s.turns + '回合，會亂打、可能打到自己人；看智力，頭目較難中'; break;
+      case 'reflect': t = who + '施放後 ' + s.turns + ' 回合內，敵方對他用的計謀會有' + pc(s.pct || 0.6) + '傷害反彈回去'; break;
+      case 'seal': t = '禁策' + who + '：' + s.turns + ' 回合內無法使用計謀，只能普通攻擊；看智力，頭目較難中'; break;
       case 'defect': t = '說動' + who + '倒戈離陣（直接退出戰鬥）；看智力與對方剩餘兵力，將領不吃這一套'; break;
       case 'discord': t = '離間' + who + '，使其混亂' + s.turns + '回合、互相攻擊；看智力差，頭目較難中'; break;
       case 'assassinate': t = '暗殺' + who + '：得手時一般敵兵當場斃命，頭目受最大兵力' + pc(s.bossPct || 0.15) + '的重創；看速度、智力與對方剩餘兵力'; break;
       case 'stun': t = '震暈' + who + '，' + s.turns + '回合無法行動；成功率看智力，頭目很難中'; break;
-      case 'dot': t = who + '中毒，每回合損失最大兵力的' + pc(s.pct) + '，持續' + s.turns + '回合' + (s.chance ? '（約 ' + Math.round(s.chance * 100) + '% 會中毒）' : ''); break;
+      case 'dot': t = who + '中毒，每回合損失目前兵力的' + pc(s.pct) + '，持續' + s.turns + '回合' + (s.chance ? '（約 ' + Math.round(s.chance * 100) + '% 會中毒）' : ''); break;
       case 'hot': t = who + '每回合回復最大兵力的' + pc(s.pct) + '，持續' + s.turns + '回合'; break;
       case 'cleanse': t = '解除' + who + '的混亂、震暈、中毒與能力下降' + (s.healPct ? '，並回復最大兵力的' + pc(s.healPct) : ''); break;
       case 'taunt': t = s.turns + '回合內敵人多半會攻擊自己，防禦提高' + pc(s.mult - 1); break;
@@ -477,7 +503,7 @@
     b.party.concat(b.enemies).forEach(function (u) {
       if (u.hp <= 0 || u.escaped) return;
       if (u.dot) {
-        let d = Math.max(1, Math.round(u.hpMax * u.dot.pct)); if (u.boss) d = Math.min(d, u.hp - 1);
+        let d = Math.max(1, Math.round(u.hp * u.dot.pct)); if (u.boss) d = Math.min(d, u.hp - 1);
         if (d > 0) { u.hp = Math.max(0, u.hp - d); ev.push({ type: 'dmg', target: u, amount: d, dead: u.hp <= 0, hpAfter: u.hp }); }
         if (--u.dot.turns <= 0) u.dot = null;
       }

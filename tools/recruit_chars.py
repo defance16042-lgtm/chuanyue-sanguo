@@ -41,4 +41,7 @@ RC = [
     ("shenpei",   dict(pal=P(1, BLK, (120, 84, 50), (210, 180, 90)), beard="long", wild=False, hat=(96, 66, 40)), "fan"),
     ("xuyou",     dict(pal=P(0, BLK, (100, 110, 70), (220, 200, 110)), beard="short", wild=False, hat=(76, 84, 54)), "fan"),
     ("zhanghe",   dict(pal=P(1, BLK, (76, 104, 116), (220, 210, 160)), beard="short", wild=False, hat=(64, 88, 100), plume=(200, 190, 120)), "glaive"),
+    # ---- 第六章人物（地圖第 70 列起、戰鬥第 64 列起）
+    ("xushu",     dict(pal=P(0, BLK, (70, 90, 110), (210, 200, 150)), beard=None, wild=False, hat=(58, 76, 96)), "sword"),
+    ("zhugeliang", dict(pal=P(0, BLK, (226, 226, 214), (60, 120, 110)), beard="short", wild=False, hat=(60, 120, 110)), "fan"),
 ]

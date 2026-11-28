@@ -252,3 +252,10 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - battle_scene.js autoAction（全體攻擊→計謀）：每個角色獨立判斷。倒下→有復活術 60% 救人；有人兵力<50%→有補血 80% 補最殘的（choice 型且≥2 人受傷用全體）；有人混亂／震暈／中毒→cleanse；否則 60% 從攻擊類（tact/dot/stun/confuse/debuff/discord/assassinate/defect）＋35% 輔助類（buff/taunt/tpgive）隨機施放。tests/autotactic_test.js。
 - scenes.js blocked()：非 world* 地圖的 chest/urn/tablet/spring/lever 一律為障礙（含城鎮、村莊、民房）。inn_patch.js 把山口（shankou*）、關口（guan_*）、關隘軍營標成 fort:true（interior_test 檢查）。
 - data/navy_scale.js（ch5c.js 之後載入）：為每個區域等級 t 產生 shuizei_t／shuijun_t（取該等級 field 敵人平均強度）、gen_navy_t（t≥7，約 22 倍兵力，t≥9 用郭太外觀，其餘管亥），群組 coast_t<t>／coastG_t<t>；scenes.js 海岸遇敵優先使用。tests/navy_test.js。
+
+## v0.60.0 戰鬥平衡
+- battle_logic：troopMul = (0.3+0.7×兵力比例)×(1+min(0.3,√兵力/260))；物理/計謀加基本傷害下限；經驗曲線×1.6；將領（boss 或有 eSkills）進場乘 B.generalBoost；毒按目前兵力。
+- 新 kind：reflect（策反計）、seal（禁策計，perform 內攔截非 phys 技能改普攻）。技能 sx_reflect / sx_seal / sx_seal2 於 data/balance_v60.js；原 defect 顯示名改為「招降」。
+- scenes.js：頭目戰依 B.bossEscort 帶入過往被打敗的 `_r` 將領；機率 B.rematchRate/wildGenRate/allGenRate 於 balance_v60.js。
+- tests/balance_test.js 新增；gens/equip test 數值更新。
+- 第六章批次 1 尚未開始實作（美術已生成、未提交），下一步接續。

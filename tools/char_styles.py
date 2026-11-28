@@ -69,4 +69,6 @@ STYLES = {
     "shenpei": dict(cap=("official", (96, 66, 40)), face="calm"),
     "xuyou": dict(cap=("guan", (76, 84, 54)), face="grin"),
     "zhanghe": dict(armor=(76, 104, 116), helm=("plume", (64, 88, 100)), face="calm", wide=1),
+    "xushu": dict(cap=("jin", (58, 76, 96)), face="calm"),
+    "zhugeliang": dict(cap=("jin", (60, 120, 110)), face="wise"),
 }

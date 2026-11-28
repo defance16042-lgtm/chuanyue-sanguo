@@ -317,10 +317,10 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
         }
         const cure = of(['cleanse']);
         if (cure.length && alive.some(function (u) { return u.confused > 0 || u.stun > 0 || u.dot; }) && Math.random() < 0.7) return { type: 'skill', skill: cure[0].id, auto: true, target: alive.filter(function (u) { return u.confused > 0 || u.stun > 0 || u.dot; })[0] };
-        const offense = of(['tact', 'dot', 'stun', 'confuse', 'debuff', 'discord', 'assassinate', 'defect']).filter(function (k) {
+        const offense = of(['tact', 'dot', 'stun', 'confuse', 'debuff', 'discord', 'assassinate', 'defect', 'seal']).filter(function (k) {
           return k.kind !== 'defect' || foesAlive.some(function (e) { return !e.boss; });
         }).filter(function (k) { return k.target === 'one' || k.target === 'all'; });
-        const support = of(['buff', 'taunt', 'tpgive']).filter(function (k) { return k.target === 'allAlly' || k.target === 'self'; });
+        const support = of(['buff', 'taunt', 'tpgive', 'reflect']).filter(function (k) { return k.target === 'allAlly' || k.target === 'self'; });
         const pool = offense.concat(Math.random() < 0.35 ? support : []);
         if (pool.length && Math.random() < 0.6) {
           const sk = pool[Math.floor(Math.random() * pool.length)];
@@ -970,7 +970,9 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
       if (s.kind === 'buff') return s.stat === 'atk' ? '全隊武力提升' : '全隊防禦提升';
       if (s.kind === 'debuff') return '全敵攻擊下降';
       if (s.kind === 'confuse') return '使敵混亂';
-      if (s.kind === 'defect') return '策反　說動敵兵倒戈';
+      if (s.kind === 'defect') return '招降　說動敵兵倒戈';
+      if (s.kind === 'reflect') return '策反計　計謀反彈';
+      if (s.kind === 'seal') return '禁策計　封住計謀';
       if (s.kind === 'discord') return '離間　敵人互相攻擊';
       if (s.kind === 'assassinate') return '暗殺　一擊斃命';
       if (s.target === 'all') return '攻擊全體';
