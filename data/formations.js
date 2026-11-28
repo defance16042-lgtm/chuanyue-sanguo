@@ -23,7 +23,7 @@
     pojun:    { name: '破軍陣', unlock: 55, desc: '專破堅陣：敵軍防禦大降，我方攻擊提高，防禦稍降。', rows: [0, 0, 1, 0, 1], all: { atk: 1.15, def: 0.95 }, foe: { def: 0.8 } },
     wuyun:    { name: '烏雲陣', unlock: 58, desc: '烏雲蔽日：敵軍攻擊與速度雙雙下降，我方全員防禦小增。', rows: [1, 1, 2, 0, 1], all: { def: 1.08 }, foe: { atk: 0.85, spd: 0.9 } },
     xingluo:  { name: '星羅陣', unlock: 60, desc: '星斗羅列：全員四項能力小幅提高，每回合回復 2% 兵力與 2 點戰術點。', rows: [0, 1, 2, 1, 0], all: { atk: 1.1, def: 1.1, spd: 1.08, int: 1.1 }, heal: 0.02, tp: 2 },
-    bagua:    { name: '八卦陣', unlock: 45, only: 'nyao', desc: '諸葛孔明獨有的最強陣形：全員攻、防、速、智全面提高，敵軍攻擊下降；每回合回復 5% 兵力與 2 點戰術點，第一回合先手。第 1、5 位在前，第 3 位坐鎮最後。', rows: [0, 1, 2, 1, 0],
+    bagua:    { name: '八卦陣', unlock: 45, only: 'zhugeliang', desc: '諸葛孔明獨有的最強陣形（孔明在隊伍並擔任軍師時才能擺）：全員攻、防、速、智全面提高，敵軍攻擊下降；每回合回復 5% 兵力與 2 點戰術點，第一回合先手。第 1、5 位在前，第 3 位坐鎮最後。', rows: [0, 1, 2, 1, 0],
                 all: { atk: 1.25, def: 1.25, spd: 1.15, int: 1.2 }, front: { def: 1.1 }, back: { int: 1.15 }, foe: { atk: 0.9 }, heal: 0.05, tp: 2, first: true }
   };
   window.DATA.formationOrder = ['none', 'yulin', 'fengshi', 'heyi', 'changshe', 'yanxing', 'yanyue', 'fangyuan', 'jifeng', 'changqu', 'xuanwu', 'longteng', 'zhuque', 'baihu', 'qinglong', 'lianhuan', 'taiji', 'pojun', 'wuyun', 'xingluo', 'bagua'];

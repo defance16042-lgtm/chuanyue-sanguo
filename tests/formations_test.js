@@ -12,12 +12,12 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     const BL = window.BattleLogic || BL, out = {};
     const mk = ids => ids.map(Game.makeMember);
     Game.fresh();
-    const party = mk(['nyao', 'liubei', 'guanyu', 'zhangfei']);
+    const party = mk(['nyao', 'liubei', 'guanyu', 'zhangfei', 'zhugeliang']); Game.advisor = 'zhugeliang';
     party.forEach(m => { m.level = 50; });
     const lo = mk(['nyao', 'liubei']); lo[0].level = 4;
     out.u1 = BL.formationUsable('yulin', lo); out.u2 = BL.formationUsable('fangyuan', lo);
-    out.bagua = BL.formationUsable('bagua', party); out.baguaNo = BL.formationUsable('bagua', party.slice(1));
-    const lo2 = mk(['nyao']); lo2[0].level = 20; out.baguaLow = BL.formationUsable('bagua', lo2);
+    out.bagua = BL.formationUsable('bagua', party); out.baguaNo = BL.formationUsable('bagua', party.slice(0, 4)); Game.advisor = 'nyao'; out.baguaCat = BL.formationUsable('bagua', party); Game.advisor = null; out.baguaNoAdv = BL.formationUsable('bagua', party); Game.advisor = 'zhugeliang';
+    const lo2 = mk(['zhugeliang']); lo2[0].level = 20; out.baguaLow = BL.formationUsable('bagua', lo2);
     const seq = () => { let i = 0; return () => ((i++ * 0.37) % 1); };
     const newB = fm => { const b = BL.newBattle(party, ['turban', 'turban', 'elite', 'captain'], { rng: seq() }); if (fm) BL.applyFormation(b, fm); return b; };
     const b0 = newB(), b1 = newB('bagua');
@@ -51,8 +51,10 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
   console.log(JSON.stringify(r));
   check('yulin usable at Lv4 (needs 3)', r.u1 === true);
   check('fangyuan locked at Lv4', r.u2 === false);
-  check('bagua usable with nyao Lv50', r.bagua === true);
-  check('bagua needs nyao in party', r.baguaNo === false);
+  check('bagua usable with zhugeliang advisor Lv50', r.bagua === true);
+  check('bagua needs zhugeliang in party', r.baguaNo === false);
+  check('bagua not for nyao advisor', r.baguaCat === false);
+  check('bagua needs zhugeliang as advisor', r.baguaNoAdv === false);
   check('bagua locked at Lv20', r.baguaLow === false);
   check('bagua boosts atk', r.atk1 > r.atk0 * 1.2, [r.atk0, r.atk1]);
   check('bagua weakens foe', r.foe1 < r.foe0, [r.foe0, r.foe1]);

@@ -52,7 +52,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
   });
   check('關門與回程', r.gate && r.back); check('關門可從襄陽走到', r.gateReach); check('三座城可達', r.towns.every(Boolean), r.towns);
   check('城內人物不重疊、可達、對話存在', r.bad.length === 0, r.bad); check('技能齊全', r.skills[0].includes('xushu_b') && r.skills[1].includes('zhuge_f') && r.skills[1].includes('sx_reflect'), r.skills);
-  check('技能種類', r.skillKinds); check('諸葛亮無八卦陣', r.noBagua);
+  check('技能種類', r.skillKinds); check('諸葛亮技能沒有八卦（陣形由軍師位使用）', r.noBagua);
   check('旗標可依序取得', r.flags.includes('ch6_zhuge_join') && r.flags.length === 7, r.flags); check('任務旗標全部可達', r.quests); check('任務目的地存在', r.questMaps);
   check('無錯誤', errors.length === 0, errors);
   console.log(pass + ' passed, ' + fail + ' failed'); await br.close(); process.exit(fail ? 1 : 0);

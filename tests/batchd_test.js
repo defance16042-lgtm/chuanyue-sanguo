@@ -48,7 +48,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     o.art = D.characters.lubu.portrait >= 116 && D.characters.caocao.portrait >= 116 && D.npcPortraits['皇甫嵩'] >= 116;
     o.wild = Object.keys(B.wildGen.field5 || []).length > 0 && B.enemies[B.wildGen.field5[0]].eSkills.length === 3;
     o.eskill = Object.values(B.enemies).filter(e => e.eSkills).length > 60;
-    o.forms = D.formationOrder.length >= 20 && D.formations.bagua.only === 'nyao';
+    o.forms = D.formationOrder.length >= 20 && D.formations.bagua.only === 'zhugeliang';
     o.late = (B.charSkills.liubei || []).some(e => Array.isArray(e) && B.skills[e[1]].kind === 'hot');
     // 敵將會用專屬計謀
     Game.fresh(); Game.party = ['nyao', 'liubei'].map(Game.makeMember);

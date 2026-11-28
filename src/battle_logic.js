@@ -75,7 +75,11 @@
   BL.formationUsable = function (id, party) {
     const f = root.DATA.formations && root.DATA.formations[id]; if (!f) return false;
     const ny = (party || []).filter(function (m) { return m.id === 'nyao'; })[0];
-    if (f.only) { if (!party.some(function (m) { return m.id === f.only; })) return false; }
+    if (f.only) {   // 專屬陣形：該角色要在隊伍裡、而且正擔任軍師
+      const who = (party || []).filter(function (m) { return m.id === f.only; })[0];
+      if (!who || !root.Game || root.Game.advisor !== f.only) return false;
+      return f.unlock <= 0 || who.level >= f.unlock;
+    }
     return f.unlock <= 0 || (ny ? ny.level >= f.unlock : false);
   };
   BL.applyFormation = function (b, id) {

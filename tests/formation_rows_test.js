@@ -13,9 +13,9 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     const mk = ids => { const p = ids.map(Game.makeMember); p.forEach(m => m.level = 50); return p; };
     const out = {};
     const run = (ids, fm) => { Game.party = mk(ids); Game.formation = fm; const s = new Scenes.Battle(['turban', 'turban', 'turban', 'turban', 'turban'], { onEnd() {} }); return s; };
-    const a = run(['nyao', 'liubei', 'guanyu', 'zhangfei', 'caocao'], 'bagua');
+    const a = run(['zhugeliang', 'liubei', 'guanyu', 'zhangfei', 'caocao'], 'bagua');
     out.txA = a.b.party.map(u => u.tx); out.rowsA = a.b.party.map(u => u.rowKind);
-    const b = run(['caocao', 'zhangfei', 'liubei', 'guanyu', 'nyao'], 'bagua');
+    const b = run(['caocao', 'zhangfei', 'liubei', 'guanyu', 'zhugeliang'], 'bagua');
     out.txB = b.b.party.map(u => u.tx); out.idsB = b.b.party.map(u => u.id);
     out.defA3 = BattleLogic.eff(a.b.party[2], 'def') / a.b.party[2].def;       // 第3位（後排）
     out.defA1 = BattleLogic.eff(a.b.party[0], 'def') / a.b.party[0].def;       // 第1位（前排）
@@ -23,7 +23,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     out.intFront = BattleLogic.eff(a.b.party[0], 'int') / a.b.party[0].int;
     const n = run(['nyao', 'liubei', 'guanyu'], 'none'); out.txN = n.b.party.map(u => u.tx);
     // 動畫：u.x 會滑向 tx
-    const s = run(['nyao', 'liubei', 'guanyu', 'zhangfei', 'caocao'], 'bagua'); const x0 = s.b.party[0].x; for (let i = 0; i < 60; i++) s.update(16); out.slide = [x0, s.b.party[0].x, s.b.party[0].tx];
+    const s = run(['zhugeliang', 'liubei', 'guanyu', 'zhangfei', 'caocao'], 'bagua'); const x0 = s.b.party[0].x; for (let i = 0; i < 60; i++) s.update(16); out.slide = [x0, s.b.party[0].x, s.b.party[0].tx];
     out.rowsAll = DATA.formationOrder.filter(id => id !== 'none').map(id => DATA.formations[id].rows && DATA.formations[id].rows.length);
     out.hasBack = DATA.formationOrder.filter(id => id !== 'none').map(id => DATA.formations[id].rows.includes(2) || DATA.formations[id].rows.includes(1));
     return out;

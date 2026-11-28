@@ -481,7 +481,7 @@
       if (E.hit.down) this.sel = (this.sel + 1) % n;
       if (E.hit.ok) {
         const id = D.formationOrder[this.sel], f = D.formations[id];
-        if (!window.BattleLogic.formationUsable(id, G.party)) this.msg = f.only ? '只有諸葛孔明在隊伍裡、且達到等級 ' + f.unlock + '，才能擺這個陣。' : '諸葛貓妖到等級 ' + f.unlock + ' 才會這個陣形。';
+        if (!window.BattleLogic.formationUsable(id, G.party)) this.msg = f.only ? '只有諸葛孔明在隊伍裡、擔任軍師，且達到等級 ' + f.unlock + '，才能擺這個陣。' : '諸葛貓妖到等級 ' + f.unlock + ' 才會這個陣形。';
         else { G.formation = id; this.msg = f.name + (id === 'none' ? '：不擺陣形' : '：下一場戰鬥開始就會擺出') + '。'; }
       }
     }

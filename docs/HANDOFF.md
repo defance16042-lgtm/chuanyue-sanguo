@@ -266,3 +266,6 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - 美術：xushu(70)/zhugeliang(71) 地圖圖與戰鬥圖，頭像 188–193（徐庶、諸葛亮、崔州平、黃承彥、諸葛均、司馬徽）。崔州平等 NPC 地圖圖借用既有 sprite。
 - tests/ch6_test.js 新增；world_test/ch2d_test 改成包含 world6。
 - 批次 2 待辦：博望坡（夏侯惇、關張改觀）、村 3、洞穴 2、山口/關口 2（含第五章遺留 2 處）、支線 4、新兵書、新野之戰。
+
+## v0.61.1
+- 八卦陣（data/formations.js bagua）only 改為 'zhugeliang'；BL.formationUsable 對 only 陣形要求該角色在隊且 Game.advisor === only，等級以該角色為準。相關 tests 已更新。
