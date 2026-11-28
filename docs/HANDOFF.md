@@ -247,3 +247,8 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - tests/caves_audit_test.js：全洞穴結構檢查（出入口、樓梯成對、不通到別的洞、NPC 對話不提別洞、支線寶箱座標吻合、寶箱／NPC id 全域唯一）。新增洞穴後務必跑。
 - 修正：layout_variety.js 翻轉洞穴時，D.sideQuests 的 chest 座標沒跟著翻（q7、q8 導航指錯）→ flip() 一併更新。
 - 修正：民房寶箱 id 重複造成旗標互相污染 → h_py_a(ch3)→h_pu_a、h_rn_a(ch4)→h_rn4_a、h_ly_a(ch4c)→h_li_a、h_hs_a(ch5c)→h_hn_a、h_sz_a(ch5c)→h_ys_a。（舊存檔裡這幾個新 id 的箱子會是未開啟狀態。）
+
+## v0.59.3 自動計謀與物件障礙
+- battle_scene.js autoAction（全體攻擊→計謀）：每個角色獨立判斷。倒下→有復活術 60% 救人；有人兵力<50%→有補血 80% 補最殘的（choice 型且≥2 人受傷用全體）；有人混亂／震暈／中毒→cleanse；否則 60% 從攻擊類（tact/dot/stun/confuse/debuff/discord/assassinate/defect）＋35% 輔助類（buff/taunt/tpgive）隨機施放。tests/autotactic_test.js。
+- scenes.js blocked()：非 world* 地圖的 chest/urn/tablet/spring/lever 一律為障礙（含城鎮、村莊、民房）。inn_patch.js 把山口（shankou*）、關口（guan_*）、關隘軍營標成 fort:true（interior_test 檢查）。
+- data/navy_scale.js（ch5c.js 之後載入）：為每個區域等級 t 產生 shuizei_t／shuijun_t（取該等級 field 敵人平均強度）、gen_navy_t（t≥7，約 22 倍兵力，t≥9 用郭太外觀，其餘管亥），群組 coast_t<t>／coastG_t<t>；scenes.js 海岸遇敵優先使用。tests/navy_test.js。

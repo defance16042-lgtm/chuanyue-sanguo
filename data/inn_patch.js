@@ -4,7 +4,10 @@
   const D = window.DATA, S = D.dialogue, solid = {};
   D.solidTiles.forEach(function (t) { solid[t] = true; });
   // 1. 關隘軍營地圖標記為「內部」，物件變成障礙
-  Object.keys(D.maps).forEach(function (id) { if (/^(wg\d|wuchao)$/.test(id)) D.maps[id].fort = true; });
+  Object.keys(D.maps).forEach(function (id) {
+    const m = D.maps[id], town = D.townIds && D.townIds.indexOf(id) >= 0;
+    if (/^(wg\d|wuchao|shankou\d+(_\d+)?|guan_[we])$/.test(id) || (!town && !m.cave && /山口|關/.test(m.name || '') && !/^world/.test(id))) m.fort = true;   // 山口、關口、關隘軍營
+  });
   // 2. 野外與城鎮地圖上的存檔水晶全部拿掉
   Object.keys(D.maps).forEach(function (id) {
     const m = D.maps[id]; if (m.objects) m.objects = m.objects.filter(function (o) { return o.type !== 'save'; });

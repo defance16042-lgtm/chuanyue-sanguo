@@ -296,13 +296,35 @@ const CMDS = ['攻擊', '計謀', '道具', '全體攻擊', '防禦', '逃跑', 
     }
     autoAction(member) {
       if (this.autoMode === 'tactic') {
+        const party = this.b.party, alive = party.filter(function (u) { return u.hp > 0 && !u.escaped; });
+        const dead = party.filter(function (u) { return u.hp <= 0 && !u.escaped; });
+        const hurt = alive.filter(function (u) { return u.hp / u.hpMax < 0.5; }).sort(function (x, y) { return x.hp / x.hpMax - y.hp / y.hpMax; });
+        const foesAlive = BL.alive(this.b.enemies);
         const usable = BL.skillsFor(member.ref, G.flags).filter(function (skill) {
           const cost = skill.choice && skill.allTp ? skill.allTp : skill.tp;
-          return skill.kind === 'tact' && (skill.target === 'one' || skill.target === 'all') && member.tp >= cost;
+          return member.tp >= cost;
         });
-        if (usable.length) {
-          const skill = usable[Math.floor(Math.random() * usable.length)];
-          return { type: 'skill', skill: skill.id, auto: true, mode: skill.choice ? 'all' : undefined };
+        const of = function (kinds) { return usable.filter(function (k) { return kinds.indexOf(k.kind) >= 0; }); };
+        const roll = Math.random();
+        // 每個角色各自判斷：有人倒下就可能復活、有人受傷就可能補血，否則有機率施放攻擊／輔助計謀
+        const rev = of(['revive']);
+        if (dead.length && rev.length && roll < 0.6) return { type: 'skill', skill: rev[0].id, auto: true, target: dead[0] };
+        const heals = of(['heal', 'hot']);
+        if (hurt.length && heals.length && Math.random() < 0.8) {
+          const sk = heals[Math.floor(Math.random() * heals.length)];
+          if (sk.choice) return { type: 'skill', skill: sk.id, auto: true, mode: hurt.length >= 2 ? 'all' : undefined, target: hurt[0] };
+          return { type: 'skill', skill: sk.id, auto: true, target: hurt[0] };
+        }
+        const cure = of(['cleanse']);
+        if (cure.length && alive.some(function (u) { return u.confused > 0 || u.stun > 0 || u.dot; }) && Math.random() < 0.7) return { type: 'skill', skill: cure[0].id, auto: true, target: alive.filter(function (u) { return u.confused > 0 || u.stun > 0 || u.dot; })[0] };
+        const offense = of(['tact', 'dot', 'stun', 'confuse', 'debuff', 'discord', 'assassinate', 'defect']).filter(function (k) {
+          return k.kind !== 'defect' || foesAlive.some(function (e) { return !e.boss; });
+        }).filter(function (k) { return k.target === 'one' || k.target === 'all'; });
+        const support = of(['buff', 'taunt', 'tpgive']).filter(function (k) { return k.target === 'allAlly' || k.target === 'self'; });
+        const pool = offense.concat(Math.random() < 0.35 ? support : []);
+        if (pool.length && Math.random() < 0.6) {
+          const sk = pool[Math.floor(Math.random() * pool.length)];
+          return { type: 'skill', skill: sk.id, auto: true, mode: sk.choice ? 'all' : undefined };
         }
       }
       return { type: 'attack', auto: true };

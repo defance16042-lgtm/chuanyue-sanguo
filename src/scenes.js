@@ -1069,7 +1069,7 @@
     blocked(x, y) {
       const t = this.tileAt(x, y), o = this.objAt(x, y);
       // 洞穴與山口中的寶箱、陶罐、石碑是實體障礙；開啟的容器會從 objAt 消失。
-      const interiorObstacle = (this.map.cave || this.map.pass || this.map.fort) && o && ['chest', 'urn', 'tablet', 'spring', 'lever'].indexOf(o.type) >= 0;
+      const interiorObstacle = !/^world/.test(this.mapId) && o && ['chest', 'urn', 'tablet', 'spring', 'lever'].indexOf(o.type) >= 0;   // 大地圖以外：箱子、陶罐、石碑、泉水、開關都是障礙，不能重疊站上去
       const solidObject = o && (o.solid === true || o.type === 'gate' || o.type === 'boat' || interiorObstacle);
       return t < 0 || D.solidTiles.indexOf(t) >= 0 || !!this.npcAt(x, y) || !!solidObject;
     }
@@ -1191,6 +1191,8 @@
         if (this.terrainHere() === 'desert') {   // 海岸邊的沙灘：遇到水軍（偶爾是水軍將領），在海上作戰
           const gen = Math.random() < 0.22 ? (tier >= 9 ? 'coastG2' : (tier >= 7 ? 'coastG1' : null)) : null;
           enc.group = gen || (tier <= 4 ? 'coastA' : (tier <= 8 ? 'coastB' : 'coastC'));
+          // 水軍隨進度成長：有為這個區域等級準備的水軍就用它（data/navy_scale.js）
+          const nv = gen ? 'coastG_t' + tier : 'coast_t' + tier; if (D.battle.groups[nv]) enc.group = nv;
           this._forceTerr = 'sea';
         }
       }

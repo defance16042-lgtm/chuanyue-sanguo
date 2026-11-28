@@ -12,6 +12,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     const D = DATA, o = {};
     o.saveLeft = Object.keys(D.maps).filter(k => (D.maps[k].objects || []).some(x => x.type === 'save'));
     const inner = Object.keys(D.maps).filter(k => D.maps[k].cave || D.maps[k].fort);
+    o.passOk = ['shankou1', 'shankou1_2', 'shankou4_3', 'guan_w', 'guan_e', 'wg1', 'wuchao'].every(k => inner.includes(k));
     o.inner = inner.length;
     Game.fresh(); Game.party = ['nyao'].map(Game.makeMember);
     const bad = [];
@@ -41,6 +42,7 @@ const check = (n, ok, x) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 
     return o;
   });
   check('no save crystals', r.saveLeft.length === 0, r.saveLeft);
+  check('山口與關口也算洞穴型地圖', r.passOk);
   check('objects solid', r.bad.length === 0, r.bad.slice(0, 5));
   check('spring heals once and vanishes', r.healed === true && r.gone === true, [r.healed, r.gone, r.walkable]);
   check('chest vanishes', r.chestGone === true);
