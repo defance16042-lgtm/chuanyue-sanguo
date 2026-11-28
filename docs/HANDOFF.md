@@ -272,3 +272,7 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 
 ## v0.61.2
 - 修 bug：scenes.js 頭目戰舊將領護衛只替換 `!boss && !eSkills` 的雜兵位置（原本會蓋掉 boss11 的張梁，導致 CI 的 yingchuan_test 隨機失敗、v0.61.1 Release 沒有安裝包）。
+
+## v0.61.3
+- 修主線卡關：scenes.js visible() 新增 `showIfGuest`（NPC 的 showIf 未滿足時，若該角色 id 在隊伍中仍顯示）；maps.js 洛陽廢墟 徐榮加 showIfGuest:'caocao'。原因：助戰角色在隊時，同名 NPC（曹操）被隱藏，ly_caocao_go 永遠不會設。tests/luoyang_guest_test.js 新增。
+- 已審查：其他與助戰同名的 NPC（鄒靖/盧植/許攸/張郃）都有 hideIf guest/join 旗標，不會卡。

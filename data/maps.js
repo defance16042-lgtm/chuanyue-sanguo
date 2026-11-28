@@ -874,7 +874,7 @@ window.DATA.maps = {
     npcs: [
       { id: 'lysunjian', name: '孫堅', sprite: 30, x: 8, y: 12, dir: 'down', dialogue: 'ly_sunjian' },
       { id: 'lycaocao', name: '曹操', sprite: 17, x: 15, y: 9, dir: 'down', dialogue: 'ly_caocao', hideIf: 'xurong_down' },
-      { id: 'xurong', name: '徐榮', sprite: 34, x: 21, y: 10, dir: 'left', dialogue: 'boss_xurong', hideIf: 'xurong_down', showIf: 'ly_caocao_go' },
+      { id: 'xurong', name: '徐榮', sprite: 34, x: 21, y: 10, dir: 'left', dialogue: 'boss_xurong', hideIf: 'xurong_down', showIf: 'ly_caocao_go', showIfGuest: 'caocao' },
       { id: 'lyrefugee', name: '難民', sprite: 7, x: 4, y: 8, dir: 'right', dialogue: 'ly_refugee' },
       { id: 'lyold', name: '老宮人', sprite: 6, x: 18, y: 14, dir: 'up', dialogue: 'ly_old' }
     ],

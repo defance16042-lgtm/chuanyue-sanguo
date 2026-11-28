@@ -1063,7 +1063,7 @@
       return D.legend[this.map.tiles[y][x]];
     }
     terrainHere() { return D.terrainOf[this.tileAt(this.p.x, this.p.y)] || 'plain'; }
-    visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf]) && !(G.party.some(function (m) { return m.guest && m.name === n.name; })); }   // 已經加入隊伍的助戰角色，原地的 NPC 會消失
+    visible(n) { return !(n.hideIf && G.flags[n.hideIf]) && !(n.showIf && !G.flags[n.showIf] && !(n.showIfGuest && G.party.some(function (m) { return m.id === n.showIfGuest; }))) && !(G.party.some(function (m) { return m.guest && m.name === n.name; })); }   // 已經加入隊伍的助戰角色，原地的 NPC 會消失
     npcAt(x, y) { return this.npcs.find(function (n) { return n.x === x && n.y === y && this.visible(n); }, this); }
     objAt(x, y) { const self = this; return this.map.objects.find(function (o) { return o.x === x && o.y === y && !(o.type === 'gate' && G.flags[o.flag]) && !(o.type === 'urn' && G.flags['urn_' + o.id]) && !(o.type === 'chest' && G.flags['chest_' + o.id]) && !(o.type === 'spring' && G.flags[springKey(self, o)]); }); }
     blocked(x, y) {
