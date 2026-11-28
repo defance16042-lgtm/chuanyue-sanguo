@@ -81,8 +81,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('fire does nothing on round 1, hits every enemy on round 2, only once per round', fr.r1 === 0 && fr.r2 === 5 && fr.again === 0, fr);
   check('fire damage is 15% max HP and never kills the boss', fr.bossLoss === fr.pct && fr.bossLeft === 1, fr);
   // 勝利後
-  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
-  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await winBattle();
   await sleep(500); await talk(); s = await S();
   check('winning sets bocai_down, pays 400 gold and gives the book', s.flags.bocai_down === true && s.gear.bamboo_book === 1 && s.gold >= 400, { f: s.flags.bocai_down, g: s.gold, gear: s.gear });
   await face('changshe', 5, 7, 'up');
@@ -97,8 +96,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('runan east gate blocked until pengtuo is down', s.map === 'world', s.map);
   await go('runan_ch1', 19, 10, 'left'); await sleep(150); await tap('z'); await sleep(300); await talk(); await sleep(600);
   check('talking to pengtuo starts boss4', (await S()).scene === 'BattleScene');
-  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
-  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await winBattle();
   await sleep(500); await talk(); s = await S();
   check('pengtuo_down set and gold paid', s.flags.pengtuo_down === true && s.gold >= 300, { f: s.flags.pengtuo_down, g: s.gold });
   await viaWorld('wancheng'); await talk();
@@ -106,14 +104,12 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await face('wancheng', 12, 4, 'down');
   await sleep(500);
   check('zhaohong starts boss5', (await S()).scene === 'BattleScene');
-  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
-  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await winBattle();
   await sleep(500); await talk(); s = await S();
   check('zhaohong_down set', s.flags.zhaohong_down === true, s.flags);
   await face('wancheng', 12, 4, 'down'); await sleep(500);
   check('hanzhong replaces zhaohong and starts boss6', (await S()).scene === 'BattleScene');
-  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
-  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await winBattle();
   await sleep(500); await talk(); s = await S();
   check('hanzhong_down set, chapter text shown', s.flags.hanzhong_down === true, s.flags);
   // 東郡倉亭：卜巳
@@ -122,8 +118,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   await page.evaluate(() => { if (!Game.party.some(m => m.id === 'caocao')) Game.party.push(Game.makeMember('caocao')); });
   await face('dongjun', 19, 10, 'left'); await sleep(500);
   check('busi starts boss7', (await S()).scene === 'BattleScene');
-  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
-  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await winBattle();
   await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
   check('busi_down set, caocao leaves the party', s.flags.busi_down === true && !s.ids.includes('caocao'), { f: s.flags.busi_down, ids: s.ids, sc: s.scene, g: s.gold });
   // 冀州篇（一）：廣宗・張梁・盧植
@@ -137,14 +132,24 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   check('luzhi joins as a guest', s.ids.includes('luzhi') && s.flags.guest_luzhi === true, s.ids);
   await face('guangzong', 16, 10, 'right'); await sleep(500);
   check('zhangliang starts boss8', (await S()).scene === 'BattleScene');
-  await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); });
-  for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z');
+  await winBattle();
   await sleep(900); await talk(); await sleep(400); await talk(); s = await S();
   check('zhangliang_down set', s.flags.zhangliang_down === true, s.flags);
   await face('guangzong', 6, 6, 'right'); await sleep(400); await talk(); await sleep(400); await talk(); s = await S();
   check('zuofeng scene: luzhi leaves the party', s.flags.zuofeng_done === true && !s.ids.includes('luzhi'), { f: s.flags.zuofeng_done, ids: s.ids });
   // 冀州篇（下）：張寶・張角・三兄弟同時出戰
-  const winBattle = async () => { await page.evaluate(() => { const t = Engine.top(); t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; }); t.finish('win'); }); for (let i = 0; i < 90 && (await S()).scene === 'BattleScene'; i++) await tap('z'); };
+  async function winBattle() {
+    // 結算流程測試直接結束戰鬥動畫，仍呼叫正式 onEnd 回呼，避免用固定 90 次按鍵
+    // 因敵方援軍、升級訊息數量不同而偶發停在結果畫面。
+    await page.evaluate(() => {
+      const t = Engine.top();
+      t.b.enemies.forEach(e => { e.hp = 0; e.dhp = 0; });
+      t.finish('win');
+      const cb = t.opts && t.opts.onEnd;
+      Engine.pop();
+      if (cb) cb('win');
+    });
+  }
   await viaWorld('xiaquyang'); await talk();
   check('guangzong east exit leads to xiaquyang after zuofeng', (await S()).map === 'xiaquyang', (await S()).map);
   await viaWorld('gzcity'); await talk();
