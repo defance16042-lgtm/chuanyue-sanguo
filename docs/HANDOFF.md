@@ -258,4 +258,11 @@ CI 使用 Node.js 22。Playwright 需安裝 Chromium 才能執行瀏覽器測試
 - 新 kind：reflect（策反計）、seal（禁策計，perform 內攔截非 phys 技能改普攻）。技能 sx_reflect / sx_seal / sx_seal2 於 data/balance_v60.js；原 defect 顯示名改為「招降」。
 - scenes.js：頭目戰依 B.bossEscort 帶入過往被打敗的 `_r` 將領；機率 B.rematchRate/wildGenRate/allGenRate 於 balance_v60.js。
 - tests/balance_test.js 新增；gens/equip test 數值更新。
-- 第六章批次 1 尚未開始實作（美術已生成、未提交），下一步接續。
+
+## v0.61.0 第六章批次 1（三顧茅廬）
+- tools/build_ch6.py（由 build_ch5.py 改寫）→ data/ch6world.js：world6 64×48、樊城/隆中/水鏡莊（D.ch6Doors）；無村、洞穴（批次 2）。
+- data/ch6.js：敵人 bandit6/field19/ch6_bandit、裝備 fc_*/lz_*/sj_charm、角色 xushu/zhugeliang（核心，act recruit）、技能（暗殺/反間計/招降；火計/空城計/博望火計/天火燎原，另用 sx_reflect/sx_seal）、房屋、商店、世界5→世界6關門（world5 (78,51)，need ch6_xushu_rec）、劇情與主線任務。
+- 旗標順序：ch6_xushu_rec → ch6_v1 → ch6_cui_down → ch6_shui → ch6_v2 → ch6_fast → ch6_zhuge_join。
+- 美術：xushu(70)/zhugeliang(71) 地圖圖與戰鬥圖，頭像 188–193（徐庶、諸葛亮、崔州平、黃承彥、諸葛均、司馬徽）。崔州平等 NPC 地圖圖借用既有 sprite。
+- tests/ch6_test.js 新增；world_test/ch2d_test 改成包含 world6。
+- 批次 2 待辦：博望坡（夏侯惇、關張改觀）、村 3、洞穴 2、山口/關口 2（含第五章遺留 2 處）、支線 4、新兵書、新野之戰。
